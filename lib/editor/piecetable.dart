@@ -1,126 +1,122 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import './cursor.dart';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 
-@immutable
-class Cursor {
-  const Cursor({
-    required this.pieceIndex,
-    required this.offset,
-  });
-
-  final int pieceIndex;
-  final int offset;
-
-  /// Move the cursor right by one character.
-  Cursor moveRightOnce(IList<TextSpan> pieces) {
-    TextSpan currPiece = pieces[pieceIndex];
-    if (offset < currPiece.text!.length - 1) {
-      // Not at the end yet, offset can be incremented.
-      return copyWith(offset: offset + 1);
-    } else {
-      // At the end of a piece, must jump.
-      if (pieceIndex < pieces.length - 1) {
-        // Not yet on the last piece.
-        return copyWith(
-          pieceIndex: pieceIndex + 1,
-          offset: 0,
-        );
-      } else {
-        return this;
-        // TODO: This is where you should probably jump to the next block.
-      }
-    }
-  }
-
-  /// Move the cursor left by one character.
-  Cursor moveLeftOnce(IList<TextSpan> pieces) {
-    TextSpan currPiece = pieces[pieceIndex];
-    if (offset > 0) {
-      // Not at the beginning yet, offset can be decremented.
-      return copyWith(offset: offset - 1);
-    } else {
-      // At the beginning of a piece, must jump.
-      if (pieceIndex > 0) {
-        // Not yet on the first piece.
-        return copyWith(
-          pieceIndex: pieceIndex - 1,
-          offset: pieces[pieceIndex - 1].text!.length - 1,
-        );
-      } else {
-        return this;
-        // TODO: This is where you should probably jump to the previous block.
-      }
-    }
-  }
-
-  /// Move the cursor right by a given distance.
-  /// To move by one character use [moveRightOnce].
-  Cursor moveRight(int distance, IList<TextSpan> pieces) {
-    Cursor curr = this;
-    for (int i = 0; i < distance; i++) {
-      curr = curr.moveRightOnce(pieces);
-    }
-    return curr;
-  }
-
-  /// Move the cursor left by a given distance.
-  /// To move by one character use [moveLeftOnce].
-  Cursor moveLeft(int distance, IList<TextSpan> pieces) {
-    Cursor curr = this;
-    for (int i = 0; i < distance; i++) {
-      curr = curr.moveLeftOnce(pieces);
-    }
-    return curr;
-  }
-
-  Cursor copyWith({
-    int? pieceIndex,
-    int? offset,
-  }) {
-    return Cursor(
-      pieceIndex: pieceIndex ?? this.pieceIndex,
-      offset: offset ?? this.offset,
-    );
-  }
-}
-
-class Editor {
-  Editor({
+class EditorBlock {
+  EditorBlock({
     String? initialContent,
   }) {
     if (initialContent != null) {
       pieces = pieces.add(TextSpan(text: initialContent));
     }
     pieces = pieces.add(sentinelPiece);
-    cursor = const Cursor(
-      pieceIndex: 0,
-      offset: 0,
-    );
   }
 
   /// An empty piece at the end of the text.
   /// The cursor is placed here to append text.
-  final TextSpan sentinelPiece = const TextSpan(text: r"\0");
+  final TextSpan sentinelPiece = const TextSpan(text: "^");
 
   IList<TextSpan> pieces = <TextSpan>[].lockUnsafe;
 
-  late Cursor cursor;
-
   /// Calculate the offset of the cursor in this entire editor.
-  int getCursorOffset() {
+  int getCursorOffset(Cursor cursor) {
+    assert(cursor.block == this);
     int offset = 0;
     for (int i = 0; i < cursor.pieceIndex; i++) {
       offset += pieces[i].text!.length;
     }
     offset += cursor.offset;
     return offset;
+  }
+}
+
+class ParagraphBlock extends EditorBlock {
+  ParagraphBlock({String? initialContent})
+      : super(initialContent: initialContent);
+}
+
+class Editor {
+  late IList<EditorBlock> blocks;
+  late Cursor cursor;
+
+  Editor({
+    String? initialContent,
+  }) {
+    blocks = [
+      ParagraphBlock(initialContent: initialContent),
+    ].lockUnsafe;
+    cursor = Cursor(
+      block: blocks[0],
+      pieceIndex: 0,
+      offset: 0,
+    );
+  }
+
+  /// Return a new cursor one character to the right from a given one.
+  Cursor moveRightOnce(Cursor cursor) {
+    TextSpan currPiece = cursor.block.pieces[cursor.pieceIndex];
+    if (cursor.offset < currPiece.text!.length - 1) {
+      // Not at the end yet, offset can be incremented.
+      return cursor.copyWith(offset: cursor.offset + 1);
+    } else {
+      // At the end of a piece, must jump.
+      if (cursor.pieceIndex < cursor.block.pieces.length - 1) {
+        // Not yet on the last piece.
+        return cursor.copyWith(
+          pieceIndex: cursor.pieceIndex + 1,
+          offset: 0,
+        );
+      } else {
+        return cursor;
+        // TODO: This is where you should probably jump to the next block.
+      }
+    }
+  }
+
+  /// Move the cursor left by one character.
+  Cursor moveLeftOnce(Cursor cursor) {
+    TextSpan currPiece = cursor.block.pieces[cursor.pieceIndex];
+    if (cursor.offset > 0) {
+      // Not at the beginning yet, offset can be decremented.
+      return cursor.copyWith(offset: cursor.offset - 1);
+    } else {
+      // At the beginning of a piece, must jump.
+      if (cursor.pieceIndex > 0) {
+        // Not yet on the first piece.
+        return cursor.copyWith(
+          pieceIndex: cursor.pieceIndex - 1,
+          offset: cursor.block.pieces[cursor.pieceIndex - 1].text!.length - 1,
+        );
+      } else {
+        return cursor;
+        // TODO: This is where you should probably jump to the previous block.
+      }
+    }
+  }
+
+  /// Move the cursor left by a given distance.
+  /// To move by one character use [moveLeftOnce].
+  Cursor moveLeft(int distance, Cursor cursor) {
+    Cursor curr = cursor;
+    for (int i = 0; i < distance; i++) {
+      curr = moveLeftOnce(cursor);
+    }
+    return curr;
+  }
+
+  /// Move the cursor right by a given distance.
+  /// To move by one character use [moveRightOnce].
+  Cursor moveRight(int distance, Cursor cursor) {
+    Cursor curr = cursor;
+    for (int i = 0; i < distance; i++) {
+      curr = moveRightOnce(curr);
+    }
+    return curr;
   }
 
   /// Insert [newContent] before the cursor.
@@ -129,8 +125,8 @@ class Editor {
       // Cursor is at the start of the piece.
       if (cursor.pieceIndex == 0) {
         // There is no previous piece, insert one.
-        TextSpan cursorPiece = pieces[cursor.pieceIndex];
-        pieces = pieces.insert(
+        TextSpan cursorPiece = cursor.block.pieces[cursor.pieceIndex];
+        cursor.block.pieces = cursor.block.pieces.insert(
           0,
           TextSpan(
             text: newContent,
@@ -141,8 +137,8 @@ class Editor {
         cursor = cursor.copyWith(pieceIndex: 1);
       } else {
         // Append to the previous piece.
-        TextSpan previousPiece = pieces[cursor.pieceIndex - 1];
-        pieces = pieces.replace(
+        TextSpan previousPiece = cursor.block.pieces[cursor.pieceIndex - 1];
+        cursor.block.pieces = cursor.block.pieces.replace(
           cursor.pieceIndex - 1,
           TextSpan(
             text: previousPiece.text! + newContent,
@@ -153,20 +149,22 @@ class Editor {
     } else {
       // Cursor is not at the start, piece must be split.
       // Insert first half.
-      pieces = pieces.insert(
+      cursor.block.pieces = cursor.block.pieces.insert(
         cursor.pieceIndex,
         TextSpan(
-          text: pieces[cursor.pieceIndex].text!.substring(0, cursor.offset) +
+          text: cursor.block.pieces[cursor.pieceIndex].text!
+                  .substring(0, cursor.offset) +
               newContent,
-          style: pieces[cursor.pieceIndex].style,
+          style: cursor.block.pieces[cursor.pieceIndex].style,
         ),
       );
       // Append to the second half.
-      pieces = pieces.replace(
+      cursor.block.pieces = cursor.block.pieces.replace(
         cursor.pieceIndex + 1,
         TextSpan(
-          text: pieces[cursor.pieceIndex + 1].text!.substring(cursor.offset),
-          style: pieces[cursor.pieceIndex + 1].style,
+          text: cursor.block.pieces[cursor.pieceIndex + 1].text!
+              .substring(cursor.offset),
+          style: cursor.block.pieces[cursor.pieceIndex + 1].style,
         ),
       );
       // Cursor remains where it is, but the index changes because
@@ -180,15 +178,79 @@ class Editor {
 }
 
 class EditorView extends StatefulWidget {
-  const EditorView(this.editor, this.focusNode, {super.key});
-  final FocusNode focusNode;
+  const EditorView({
+    super.key,
+    required this.editor,
+  });
   final Editor editor;
 
   @override
-  State<EditorView> createState() => _EditorViewState();
+  State<StatefulWidget> createState() => _EditorViewState();
 }
 
 class _EditorViewState extends State<EditorView> {
+  final FocusNode focusNode = FocusNode();
+
+  @override
+  Widget build(BuildContext context) {
+    return KeyboardListener(
+      focusNode: focusNode,
+      onKeyEvent: (event) {
+        if (event.runtimeType == KeyDownEvent ||
+            event.runtimeType == KeyRepeatEvent) {
+          if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+            setState(() {
+              widget.editor.cursor =
+                  widget.editor.moveRightOnce(widget.editor.cursor);
+            });
+            return;
+          }
+          if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+            setState(() {
+              widget.editor.cursor =
+                  widget.editor.moveLeftOnce(widget.editor.cursor);
+            });
+            return;
+          }
+          if (event.logicalKey == LogicalKeyboardKey.enter) {
+            setState(() {
+              widget.editor.append("\n");
+            });
+            return;
+          }
+          if (event.character != null) {
+            setState(() {
+              widget.editor.append(event.character ?? "?");
+            });
+          }
+        }
+      },
+      child: Column(
+        children: widget.editor.blocks
+            .map((block) => EditorTextView(
+                  block: block,
+                  cursor: widget.editor.cursor,
+                ))
+            .toList(),
+      ),
+    );
+  }
+}
+
+class EditorTextView extends StatefulWidget {
+  const EditorTextView({
+    required this.block,
+    required this.cursor,
+    super.key,
+  });
+  final EditorBlock block;
+  final Cursor cursor;
+
+  @override
+  State<EditorTextView> createState() => _EditorTextViewState();
+}
+
+class _EditorTextViewState extends State<EditorTextView> {
   final GlobalKey textKey = GlobalKey();
 
   Rect caretRect = Rect.zero;
@@ -226,7 +288,7 @@ class _EditorViewState extends State<EditorView> {
   Rect getCaretRect() {
     RenderParagraph? renderParagraph = getRenderParagraph();
     if (renderParagraph == null) return Rect.zero;
-    int offsetIndex = widget.editor.getCursorOffset();
+    int offsetIndex = widget.block.getCursorOffset(widget.cursor);
     TextPosition position = TextPosition(
       offset: offsetIndex,
     );
@@ -254,52 +316,25 @@ class _EditorViewState extends State<EditorView> {
   @override
   Widget build(BuildContext context) {
     scheduleTextLayoutUpdate();
-    return KeyboardListener(
-      focusNode: widget.focusNode,
-      onKeyEvent: (event) {
-        if (event.runtimeType == KeyDownEvent ||
-            event.runtimeType == KeyRepeatEvent) {
-          if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-            setState(() {
-              widget.editor.cursor =
-                  widget.editor.cursor.moveRightOnce(widget.editor.pieces);
-            });
-            return;
-          }
-          if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-            setState(() {
-              widget.editor.cursor =
-                  widget.editor.cursor.moveLeftOnce(widget.editor.pieces);
-            });
-            return;
-          }
-          if (event.character != null) {
-            setState(() {
-              widget.editor.append(event.character ?? "?");
-            });
-          }
-        }
-      },
-      child: Stack(
-        children: [
-          RichText(
-            key: textKey,
-            text: TextSpan(
-              children: widget.editor.pieces.unlockView,
-              style: const TextStyle(color: Colors.black),
+    return Stack(
+      children: [
+        RichText(
+          key: textKey,
+          text: TextSpan(
+            children: widget.block.pieces.unlockView,
+            style: const TextStyle(color: Colors.black),
+          ),
+        ),
+        StreamBuilder(
+          stream: caretChanged.stream,
+          builder: (context, snapshot) => CustomPaint(
+            painter: CaretPainter(
+              color: Colors.black38,
+              rect: caretRect,
             ),
           ),
-          StreamBuilder(
-            stream: caretChanged.stream,
-            builder: (context, snapshot) => CustomPaint(
-              painter: CaretPainter(
-                color: Colors.black38,
-                rect: caretRect,
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
