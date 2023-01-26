@@ -8,7 +8,7 @@ import './state.dart';
 
 export './memex_app.dart';
 export './table/table.dart';
-export './editor/piecetable.dart';
+export './editor/editor.dart';
 
 class MemexFocusNode extends FocusNode {
   @override
