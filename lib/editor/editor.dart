@@ -1,12 +1,8 @@
-import 'dart:async';
-
 import './cursor.dart';
 import './block.dart';
-import './text_view.dart';
 
 import 'package:flutter/material.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:flutter/services.dart';
 
 class Editor {
   /// The top level blocks of the editor.
@@ -159,66 +155,5 @@ class Editor {
         offset: 0,
       );
     }
-  }
-}
-
-class EditorView extends StatefulWidget {
-  const EditorView({
-    super.key,
-    required this.editor,
-  });
-  final Editor editor;
-
-  @override
-  State<StatefulWidget> createState() => _EditorViewState();
-}
-
-class _EditorViewState extends State<EditorView> {
-  final FocusNode focusNode = FocusNode();
-
-  @override
-  Widget build(BuildContext context) {
-    return KeyboardListener(
-      focusNode: focusNode,
-      onKeyEvent: (event) {
-        if (event.runtimeType == KeyDownEvent ||
-            event.runtimeType == KeyRepeatEvent) {
-          if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-            setState(() {
-              widget.editor.cursor =
-                  widget.editor.moveRightOnce(widget.editor.cursor);
-            });
-            return;
-          }
-          if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-            setState(() {
-              widget.editor.cursor =
-                  widget.editor.moveLeftOnce(widget.editor.cursor);
-            });
-            return;
-          }
-          if (event.logicalKey == LogicalKeyboardKey.enter) {
-            setState(() {
-              widget.editor.append("\n");
-            });
-            return;
-          }
-          if (event.character != null) {
-            setState(() {
-              widget.editor.append(event.character ?? "?");
-            });
-          }
-        }
-      },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: widget.editor.blocks
-            .map((block) => EditorTextView(
-                  block: block,
-                  cursor: widget.editor.cursor,
-                ))
-            .toList(),
-      ),
-    );
   }
 }

@@ -16,7 +16,8 @@ class EditorBlock {
 
   /// An empty piece at the end of the text.
   /// The cursor is placed here to append text.
-  final TextSpan sentinelPiece = const TextSpan(text: "^");
+  final TextSpan sentinelPiece =
+      TextSpan(text: String.fromCharCodes(Runes(' ')));
 
   IList<TextSpan> pieces = <TextSpan>[].lockUnsafe;
 

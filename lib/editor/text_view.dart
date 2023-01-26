@@ -59,15 +59,15 @@ class _EditorTextViewState extends State<EditorTextView> {
     if (renderParagraph == null) return Rect.zero;
     int? offsetIndex = widget.block.getCursorOffset(widget.cursor);
     if (offsetIndex == null) return Rect.zero; // Cursor not in this block.
-    // TextPosition position = TextPosition(offset: offsetIndex);
-    final boxes = renderParagraph.getBoxesForSelection(
+    TextPosition position = TextPosition(offset: offsetIndex);
+    /*final boxes = renderParagraph.getBoxesForSelection(
       TextSelection(
         baseOffset: offsetIndex,
         extentOffset: offsetIndex + 1,
       ),
     );
-    return boxes[0].toRect();
-    /*Offset offset = renderParagraph.getOffsetForCaret(
+    return boxes[0].toRect();*/
+    Offset offset = renderParagraph.getOffsetForCaret(
       position,
       Rect.zero,
     );
@@ -78,7 +78,7 @@ class _EditorTextViewState extends State<EditorTextView> {
       offset.dy,
       caretWidth,
       caretHeight,
-    );*/
+    );
   }
 
   @override
