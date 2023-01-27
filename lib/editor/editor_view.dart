@@ -52,6 +52,12 @@ class _EditorViewState extends State<EditorView> {
             });
             return;
           }
+          if (event.logicalKey == LogicalKeyboardKey.backspace) {
+            setState(() {
+              widget.editor.deleteBackwards();
+            });
+            return;
+          }
           if (event.character != null) {
             setState(() {
               widget.editor.append(event.character ?? "?");

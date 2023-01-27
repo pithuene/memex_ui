@@ -31,9 +31,7 @@ class Editor {
 
   /// Return a new cursor one character to the right from a given one.
   Cursor moveRightOnce(Cursor cursor) {
-    TextSpan currPiece = cursor.block.pieces[cursor.pieceIndex];
-    if (cursor.offset < currPiece.text!.length - 1) {
-      // Not at the end yet, offset can be incremented.
+    if (!cursor.isAtPieceEnd) {
       return cursor.copyWith(offset: cursor.offset + 1);
     } else {
       // At the end of a piece, must jump.
@@ -60,8 +58,7 @@ class Editor {
 
   /// Move the cursor left by one character.
   Cursor moveLeftOnce(Cursor cursor) {
-    if (cursor.offset > 0) {
-      // Not at the beginning yet, offset can be decremented.
+    if (!cursor.isAtPieceStart) {
       return cursor.copyWith(offset: cursor.offset - 1);
     } else {
       // At the beginning of a piece, must jump.
@@ -106,10 +103,69 @@ class Editor {
     return curr;
   }
 
+  void deleteBackwards() {
+    if (cursor.isAtPieceStart) {
+      // Cursor at the start means you can simply cut the last character off the previous piece.
+      if (cursor.previousPiece != null) {
+        if (cursor.previousPiece!.text!.length == 1) {
+          // Piece will be empty, simply remove it.
+          cursor.block.pieces =
+              cursor.block.pieces.removeAt(cursor.pieceIndex - 1);
+          cursor = cursor.copyWith(pieceIndex: cursor.pieceIndex - 1);
+        } else {
+          cursor.block.pieces = cursor.block.pieces.replace(
+            cursor.pieceIndex - 1,
+            TextSpan(
+                style: cursor.previousPiece!.style,
+                text: cursor.previousPiece!.text!
+                    .substring(0, cursor.previousPiece!.text!.length - 1)),
+          );
+        }
+      } else {
+        // TODO: Delete at the start of the block. This should probably transform the block into a [ParagraphBlock] and / or merge it with the previous one.
+      }
+    } else if (cursor.offset == 1) {
+      // Cursor on the second character means you can simply cut the first character off the current piece.
+      cursor.block.pieces = cursor.block.pieces.replace(
+        cursor.pieceIndex,
+        TextSpan(
+          style: cursor.piece.style,
+          text: cursor.piece.text!.substring(1),
+        ),
+      );
+      cursor = cursor.copyWith(offset: 0);
+    } else {
+      // Spit required
+      // Insert first half
+      cursor.block.pieces = cursor.block.pieces.insert(
+        cursor.pieceIndex,
+        TextSpan(
+          style: cursor.piece.style,
+          text: cursor.piece.text!.substring(
+            0,
+            cursor.offset - 1,
+          ),
+        ),
+      );
+      // Cut second half
+      cursor.block.pieces = cursor.block.pieces.replace(
+        cursor.pieceIndex + 1,
+        TextSpan(
+          style: cursor.nextPiece!.style,
+          text: cursor.nextPiece!.text!.substring(cursor.offset),
+        ),
+      );
+      // Adjust cursor.
+      cursor = cursor.copyWith(
+        pieceIndex: cursor.pieceIndex + 1,
+        offset: 0,
+      );
+    }
+  }
+
   /// Insert [newContent] before the cursor.
   void append(String newContent) {
-    if (cursor.offset == 0) {
-      // Cursor is at the start of the piece.
+    if (cursor.isAtPieceStart) {
       if (cursor.pieceIndex == 0) {
         // There is no previous piece, insert one.
         TextSpan cursorPiece = cursor.block.pieces[cursor.pieceIndex];
