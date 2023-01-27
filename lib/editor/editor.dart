@@ -13,8 +13,14 @@ class Editor {
     String? initialContent,
   }) {
     blocks = [
-      ParagraphBlock(initialContent: initialContent),
-      ParagraphBlock(initialContent: "Ein neuer Absatz."),
+      ParagraphBlock(
+        initialContent: initialContent,
+        editor: this,
+      ),
+      ParagraphBlock(
+        initialContent: "Ein neuer Absatz.",
+        editor: this,
+      ),
     ].lockUnsafe;
     cursor = Cursor(
       block: blocks[0],

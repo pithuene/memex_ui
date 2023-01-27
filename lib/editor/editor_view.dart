@@ -1,6 +1,5 @@
 import 'package:memex_ui/editor/block.dart';
 
-import './text_view.dart';
 import './editor.dart';
 
 import 'package:flutter/material.dart';
@@ -24,10 +23,7 @@ class _EditorViewState extends State<EditorView> {
   Widget build(BuildContext context) {
     List<Widget> blockWidgets = [];
     for (EditorBlock block in widget.editor.blocks) {
-      blockWidgets.add(EditorTextView(
-        block: block,
-        cursor: widget.editor.cursor,
-      ));
+      blockWidgets.add(block.build(context));
       blockWidgets.add(Container(height: 15));
     }
 
