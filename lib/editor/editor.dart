@@ -72,7 +72,7 @@ class Editor {
         if (blocks.first != cursor.block) {
           // There is another block to jump to.
           return Cursor(
-            block: blocks.first,
+            block: blocks[blocks.indexOf(cursor.block) - 1],
             pieceIndex: blocks.first.pieces.length - 1,
             offset: blocks.first.pieces.last.text!.length - 1,
           );
