@@ -10,10 +10,15 @@ class EditorTextView extends StatefulWidget {
   const EditorTextView({
     required this.block,
     required this.cursor,
+    this.style = const TextStyle(
+      color: Colors.black,
+      fontFamily: "Inter",
+    ),
     super.key,
   });
   final EditorBlock block;
   final Cursor cursor;
+  final TextStyle style;
 
   @override
   State<EditorTextView> createState() => _EditorTextViewState();
@@ -90,7 +95,7 @@ class _EditorTextViewState extends State<EditorTextView> {
           key: textKey,
           text: TextSpan(
             children: widget.block.pieces.unlockView,
-            style: const TextStyle(color: Colors.black),
+            style: widget.style,
           ),
         ),
         StreamBuilder(
