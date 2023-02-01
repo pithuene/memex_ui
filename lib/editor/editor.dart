@@ -71,10 +71,11 @@ class Editor {
       } else {
         if (blocks.first != cursor.block) {
           // There is another block to jump to.
+          EditorBlock previousBlock = blocks[blocks.indexOf(cursor.block) - 1];
           return Cursor(
-            block: blocks[blocks.indexOf(cursor.block) - 1],
-            pieceIndex: blocks.first.pieces.length - 1,
-            offset: blocks.first.pieces.last.text!.length - 1,
+            block: previousBlock,
+            pieceIndex: previousBlock.pieces.length - 1,
+            offset: previousBlock.pieces.last.text!.length - 1,
           );
         }
         // Can't move right, returning cursor unchanged.
