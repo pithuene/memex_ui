@@ -13,6 +13,7 @@ class EditorBlock {
     String? initialContent,
   }) {
     if (initialContent != null) {
+      assert(initialContent.isNotEmpty);
       pieces = pieces.add(TextSpan(text: initialContent));
     }
     pieces = pieces.add(sentinelPiece);
@@ -61,5 +62,27 @@ class ParagraphBlock extends EditorBlock {
   Widget build(BuildContext context) => EditorTextView(
         block: this,
         cursor: editor.cursor,
+      );
+}
+
+class Heading1Block extends EditorBlock {
+  Heading1Block({
+    String? initialContent,
+    required Editor editor,
+  }) : super(
+          initialContent: initialContent,
+          editor: editor,
+        );
+
+  @override
+  Widget build(BuildContext context) => EditorTextView(
+        block: this,
+        cursor: editor.cursor,
+        style: const TextStyle(
+          color: Color(0xFF000000),
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+          fontFamily: "Inter",
+        ),
       );
 }
