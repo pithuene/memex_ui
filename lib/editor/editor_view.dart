@@ -58,7 +58,6 @@ class _EditorViewState extends State<EditorView> {
             } else {
               setState(() {
                 widget.editor.newLine();
-                print("New Paragraph");
               });
               return;
             }

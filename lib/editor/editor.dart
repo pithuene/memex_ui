@@ -154,12 +154,52 @@ class EditorState {
     return curr;
   }
 
+  /// Splits the piece which contains the cursor,
+  /// so the cursor is at offset zero afterwards.
+  EditorState splitBeforeCursor() {
+    if (cursor.offset == 0) return this;
+    return insertPieceInCursorBlock(
+      cursor.pieceIndex,
+      TextSpan(
+        text: getCursorPiece(cursor).text!.substring(0, cursor.offset),
+        style: getCursorPiece(cursor).style,
+      ),
+    )
+        .replacePieceInCursorBlock(
+          cursor.pieceIndex + 1,
+          TextSpan(
+            text: getCursorPiece(cursor).text!.substring(cursor.offset),
+            style: getCursorPiece(cursor).style,
+          ),
+        )
+        .replaceCursor(
+          pieceIndex: cursor.pieceIndex + 1,
+          offset: 0,
+        );
+  }
+
+  /// Insert a "hard break".
+  /// Split the block at the current cursor.
   EditorState newLine() {
-    ParagraphBlock newBlock = ParagraphBlock.withInitialContent();
-    return copyWith(
-      blocks: blocks.insert(
-        cursor.blockIndex + 1,
-        newBlock,
+    final splitState = splitBeforeCursor();
+    assert(splitState.cursor.offset == 0);
+    final blockCut = splitState.replacePiecesInCursorBlock(
+      splitState
+          .getCursorBlock(splitState.cursor)
+          .pieces
+          .sublist(0, splitState.cursor.pieceIndex)
+          .add(EditorBlock.sentinelPiece),
+    );
+
+    return blockCut.copyWith(
+      blocks: blockCut.blocks.insert(
+        blockCut.cursor.blockIndex + 1,
+        ParagraphBlock(
+          splitState
+              .getCursorBlock(splitState.cursor)
+              .pieces
+              .sublist(splitState.cursor.pieceIndex),
+        ),
       ),
       cursor: cursor.copyWith(
         blockIndex: cursor.blockIndex + 1,

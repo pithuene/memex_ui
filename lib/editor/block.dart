@@ -43,11 +43,8 @@ class EditorBlock {
         cursor: cursor,
       );
 
-  EditorBlock copyWith({
-    IList<TextSpan>? pieces,
-  }) {
-    return EditorBlock(pieces ?? this.pieces);
-  }
+  EditorBlock copyWith({IList<TextSpan>? pieces}) =>
+      EditorBlock(pieces ?? this.pieces);
 }
 
 class ParagraphBlock extends EditorBlock {
@@ -55,6 +52,10 @@ class ParagraphBlock extends EditorBlock {
       : super.withInitialContent(initialContent);
 
   ParagraphBlock(super.pieces);
+
+  @override
+  EditorBlock copyWith({IList<TextSpan>? pieces}) =>
+      ParagraphBlock(pieces ?? this.pieces);
 
   @override
   Widget build(BuildContext context, Cursor? cursor) => EditorTextView(
