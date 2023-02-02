@@ -144,7 +144,17 @@ class EditorState {
 
     if (blockPath.last > 0) {
       // Has previous neighbor
-      return blockPath.replace(blockPath.length - 1, blockPath.last - 1);
+      IList<int> previousBlockPath =
+          blockPath.replace(blockPath.length - 1, blockPath.last - 1);
+      EditorBlock previousBlock = getBlockFromPath(previousBlockPath)!;
+      // Get previous neighbors last child
+      while (previousBlock is EditorBlockWithChildren &&
+          previousBlock.children.isNotEmpty) {
+        previousBlockPath =
+            previousBlockPath.add(previousBlock.children.length - 1);
+        previousBlock = getBlockFromPath(previousBlockPath)!;
+      }
+      return previousBlockPath;
     } else {
       return blockPath.removeLast();
     }
