@@ -6,10 +6,10 @@ import './block.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-class EditorTextView extends StatefulWidget {
-  const EditorTextView({
+class EditorTextView extends StatelessWidget {
+  EditorTextView({
     required this.block,
-    required this.cursor,
+    this.cursor,
     this.style = const TextStyle(
       color: Colors.black,
       fontFamily: "Inter",
@@ -17,23 +17,13 @@ class EditorTextView extends StatefulWidget {
     super.key,
   });
   final EditorBlock block;
-  final Cursor cursor;
+  final Cursor? cursor;
   final TextStyle style;
 
-  @override
-  State<EditorTextView> createState() => _EditorTextViewState();
-}
-
-class _EditorTextViewState extends State<EditorTextView> {
   final GlobalKey textKey = GlobalKey();
 
   Rect caretRect = Rect.zero;
   StreamController<void> caretChanged = StreamController();
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   /// To calculate where to paint the caret,
   /// the text must have already been layed out.
@@ -60,9 +50,10 @@ class _EditorTextViewState extends State<EditorTextView> {
   }
 
   Rect getCaretRect() {
+    if (cursor == null) return Rect.zero;
     RenderParagraph? renderParagraph = getRenderParagraph();
     if (renderParagraph == null) return Rect.zero;
-    int? offsetIndex = widget.block.getCursorOffset(widget.cursor);
+    int? offsetIndex = block.getCursorOffset(cursor!);
     if (offsetIndex == null) return Rect.zero; // Cursor not in this block.
     TextPosition position = TextPosition(offset: offsetIndex);
     /*final boxes = renderParagraph.getBoxesForSelection(
@@ -94,8 +85,8 @@ class _EditorTextViewState extends State<EditorTextView> {
         RichText(
           key: textKey,
           text: TextSpan(
-            children: widget.block.pieces.unlockView,
-            style: widget.style,
+            children: block.pieces.unlockView,
+            style: style,
           ),
         ),
         StreamBuilder(

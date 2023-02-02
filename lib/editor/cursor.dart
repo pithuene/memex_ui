@@ -7,15 +7,16 @@ import './block.dart';
 @immutable
 class Cursor {
   const Cursor({
-    required this.block,
+    required this.blockIndex,
     required this.pieceIndex,
     required this.offset,
   });
 
-  final EditorBlock block;
+  final int blockIndex;
   final int pieceIndex;
   final int offset;
 
+  /*
   /// The piece in which the cursor is located.
   TextSpan get piece => block.pieces[pieceIndex];
 
@@ -27,20 +28,22 @@ class Cursor {
   TextSpan? get nextPiece => pieceIndex < block.pieces.length - 1
       ? block.pieces[pieceIndex + 1]
       : null;
+  */
 
   /// Whether the cursor is on the last character of the current piece.
-  bool get isAtPieceEnd => offset == piece.text!.length - 1;
+  bool isAtPieceEnd(EditorState editorState) =>
+      offset == editorState.getCursorPiece(this).text!.length - 1;
 
   /// Whether the cursor is on the first character of the current piece.
   bool get isAtPieceStart => offset == 0;
 
   Cursor copyWith({
-    EditorBlock? block,
+    int? blockIndex,
     int? pieceIndex,
     int? offset,
   }) {
     return Cursor(
-      block: block ?? this.block,
+      blockIndex: blockIndex ?? this.blockIndex,
       pieceIndex: pieceIndex ?? this.pieceIndex,
       offset: offset ?? this.offset,
     );

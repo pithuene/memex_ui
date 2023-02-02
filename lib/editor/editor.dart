@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import './cursor.dart';
 import './block.dart';
 
@@ -5,218 +7,317 @@ import 'package:flutter/material.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 class Editor {
-  /// The top level blocks of the editor.
-  late IList<EditorBlock> blocks;
-  late Cursor cursor;
+  EditorState state;
+  Editor(this.state);
 
-  Editor({
-    String? initialContent,
-  }) {
-    blocks = [
-      ParagraphBlock(
-        initialContent: initialContent,
-        editor: this,
-      ),
-      ParagraphBlock(
-        initialContent: "Ein neuer Absatz.",
-        editor: this,
-      ),
+  /// Emits every time the cursor or selection changes.
+  /// Used for rebuilding.
+  StreamController<void> onCursorChange = StreamController.broadcast();
+
+  // No new state
+  void moveCursorRightOnce() => state = state.moveCursorRightOnce();
+  void moveCursorLeftOnce() => state = state.moveCursorLeftOnce();
+
+  // New state // TODO: Undo / Redo
+  void append(String content) => state = state.append(content);
+  void deleteBackwards() => state = state.deleteBackwards();
+  void newLine() => state = state.newLine(); // TODO: Name newBlock?
+}
+
+class EditorState {
+  /// The top level blocks of the editor.
+  late final IList<EditorBlock> blocks;
+  late final Cursor cursor;
+
+  EditorState.withInitialContent(String? initialContent) {
+    blocks = <EditorBlock>[
+      ParagraphBlock.withInitialContent(initialContent: initialContent),
+      ParagraphBlock.withInitialContent(initialContent: "Ein neuer Absatz."),
     ].lockUnsafe;
-    cursor = Cursor(
-      block: blocks[0],
+    cursor = const Cursor(
+      blockIndex: 0,
       pieceIndex: 0,
       offset: 0,
     );
   }
 
+  EditorState({
+    required this.blocks,
+    required this.cursor,
+  });
+
+  EditorState copyWith({
+    IList<EditorBlock>? blocks,
+    Cursor? cursor,
+  }) {
+    return EditorState(
+      blocks: blocks ?? this.blocks,
+      cursor: cursor ?? this.cursor,
+    );
+  }
+
+  EditorBlock getCursorBlock(Cursor cursor) => blocks[cursor.blockIndex];
+
+  TextSpan getCursorPiece(Cursor cursor) =>
+      blocks[cursor.blockIndex].pieces[cursor.pieceIndex];
+
+  TextSpan getCursorPreviousPiece(Cursor cursor) =>
+      blocks[cursor.blockIndex].pieces[cursor.pieceIndex - 1];
+
+  TextSpan getCursorNextPiece(Cursor cursor) =>
+      blocks[cursor.blockIndex].pieces[cursor.pieceIndex + 1];
+
   /// Return a new cursor one character to the right from a given one.
-  Cursor moveRightOnce(Cursor cursor) {
-    if (!cursor.isAtPieceEnd) {
-      return cursor.copyWith(offset: cursor.offset + 1);
+  EditorState moveCursorRightOnce() {
+    if (!cursor.isAtPieceEnd(this)) {
+      return copyWith(
+        cursor: cursor.copyWith(offset: cursor.offset + 1),
+      );
     } else {
       // At the end of a piece, must jump.
-      if (cursor.pieceIndex < cursor.block.pieces.length - 1) {
+      if (cursor.pieceIndex < getCursorBlock(cursor).pieces.length - 1) {
         // Not yet on the last piece.
-        return cursor.copyWith(
-          pieceIndex: cursor.pieceIndex + 1,
-          offset: 0,
+        return copyWith(
+          cursor: cursor.copyWith(
+            pieceIndex: cursor.pieceIndex + 1,
+            offset: 0,
+          ),
         );
       } else {
-        if (blocks.last != cursor.block) {
+        if (blocks.last != getCursorBlock(cursor)) {
           // There is another block to jump to.
-          return Cursor(
-            block: blocks[blocks.indexOf(cursor.block) + 1],
-            pieceIndex: 0,
-            offset: 0,
+          return copyWith(
+            cursor: Cursor(
+              blockIndex: cursor.blockIndex + 1,
+              pieceIndex: 0,
+              offset: 0,
+            ),
           );
         }
         // Can't move right, returning cursor unchanged.
-        return cursor;
+        return this;
       }
     }
   }
 
   /// Move the cursor left by one character.
-  Cursor moveLeftOnce(Cursor cursor) {
+  EditorState moveCursorLeftOnce() {
     if (!cursor.isAtPieceStart) {
-      return cursor.copyWith(offset: cursor.offset - 1);
+      return copyWith(
+        cursor: cursor.copyWith(offset: cursor.offset - 1),
+      );
     } else {
       // At the beginning of a piece, must jump.
       if (cursor.pieceIndex > 0) {
         // Not yet on the first piece.
-        return cursor.copyWith(
-          pieceIndex: cursor.pieceIndex - 1,
-          offset: cursor.block.pieces[cursor.pieceIndex - 1].text!.length - 1,
+        return copyWith(
+          cursor: cursor.copyWith(
+            pieceIndex: cursor.pieceIndex - 1,
+            offset: getCursorPreviousPiece(cursor).text!.length - 1,
+          ),
         );
       } else {
-        if (blocks.first != cursor.block) {
+        if (getCursorBlock(cursor) != blocks.first) {
           // There is another block to jump to.
-          EditorBlock previousBlock = blocks[blocks.indexOf(cursor.block) - 1];
-          return Cursor(
-            block: previousBlock,
-            pieceIndex: previousBlock.pieces.length - 1,
-            offset: previousBlock.pieces.last.text!.length - 1,
+          EditorBlock previousBlock = blocks[cursor.blockIndex - 1];
+          return copyWith(
+            cursor: Cursor(
+              blockIndex: cursor.blockIndex - 1,
+              pieceIndex: previousBlock.pieces.length - 1,
+              offset: previousBlock.pieces.last.text!.length - 1,
+            ),
           );
         }
         // Can't move right, returning cursor unchanged.
-        return cursor;
+        return this;
       }
     }
   }
 
   /// Move the cursor left by a given distance.
-  /// To move by one character use [moveLeftOnce].
-  Cursor moveLeft(int distance, Cursor cursor) {
-    Cursor curr = cursor;
+  /// To move by one character use [moveCursorLeftOnce].
+  EditorState moveCursorLeft(int distance) {
+    EditorState curr = this;
     for (int i = 0; i < distance; i++) {
-      curr = moveLeftOnce(cursor);
+      curr = curr.moveCursorLeftOnce();
     }
     return curr;
   }
 
   /// Move the cursor right by a given distance.
-  /// To move by one character use [moveRightOnce].
-  Cursor moveRight(int distance, Cursor cursor) {
-    Cursor curr = cursor;
+  /// To move by one character use [moveCursorRightOnce].
+  EditorState moveCursorRight(int distance) {
+    EditorState curr = this;
     for (int i = 0; i < distance; i++) {
-      curr = moveRightOnce(curr);
+      curr = curr.moveCursorRightOnce();
     }
     return curr;
   }
 
-  void deleteBackwards() {
+  EditorState newLine() {
+    ParagraphBlock newBlock = ParagraphBlock.withInitialContent();
+    return copyWith(
+      blocks: blocks.insert(
+        cursor.blockIndex + 1,
+        newBlock,
+      ),
+      cursor: cursor.copyWith(
+        blockIndex: cursor.blockIndex + 1,
+        pieceIndex: 0,
+        offset: 0,
+      ),
+    );
+  }
+
+  EditorState replacePiecesInCursorBlock(IList<TextSpan> pieces) {
+    return copyWith(
+      blocks: blocks.replace(
+        cursor.blockIndex,
+        getCursorBlock(cursor).copyWith(
+          pieces: pieces,
+        ),
+      ),
+    );
+  }
+
+  EditorState replacePieceInCursorBlock(int pieceIndex, TextSpan newPiece) {
+    return replacePiecesInCursorBlock(getCursorBlock(cursor).pieces.replace(
+          pieceIndex,
+          newPiece,
+        ));
+  }
+
+  EditorState insertPieceInCursorBlock(int pieceIndex, TextSpan newPiece) {
+    return replacePiecesInCursorBlock(
+        getCursorBlock(cursor).pieces.insert(pieceIndex, newPiece));
+  }
+
+  EditorState replaceCursor({
+    int? blockIndex,
+    int? pieceIndex,
+    int? offset,
+  }) {
+    return copyWith(
+        cursor: cursor.copyWith(
+      blockIndex: blockIndex,
+      pieceIndex: pieceIndex,
+      offset: offset,
+    ));
+  }
+
+  EditorState deleteBackwards() {
     if (cursor.isAtPieceStart) {
       // Cursor at the start means you can simply cut the last character off the previous piece.
-      if (cursor.previousPiece != null) {
-        if (cursor.previousPiece!.text!.length == 1) {
+      if (getCursorBlock(cursor).pieces.isNotEmpty) {
+        if (getCursorPreviousPiece(cursor).text!.length == 1) {
           // Piece will be empty, simply remove it.
-          cursor.block.pieces =
-              cursor.block.pieces.removeAt(cursor.pieceIndex - 1);
-          cursor = cursor.copyWith(pieceIndex: cursor.pieceIndex - 1);
+          return replacePiecesInCursorBlock(
+                  getCursorBlock(cursor).pieces.removeAt(cursor.pieceIndex - 1))
+              .replaceCursor(pieceIndex: cursor.pieceIndex - 1);
         } else {
-          cursor.block.pieces = cursor.block.pieces.replace(
+          return replacePieceInCursorBlock(
             cursor.pieceIndex - 1,
             TextSpan(
-                style: cursor.previousPiece!.style,
-                text: cursor.previousPiece!.text!
-                    .substring(0, cursor.previousPiece!.text!.length - 1)),
-          );
+                style: getCursorPreviousPiece(cursor).style,
+                text: getCursorPreviousPiece(cursor).text!.substring(
+                    0, getCursorPreviousPiece(cursor).text!.length - 1)),
+          )
+              .replacePieceInCursorBlock(
+                cursor.pieceIndex - 1,
+                TextSpan(
+                  style: getCursorPreviousPiece(cursor).style,
+                  text: getCursorPreviousPiece(cursor).text!.substring(
+                      0, getCursorPreviousPiece(cursor).text!.length - 1),
+                ),
+              )
+              .replaceCursor(pieceIndex: cursor.pieceIndex - 1);
         }
       } else {
         // TODO: Delete at the start of the block. This should probably transform the block into a [ParagraphBlock] and / or merge it with the previous one.
+        return this;
       }
     } else if (cursor.offset == 1) {
       // Cursor on the second character means you can simply cut the first character off the current piece.
-      cursor.block.pieces = cursor.block.pieces.replace(
+      return replacePieceInCursorBlock(
         cursor.pieceIndex,
         TextSpan(
-          style: cursor.piece.style,
-          text: cursor.piece.text!.substring(1),
+          style: getCursorPiece(cursor).style,
+          text: getCursorPiece(cursor).text!.substring(1),
         ),
-      );
-      cursor = cursor.copyWith(offset: 0);
+      ).replaceCursor(offset: 0);
     } else {
-      // Spit required
-      // Insert first half
-      cursor.block.pieces = cursor.block.pieces.insert(
+      // Split required
+      return replacePieceInCursorBlock(
         cursor.pieceIndex,
         TextSpan(
-          style: cursor.piece.style,
-          text: cursor.piece.text!.substring(
-            0,
-            cursor.offset - 1,
-          ),
+          style: getCursorPiece(cursor).style,
+          text: getCursorPiece(cursor).text!.substring(
+                0,
+                cursor.offset - 1,
+              ),
         ),
-      );
-      // Cut second half
-      cursor.block.pieces = cursor.block.pieces.replace(
-        cursor.pieceIndex + 1,
-        TextSpan(
-          style: cursor.nextPiece!.style,
-          text: cursor.nextPiece!.text!.substring(cursor.offset),
-        ),
-      );
-      // Adjust cursor.
-      cursor = cursor.copyWith(
-        pieceIndex: cursor.pieceIndex + 1,
-        offset: 0,
-      );
+      )
+          .replacePieceInCursorBlock(
+            cursor.pieceIndex + 1,
+            TextSpan(
+              style: getCursorNextPiece(cursor).style,
+              text: getCursorNextPiece(cursor).text!.substring(cursor.offset),
+            ),
+          )
+          .replaceCursor(
+            pieceIndex: cursor.pieceIndex + 1,
+            offset: 0,
+          );
     }
   }
 
   /// Insert [newContent] before the cursor.
-  void append(String newContent) {
+  EditorState append(String newContent) {
     if (cursor.isAtPieceStart) {
       if (cursor.pieceIndex == 0) {
         // There is no previous piece, insert one.
-        TextSpan cursorPiece = cursor.block.pieces[cursor.pieceIndex];
-        cursor.block.pieces = cursor.block.pieces.insert(
+        return insertPieceInCursorBlock(
           0,
           TextSpan(
             text: newContent,
-            style: cursorPiece.style,
+            style: getCursorPiece(cursor).style,
           ),
-        );
-        // Cursor remains where it is, but the index changes because another piece was inserted in front.
-        cursor = cursor.copyWith(pieceIndex: 1);
+        ).replaceCursor(
+          pieceIndex: 1,
+        ); // Cursor remains where it is, but the index changes because another piece was inserted in front.
       } else {
         // Append to the previous piece.
-        TextSpan previousPiece = cursor.block.pieces[cursor.pieceIndex - 1];
-        cursor.block.pieces = cursor.block.pieces.replace(
+        return replacePieceInCursorBlock(
           cursor.pieceIndex - 1,
           TextSpan(
-            text: previousPiece.text! + newContent,
-            style: previousPiece.style,
+            text: getCursorPreviousPiece(cursor).text! + newContent,
+            style: getCursorPreviousPiece(cursor).style,
           ),
         );
       }
     } else {
       // Cursor is not at the start, piece must be split.
       // Insert first half.
-      cursor.block.pieces = cursor.block.pieces.insert(
+      return insertPieceInCursorBlock(
         cursor.pieceIndex,
         TextSpan(
-          text: cursor.block.pieces[cursor.pieceIndex].text!
-                  .substring(0, cursor.offset) +
+          text: getCursorPiece(cursor).text!.substring(0, cursor.offset) +
               newContent,
-          style: cursor.block.pieces[cursor.pieceIndex].style,
+          style: getCursorPiece(cursor).style,
         ),
-      );
-      // Append to the second half.
-      cursor.block.pieces = cursor.block.pieces.replace(
-        cursor.pieceIndex + 1,
-        TextSpan(
-          text: cursor.block.pieces[cursor.pieceIndex + 1].text!
-              .substring(cursor.offset),
-          style: cursor.block.pieces[cursor.pieceIndex + 1].style,
-        ),
-      );
-      // Cursor remains where it is, but the index changes because
-      // another piece was inserted in front.
-      cursor = cursor.copyWith(
-        pieceIndex: cursor.pieceIndex + 1,
-        offset: 0,
-      );
+      )
+          .replacePieceInCursorBlock(
+            // Append to the second half.
+            cursor.pieceIndex + 1,
+            TextSpan(
+              text: getCursorPiece(cursor).text!.substring(cursor.offset),
+              style: getCursorPiece(cursor).style,
+            ),
+          ) // Cursor remains where it is, but the index changes because another piece was inserted in front.
+          .replaceCursor(
+            pieceIndex: cursor.pieceIndex + 1,
+            offset: 0,
+          );
     }
   }
 }

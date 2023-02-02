@@ -22,35 +22,38 @@ class _EditorViewState extends State<EditorView> {
   @override
   Widget build(BuildContext context) {
     List<Widget> blockWidgets = [];
-    for (EditorBlock block in widget.editor.blocks) {
-      blockWidgets.add(block.build(context));
+    for (EditorBlock block in widget.editor.state.blocks) {
+      blockWidgets.add(block.build(context, widget.editor.state.cursor));
       blockWidgets.add(Container(height: 15));
     }
 
-    return KeyboardListener(
+    return RawKeyboardListener(
       focusNode: focusNode,
-      onKeyEvent: (event) {
-        if (event.runtimeType == KeyDownEvent ||
-            event.runtimeType == KeyRepeatEvent) {
+      onKey: (event) {
+        if (event.runtimeType == RawKeyDownEvent) {
           if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
             setState(() {
-              widget.editor.cursor =
-                  widget.editor.moveRightOnce(widget.editor.cursor);
+              widget.editor.moveCursorRightOnce();
             });
             return;
           }
           if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
             setState(() {
-              widget.editor.cursor =
-                  widget.editor.moveLeftOnce(widget.editor.cursor);
+              widget.editor.moveCursorLeftOnce();
             });
             return;
           }
           if (event.logicalKey == LogicalKeyboardKey.enter) {
-            setState(() {
-              widget.editor.append("\n");
-            });
-            return;
+            if (event.isShiftPressed) {
+              setState(() {
+                widget.editor.append("\n");
+              });
+              return;
+            } else {
+              setState(() {});
+              print("New Paragraph");
+              return;
+            }
           }
           if (event.logicalKey == LogicalKeyboardKey.backspace) {
             setState(() {
