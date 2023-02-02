@@ -245,6 +245,36 @@ class EditorState {
     ));
   }
 
+  /// Append the content of the block at [blockIndex] to the previous block and delete it.
+  EditorState mergeWithPreviousBlock(int blockIndex) {
+    assert(blocks[blockIndex].runtimeType ==
+        ParagraphBlock); // Turn block into ParagraphBlock before merging it with anything.
+    // TODO: What if the previous block can't be merged with (is an image or something)? Notion just skips it in that case and merges with what is before that.
+    if (blockIndex == 0) {
+      // There is no previous block to merge with.
+      return this;
+    }
+
+    return copyWith(
+      blocks: blocks
+          .replace(
+            blockIndex - 1,
+            blocks[blockIndex - 1].copyWith(
+              pieces: blocks[blockIndex - 1]
+                  .pieces
+                  .removeLast()
+                  .addAll(blocks[blockIndex].pieces),
+            ),
+          )
+          .removeAt(blockIndex),
+      cursor: Cursor(
+        blockIndex: blockIndex - 1,
+        pieceIndex: blocks[blockIndex - 1].pieces.length - 1,
+        offset: 0,
+      ),
+    );
+  }
+
   EditorState deleteBackwards() {
     if (cursor.isAtPieceStart) {
       // Cursor at the start means you can simply cut the last character off the previous piece.
@@ -269,8 +299,9 @@ class EditorState {
           );
         }
       } else {
-        // TODO: Delete at the start of the block. This should probably transform the block into a [ParagraphBlock] and / or merge it with the previous one.
-        return this;
+        //  Delete at the start of the block.
+        // TODO: Transform the block into a [ParagraphBlock] if it isn't one already.
+        return mergeWithPreviousBlock(cursor.blockIndex);
       }
     } else if (cursor.offset == 1) {
       // Cursor on the second character means you can simply cut the first character off the current piece.
