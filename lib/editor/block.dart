@@ -38,13 +38,65 @@ class EditorBlock {
   /// The function called to create the the widget showing a block.
   /// By default, this just shows the text content,
   /// generally you need to override this function.
-  Widget build(BuildContext context, Cursor? cursor) => EditorTextView(
+  Widget build(BuildContext context, Cursor? cursor, int depth) =>
+      EditorTextView(
         block: this,
         cursor: cursor,
       );
 
   EditorBlock copyWith({IList<TextSpan>? pieces}) =>
       EditorBlock(pieces ?? this.pieces);
+}
+
+class EditorBlockWithChildren extends EditorBlock {
+  EditorBlockWithChildren.withInitialContent({
+    String? initialContent,
+    required this.children,
+  }) : super.withInitialContent(initialContent);
+
+  EditorBlockWithChildren(super.pieces, this.children);
+
+  IList<EditorBlock> children;
+
+  @override
+  EditorBlockWithChildren copyWith({
+    IList<TextSpan>? pieces,
+    IList<EditorBlock>? children,
+  }) =>
+      EditorBlockWithChildren(
+        pieces ?? this.pieces,
+        children ?? this.children,
+      );
+
+  @override
+  Widget build(BuildContext context, Cursor? cursor, int depth) => Container(
+        decoration: BoxDecoration(border: Border.all()),
+        padding: const EdgeInsets.all(5),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            super.build(
+              context,
+              (cursor != null && depth == cursor.blockPath.length - 1)
+                  ? cursor
+                  : null,
+              depth,
+            ),
+            Container(height: 5),
+            ...children.mapIndexedAndLast((index, child, last) {
+              return child.build(
+                context,
+                (cursor != null &&
+                        cursor.blockPath.length > depth + 1 &&
+                        index == cursor.blockPath[depth + 1])
+                    ? cursor
+                    : null,
+                depth + 1,
+              );
+            }),
+          ],
+        ),
+      );
 }
 
 class ParagraphBlock extends EditorBlock {
@@ -58,7 +110,8 @@ class ParagraphBlock extends EditorBlock {
       ParagraphBlock(pieces ?? this.pieces);
 
   @override
-  Widget build(BuildContext context, Cursor? cursor) => EditorTextView(
+  Widget build(BuildContext context, Cursor? cursor, int depth) =>
+      EditorTextView(
         block: this,
         cursor: cursor,
       );
@@ -69,7 +122,8 @@ class Heading1Block extends EditorBlock {
       : super.withInitialContent(initialContent);
 
   @override
-  Widget build(BuildContext context, Cursor? cursor) => EditorTextView(
+  Widget build(BuildContext context, Cursor? cursor, int depth) =>
+      EditorTextView(
         block: this,
         cursor: cursor,
         style: const TextStyle(

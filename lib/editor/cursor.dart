@@ -2,17 +2,16 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/widgets.dart';
 import 'package:memex_ui/memex_ui.dart';
 
-import './block.dart';
-
 @immutable
 class Cursor {
   const Cursor({
-    required this.blockIndex,
+    required this.blockPath,
     required this.pieceIndex,
     required this.offset,
   });
 
-  final int blockIndex;
+  /// A list of indices specifying the cursor block.
+  final IList<int> blockPath;
   final int pieceIndex;
   final int offset;
 
@@ -38,12 +37,12 @@ class Cursor {
   bool get isAtPieceStart => offset == 0;
 
   Cursor copyWith({
-    int? blockIndex,
+    IList<int>? blockPath,
     int? pieceIndex,
     int? offset,
   }) {
     return Cursor(
-      blockIndex: blockIndex ?? this.blockIndex,
+      blockPath: blockPath ?? this.blockPath,
       pieceIndex: pieceIndex ?? this.pieceIndex,
       offset: offset ?? this.offset,
     );

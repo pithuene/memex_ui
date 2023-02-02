@@ -26,10 +26,10 @@ class _EditorViewState extends State<EditorView> {
     for (int i = 0; i < widget.editor.state.blocks.length; i++) {
       EditorBlock block = widget.editor.state.blocks[i];
       Cursor? cursor;
-      if (i == widget.editor.state.cursor.blockIndex) {
+      if (i == widget.editor.state.cursor.blockPath[0]) {
         cursor = widget.editor.state.cursor;
       }
-      blockWidgets.add(block.build(context, cursor));
+      blockWidgets.add(block.build(context, cursor, 0));
       blockWidgets.add(Container(height: 15));
     }
 

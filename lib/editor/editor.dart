@@ -57,11 +57,17 @@ class EditorState {
 
   EditorState.withInitialContent(String? initialContent) {
     blocks = <EditorBlock>[
-      ParagraphBlock.withInitialContent(initialContent: initialContent),
-      ParagraphBlock.withInitialContent(initialContent: "Ein neuer Absatz."),
+      EditorBlockWithChildren.withInitialContent(
+        initialContent: initialContent,
+        children: <EditorBlock>[
+          ParagraphBlock.withInitialContent(
+            initialContent: "Ein neuer Absatz.",
+          ),
+        ].lockUnsafe,
+      ),
     ].lockUnsafe;
     cursor = const Cursor(
-      blockIndex: 0,
+      blockPath: IListConst([0]),
       pieceIndex: 0,
       offset: 0,
     );
@@ -82,46 +88,94 @@ class EditorState {
     );
   }
 
-  EditorBlock getCursorBlock(Cursor cursor) => blocks[cursor.blockIndex];
+  EditorBlock? getBlockFromPath(IList<int> blockPath) {
+    if (blockPath.isEmpty) return null;
+    EditorBlock? curr = blocks.getOrNull(blockPath[0]);
+    for (int i = 1; i < blockPath.length; i++) {
+      if (curr == null) return null;
+      if (curr is! EditorBlockWithChildren) return null;
+      curr = curr.children.getOrNull(blockPath[i]);
+    }
+    return curr;
+  }
+
+  EditorBlock getCursorBlock(Cursor cursor) {
+    return getBlockFromPath(cursor.blockPath)!;
+  }
 
   TextSpan getCursorPiece(Cursor cursor) =>
-      blocks[cursor.blockIndex].pieces[cursor.pieceIndex];
+      getCursorBlock(cursor).pieces[cursor.pieceIndex];
 
   TextSpan getCursorPreviousPiece(Cursor cursor) =>
-      blocks[cursor.blockIndex].pieces[cursor.pieceIndex - 1];
+      getCursorBlock(cursor).pieces[cursor.pieceIndex - 1];
 
   TextSpan getCursorNextPiece(Cursor cursor) =>
-      blocks[cursor.blockIndex].pieces[cursor.pieceIndex + 1];
+      getCursorBlock(cursor).pieces[cursor.pieceIndex + 1];
+
+  /// Find the block path to the next block.
+  /// Returns null if this is the last block.
+  IList<int>? getNextBlock(IList<int> blockPath) {
+    EditorBlock currentBlock = getBlockFromPath(blockPath)!;
+    if (currentBlock is EditorBlockWithChildren &&
+        currentBlock.children.isNotEmpty) {
+      // Return path to first child.
+      return blockPath.add(0);
+    } else {
+      IList<int> nextPath =
+          blockPath.replace(blockPath.length - 1, blockPath.last + 1);
+      EditorBlock? next = getBlockFromPath(nextPath);
+      while (next == null && nextPath.isNotEmpty) {
+        nextPath = nextPath.removeLast();
+        nextPath = nextPath.replace(nextPath.length - 1, nextPath.last + 1);
+        next = getBlockFromPath(nextPath);
+      }
+      if (next == null) return null;
+      return nextPath;
+    }
+  }
+
+  /// Find the block path to the previous block.
+  /// Returns null if this is the first block.
+  IList<int>? getPreviousBlock(IList<int> blockPath) {
+    if (blockPath.length == 1 && blockPath[0] == 0) {
+      // First block, there is no previous one.
+      return null;
+    }
+
+    if (blockPath.last > 0) {
+      // Has previous neighbor
+      return blockPath.replace(blockPath.length - 1, blockPath.last - 1);
+    } else {
+      return blockPath.removeLast();
+    }
+  }
 
   /// Return a new cursor one character to the right from a given one.
   EditorState moveCursorRightOnce() {
     if (!cursor.isAtPieceEnd(this)) {
-      return copyWith(
-        cursor: cursor.copyWith(offset: cursor.offset + 1),
-      );
+      return replaceCursor(offset: cursor.offset + 1);
     } else {
       // At the end of a piece, must jump.
       if (cursor.pieceIndex < getCursorBlock(cursor).pieces.length - 1) {
         // Not yet on the last piece.
-        return copyWith(
-          cursor: cursor.copyWith(
-            pieceIndex: cursor.pieceIndex + 1,
-            offset: 0,
-          ),
+        return replaceCursor(
+          pieceIndex: cursor.pieceIndex + 1,
+          offset: 0,
         );
       } else {
-        if (blocks.last != getCursorBlock(cursor)) {
+        // On the last piece, must jump to next block.
+        IList<int>? nextBlockPath = getNextBlock(cursor.blockPath);
+        if (nextBlockPath == null) {
+          // Can't move, this is the last block.
+          return this;
+        } else {
           // There is another block to jump to.
-          return copyWith(
-            cursor: Cursor(
-              blockIndex: cursor.blockIndex + 1,
-              pieceIndex: 0,
-              offset: 0,
-            ),
+          return replaceCursor(
+            blockPath: nextBlockPath,
+            pieceIndex: 0,
+            offset: 0,
           );
         }
-        // Can't move right, returning cursor unchanged.
-        return this;
       }
     }
   }
@@ -143,19 +197,20 @@ class EditorState {
           ),
         );
       } else {
-        if (getCursorBlock(cursor) != blocks.first) {
+        // On the first piece, must jump to the previous block.
+        IList<int>? previousBlockPath = getPreviousBlock(cursor.blockPath);
+        if (previousBlockPath == null) {
+          // Can't move, this is the first block.
+          return this;
+        } else {
           // There is another block to jump to.
-          EditorBlock previousBlock = blocks[cursor.blockIndex - 1];
-          return copyWith(
-            cursor: Cursor(
-              blockIndex: cursor.blockIndex - 1,
-              pieceIndex: previousBlock.pieces.length - 1,
-              offset: previousBlock.pieces.last.text!.length - 1,
-            ),
+          EditorBlock previousBlock = getBlockFromPath(previousBlockPath)!;
+          return replaceCursor(
+            blockPath: previousBlockPath,
+            pieceIndex: previousBlock.pieces.length - 1,
+            offset: previousBlock.pieces.last.text!.length - 1,
           );
         }
-        // Can't move right, returning cursor unchanged.
-        return this;
       }
     }
   }
@@ -217,31 +272,112 @@ class EditorState {
           .add(EditorBlock.sentinelPiece),
     );
 
-    return blockCut.copyWith(
-      blocks: blockCut.blocks.insert(
-        blockCut.cursor.blockIndex + 1,
-        ParagraphBlock(
-          splitState
-              .getCursorBlock(splitState.cursor)
-              .pieces
-              .sublist(splitState.cursor.pieceIndex),
+    final IList<int> newBlockPath = cursor.blockPath.replace(
+      cursor.blockPath.length - 1,
+      cursor.blockPath.last + 1,
+    );
+
+    return blockCut
+        .insertBlockAtPath(
+          newBlockPath,
+          ParagraphBlock(
+            splitState
+                .getCursorBlock(splitState.cursor)
+                .pieces
+                .sublist(splitState.cursor.pieceIndex),
+          ),
+        )
+        .replaceCursor(
+          blockPath: newBlockPath,
+          pieceIndex: 0,
+          offset: 0,
+        );
+  }
+
+  /// Replace a block at [blockPath] in a tree of [blocks] with a [newBlock].
+  IList<EditorBlock> replaceBlockInBlocksAtPath(
+    IList<EditorBlock> blocks,
+    IList<int> blockPath,
+    EditorBlock newBlock,
+  ) {
+    if (blockPath.length == 1) {
+      return blocks.replace(blockPath[0], newBlock);
+    }
+    return blocks.replace(
+      blockPath[0],
+      (blocks[blockPath[0]] as EditorBlockWithChildren).copyWith(
+        children: replaceBlockInBlocksAtPath(
+          (blocks[blockPath[0]] as EditorBlockWithChildren).children,
+          blockPath.sublist(1),
+          newBlock,
         ),
       ),
-      cursor: cursor.copyWith(
-        blockIndex: cursor.blockIndex + 1,
-        pieceIndex: 0,
-        offset: 0,
+    );
+  }
+
+  /// Replace the block at a given [blockPath] with a [newBlock].
+  EditorState replaceBlockAtPath(IList<int> blockPath, EditorBlock newBlock) {
+    if (blockPath.length == 1) {
+      return copyWith(
+        blocks: blocks.replace(blockPath.single, newBlock),
+      );
+    }
+
+    return copyWith(
+      blocks: replaceBlockInBlocksAtPath(
+        blocks,
+        blockPath,
+        newBlock,
+      ),
+    );
+  }
+
+  /// Insert a [newBlock] at a given [blockPath].
+  EditorState insertBlockAtPath(IList<int> blockPath, EditorBlock newBlock) {
+    if (blockPath.length == 1) {
+      return copyWith(
+        blocks: blocks.insert(blockPath.single, newBlock),
+      );
+    }
+
+    IList<int> parentPath = blockPath.removeLast();
+    return replaceBlockAtPath(
+      parentPath,
+      (getBlockFromPath(parentPath) as EditorBlockWithChildren).copyWith(
+        children: (getBlockFromPath(parentPath) as EditorBlockWithChildren)
+            .children
+            .insert(
+              blockPath.last,
+              newBlock,
+            ),
+      ),
+    );
+  }
+
+  /// Remove the block at a given [blockPath].
+  EditorState removeBlockAtPath(IList<int> blockPath) {
+    if (blockPath.length == 1) {
+      return copyWith(
+        blocks: blocks.removeAt(blockPath.single),
+      );
+    }
+
+    IList<int> parentPath = blockPath.removeLast();
+    return replaceBlockAtPath(
+      parentPath,
+      (getBlockFromPath(parentPath) as EditorBlockWithChildren).copyWith(
+        children: (getBlockFromPath(parentPath) as EditorBlockWithChildren)
+            .children
+            .removeAt(blockPath.last),
       ),
     );
   }
 
   EditorState replacePiecesInCursorBlock(IList<TextSpan> pieces) {
-    return copyWith(
-      blocks: blocks.replace(
-        cursor.blockIndex,
-        getCursorBlock(cursor).copyWith(
-          pieces: pieces,
-        ),
+    return replaceBlockAtPath(
+      cursor.blockPath,
+      getCursorBlock(cursor).copyWith(
+        pieces: pieces,
       ),
     );
   }
@@ -259,46 +395,44 @@ class EditorState {
   }
 
   EditorState replaceCursor({
-    int? blockIndex,
+    IList<int>? blockPath,
     int? pieceIndex,
     int? offset,
   }) {
     return copyWith(
         cursor: cursor.copyWith(
-      blockIndex: blockIndex,
+      blockPath: blockPath,
       pieceIndex: pieceIndex,
       offset: offset,
     ));
   }
 
-  /// Append the content of the block at [blockIndex] to the previous block and delete it.
-  EditorState mergeWithPreviousBlock(int blockIndex) {
-    assert(blocks[blockIndex].runtimeType ==
-        ParagraphBlock); // Turn block into ParagraphBlock before merging it with anything.
+  /// Append the content of the block at [blockPathToRemove] to the previous block and delete it.
+  EditorState mergeWithPreviousBlock(IList<int> blockPathToRemove) {
+    EditorBlock blockToRemove = getBlockFromPath(blockPathToRemove)!;
+
+    // Turn block into ParagraphBlock before merging it with anything.
+    assert(blockToRemove.runtimeType == ParagraphBlock);
+
     // TODO: What if the previous block can't be merged with (is an image or something)? Notion just skips it in that case and merges with what is before that.
-    if (blockIndex == 0) {
+
+    IList<int>? previousBlockPath = getPreviousBlock(blockPathToRemove);
+    if (previousBlockPath == null) {
       // There is no previous block to merge with.
       return this;
     }
+    EditorBlock previousBlock = getBlockFromPath(previousBlockPath)!;
 
-    return copyWith(
-      blocks: blocks
-          .replace(
-            blockIndex - 1,
-            blocks[blockIndex - 1].copyWith(
-              pieces: blocks[blockIndex - 1]
-                  .pieces
-                  .removeLast()
-                  .addAll(blocks[blockIndex].pieces),
-            ),
-          )
-          .removeAt(blockIndex),
-      cursor: Cursor(
-        blockIndex: blockIndex - 1,
-        pieceIndex: blocks[blockIndex - 1].pieces.length - 1,
-        offset: 0,
+    return replaceBlockAtPath(
+      previousBlockPath,
+      previousBlock.copyWith(
+        pieces: previousBlock.pieces.removeLast().addAll(blockToRemove.pieces),
       ),
-    );
+    ).removeBlockAtPath(blockPathToRemove).replaceCursor(
+          blockPath: previousBlockPath,
+          pieceIndex: previousBlock.pieces.length - 1,
+          offset: 0,
+        );
   }
 
   EditorState deleteBackwards() {
@@ -327,7 +461,7 @@ class EditorState {
       } else {
         //  Delete at the start of the block.
         // TODO: Transform the block into a [ParagraphBlock] if it isn't one already.
-        return mergeWithPreviousBlock(cursor.blockIndex);
+        return mergeWithPreviousBlock(cursor.blockPath);
       }
     } else if (cursor.offset == 1) {
       // Cursor on the second character means you can simply cut the first character off the current piece.
