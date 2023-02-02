@@ -46,6 +46,13 @@ class EditorBlock {
 
   EditorBlock copyWith({IList<TextSpan>? pieces}) =>
       EditorBlock(pieces ?? this.pieces);
+
+  /// Turn this block into a [ParagraphBlock].
+  /// Returns a list of [EditorBlock]s to replace it.
+  /// If the block has no children, the result list should simply contain a single [ParagraphBlock].
+  /// If the block does have children, the result shoud start with a [ParagraphBlock] and somehow unwrap the children afterwards.
+  IList<EditorBlock> turnIntoParagraphBlock() =>
+      <EditorBlock>[ParagraphBlock(pieces)].lockUnsafe;
 }
 
 class EditorBlockWithChildren extends EditorBlock {
@@ -67,6 +74,10 @@ class EditorBlockWithChildren extends EditorBlock {
         pieces ?? this.pieces,
         children ?? this.children,
       );
+
+  @override
+  IList<EditorBlock> turnIntoParagraphBlock() =>
+      children.insert(0, ParagraphBlock(pieces));
 
   @override
   Widget build(BuildContext context, Cursor? cursor, int depth) => Container(
@@ -117,8 +128,8 @@ class ParagraphBlock extends EditorBlock {
       );
 }
 
-class Heading1Block extends EditorBlockWithChildren {
-  Heading1Block.withInitialContent(String? initialContent)
+class SectionBlock extends EditorBlockWithChildren {
+  SectionBlock.withInitialContent(String? initialContent)
       : super.withInitialContent(
           initialContent: initialContent,
           children: <EditorBlock>[
@@ -126,14 +137,14 @@ class Heading1Block extends EditorBlockWithChildren {
           ].lockUnsafe,
         );
 
-  Heading1Block(super.pieces, super.children);
+  SectionBlock(super.pieces, super.children);
 
   @override
-  Heading1Block copyWith({
+  SectionBlock copyWith({
     IList<TextSpan>? pieces,
     IList<EditorBlock>? children,
   }) =>
-      Heading1Block(
+      SectionBlock(
         pieces ?? this.pieces,
         children ?? this.children,
       );

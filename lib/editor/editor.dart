@@ -57,7 +57,7 @@ class EditorState {
 
   EditorState.withInitialContent(String? initialContent) {
     blocks = <EditorBlock>[
-      Heading1Block.withInitialContent(initialContent),
+      SectionBlock.withInitialContent(initialContent),
       ParagraphBlock.withInitialContent(
         initialContent: "Ein neuer Absatz.",
       ),
@@ -441,6 +441,21 @@ class EditorState {
         );
   }
 
+  /// Called through [deleteBackwards] at the start of a non-paragraph block.
+  EditorState turnBlockIntoParagraphBlock(IList<int> blockPath) {
+    EditorBlock blockToTransform = getBlockFromPath(blockPath)!;
+    IList<EditorBlock> replacementBlocks =
+        blockToTransform.turnIntoParagraphBlock();
+    EditorState resultState = removeBlockAtPath(blockPath);
+    for (int i = replacementBlocks.length - 1; i >= 0; i--) {
+      resultState = resultState.insertBlockAtPath(
+        blockPath,
+        replacementBlocks[i],
+      );
+    }
+    return resultState;
+  }
+
   EditorState deleteBackwards() {
     if (cursor.isAtPieceStart) {
       // Cursor at the start means you can simply cut the last character off the previous piece.
@@ -466,8 +481,12 @@ class EditorState {
         }
       } else {
         //  Delete at the start of the block.
-        // TODO: Transform the block into a [ParagraphBlock] if it isn't one already.
-        return mergeWithPreviousBlock(cursor.blockPath);
+        EditorBlock cursorBlock = getBlockFromPath(cursor.blockPath)!;
+        if (cursorBlock.runtimeType != ParagraphBlock) {
+          return turnBlockIntoParagraphBlock(cursor.blockPath);
+        } else {
+          return mergeWithPreviousBlock(cursor.blockPath);
+        }
       }
     } else if (cursor.offset == 1) {
       // Cursor on the second character means you can simply cut the first character off the current piece.
