@@ -208,29 +208,25 @@ class EditorState {
   EditorState deleteBackwards() {
     if (cursor.isAtPieceStart) {
       // Cursor at the start means you can simply cut the last character off the previous piece.
-      if (getCursorBlock(cursor).pieces.isNotEmpty) {
+      if (cursor.pieceIndex > 0) {
+        // There is a previous piece
         if (getCursorPreviousPiece(cursor).text!.length == 1) {
           // Piece will be empty, simply remove it.
           return replacePiecesInCursorBlock(
-                  getCursorBlock(cursor).pieces.removeAt(cursor.pieceIndex - 1))
-              .replaceCursor(pieceIndex: cursor.pieceIndex - 1);
+            getCursorBlock(cursor).pieces.removeAt(cursor.pieceIndex - 1),
+          ).replaceCursor(pieceIndex: cursor.pieceIndex - 1);
         } else {
+          // Previous piece will not be empty, cut its last character.
           return replacePieceInCursorBlock(
             cursor.pieceIndex - 1,
             TextSpan(
-                style: getCursorPreviousPiece(cursor).style,
-                text: getCursorPreviousPiece(cursor).text!.substring(
-                    0, getCursorPreviousPiece(cursor).text!.length - 1)),
-          )
-              .replacePieceInCursorBlock(
-                cursor.pieceIndex - 1,
-                TextSpan(
-                  style: getCursorPreviousPiece(cursor).style,
-                  text: getCursorPreviousPiece(cursor).text!.substring(
-                      0, getCursorPreviousPiece(cursor).text!.length - 1),
-                ),
-              )
-              .replaceCursor(pieceIndex: cursor.pieceIndex - 1);
+              style: getCursorPreviousPiece(cursor).style,
+              text: getCursorPreviousPiece(cursor).text!.substring(
+                    0,
+                    getCursorPreviousPiece(cursor).text!.length - 1,
+                  ),
+            ),
+          );
         }
       } else {
         // TODO: Delete at the start of the block. This should probably transform the block into a [ParagraphBlock] and / or merge it with the previous one.
@@ -246,8 +242,8 @@ class EditorState {
         ),
       ).replaceCursor(offset: 0);
     } else {
-      // Split required
-      return replacePieceInCursorBlock(
+      // Cursor in the middle of a piece, split required.
+      return insertPieceInCursorBlock(
         cursor.pieceIndex,
         TextSpan(
           style: getCursorPiece(cursor).style,
@@ -260,8 +256,8 @@ class EditorState {
           .replacePieceInCursorBlock(
             cursor.pieceIndex + 1,
             TextSpan(
-              style: getCursorNextPiece(cursor).style,
-              text: getCursorNextPiece(cursor).text!.substring(cursor.offset),
+              style: getCursorPiece(cursor).style,
+              text: getCursorPiece(cursor).text!.substring(cursor.offset),
             ),
           )
           .replaceCursor(

@@ -38,7 +38,7 @@ class EditorBlock {
   /// The function called to create the the widget showing a block.
   /// By default, this just shows the text content,
   /// generally you need to override this function.
-  Widget build(BuildContext context, Cursor cursor) => EditorTextView(
+  Widget build(BuildContext context, Cursor? cursor) => EditorTextView(
         block: this,
         cursor: cursor,
       );
@@ -57,7 +57,7 @@ class ParagraphBlock extends EditorBlock {
   ParagraphBlock(super.pieces);
 
   @override
-  Widget build(BuildContext context, Cursor cursor) => EditorTextView(
+  Widget build(BuildContext context, Cursor? cursor) => EditorTextView(
         block: this,
         cursor: cursor,
       );
@@ -68,7 +68,7 @@ class Heading1Block extends EditorBlock {
       : super.withInitialContent(initialContent);
 
   @override
-  Widget build(BuildContext context, Cursor cursor) => EditorTextView(
+  Widget build(BuildContext context, Cursor? cursor) => EditorTextView(
         block: this,
         cursor: cursor,
         style: const TextStyle(

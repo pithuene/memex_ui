@@ -1,4 +1,5 @@
 import 'package:memex_ui/editor/block.dart';
+import 'package:memex_ui/editor/cursor.dart';
 
 import './editor.dart';
 
@@ -22,8 +23,13 @@ class _EditorViewState extends State<EditorView> {
   @override
   Widget build(BuildContext context) {
     List<Widget> blockWidgets = [];
-    for (EditorBlock block in widget.editor.state.blocks) {
-      blockWidgets.add(block.build(context, widget.editor.state.cursor));
+    for (int i = 0; i < widget.editor.state.blocks.length; i++) {
+      EditorBlock block = widget.editor.state.blocks[i];
+      Cursor? cursor;
+      if (i == widget.editor.state.cursor.blockIndex) {
+        cursor = widget.editor.state.cursor;
+      }
+      blockWidgets.add(block.build(context, cursor));
       blockWidgets.add(Container(height: 15));
     }
 
@@ -50,8 +56,10 @@ class _EditorViewState extends State<EditorView> {
               });
               return;
             } else {
-              setState(() {});
-              print("New Paragraph");
+              setState(() {
+                widget.editor.newLine();
+                print("New Paragraph");
+              });
               return;
             }
           }
