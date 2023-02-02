@@ -57,13 +57,9 @@ class EditorState {
 
   EditorState.withInitialContent(String? initialContent) {
     blocks = <EditorBlock>[
-      EditorBlockWithChildren.withInitialContent(
-        initialContent: initialContent,
-        children: <EditorBlock>[
-          ParagraphBlock.withInitialContent(
-            initialContent: "Ein neuer Absatz.",
-          ),
-        ].lockUnsafe,
+      Heading1Block.withInitialContent(initialContent),
+      ParagraphBlock.withInitialContent(
+        initialContent: "Ein neuer Absatz.",
       ),
     ].lockUnsafe;
     cursor = const Cursor(

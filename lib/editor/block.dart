@@ -117,20 +117,59 @@ class ParagraphBlock extends EditorBlock {
       );
 }
 
-class Heading1Block extends EditorBlock {
-  Heading1Block(String? initialContent)
-      : super.withInitialContent(initialContent);
+class Heading1Block extends EditorBlockWithChildren {
+  Heading1Block.withInitialContent(String? initialContent)
+      : super.withInitialContent(
+          initialContent: initialContent,
+          children: <EditorBlock>[
+            ParagraphBlock.withInitialContent(initialContent: "Content")
+          ].lockUnsafe,
+        );
+
+  Heading1Block(super.pieces, super.children);
 
   @override
-  Widget build(BuildContext context, Cursor? cursor, int depth) =>
-      EditorTextView(
-        block: this,
-        cursor: cursor,
-        style: const TextStyle(
-          color: Color(0xFF000000),
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          fontFamily: "Inter",
+  Heading1Block copyWith({
+    IList<TextSpan>? pieces,
+    IList<EditorBlock>? children,
+  }) =>
+      Heading1Block(
+        pieces ?? this.pieces,
+        children ?? this.children,
+      );
+
+  @override
+  Widget build(BuildContext context, Cursor? cursor, int depth) => Container(
+        decoration: BoxDecoration(border: Border.all()),
+        padding: const EdgeInsets.all(5),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            EditorTextView(
+              block: this,
+              cursor: (cursor != null && depth == cursor.blockPath.length - 1)
+                  ? cursor
+                  : null,
+              style: const TextStyle(
+                color: Color(0xFF000000),
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                fontFamily: "Inter",
+              ),
+            ),
+            Container(height: 5),
+            ...children.mapIndexedAndLast((index, child, last) {
+              return child.build(
+                context,
+                (cursor != null &&
+                        cursor.blockPath.length > depth + 1 &&
+                        index == cursor.blockPath[depth + 1])
+                    ? cursor
+                    : null,
+                depth + 1,
+              );
+            }),
+          ],
         ),
       );
 }
