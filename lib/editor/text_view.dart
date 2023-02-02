@@ -1,10 +1,15 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import './cursor.dart';
 import './block.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+
+/// Outline text boxes for debugging purposes.
+const showDebugFrames = true;
 
 class EditorTextView extends StatelessWidget {
   EditorTextView({
@@ -80,25 +85,34 @@ class EditorTextView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     scheduleTextLayoutUpdate();
-    return Stack(
-      children: [
-        RichText(
-          key: textKey,
-          text: TextSpan(
-            children: block.pieces.unlockView,
-            style: style,
-          ),
-        ),
-        StreamBuilder(
-          stream: caretChanged.stream,
-          builder: (context, snapshot) => CustomPaint(
-            painter: CaretPainter(
-              color: Colors.black38,
-              rect: caretRect,
+
+    BoxDecoration? debugBorders;
+    if (showDebugFrames && kDebugMode) {
+      debugBorders = BoxDecoration(border: Border.all());
+    }
+
+    return Container(
+      decoration: debugBorders,
+      child: Stack(
+        children: [
+          RichText(
+            key: textKey,
+            text: TextSpan(
+              children: block.pieces.unlockView,
+              style: style,
             ),
           ),
-        ),
-      ],
+          StreamBuilder(
+            stream: caretChanged.stream,
+            builder: (context, snapshot) => CustomPaint(
+              painter: CaretPainter(
+                color: Colors.black38,
+                rect: caretRect,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
