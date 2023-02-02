@@ -10,18 +10,44 @@ class Editor {
   EditorState state;
   Editor(this.state);
 
+  List<EditorState> undoStack = [];
+  List<EditorState> redoStack = [];
+
   /// Emits every time the cursor or selection changes.
   /// Used for rebuilding.
   StreamController<void> onCursorChange = StreamController.broadcast();
 
-  // No new state
+  // Non reversable actions
   void moveCursorRightOnce() => state = state.moveCursorRightOnce();
   void moveCursorLeftOnce() => state = state.moveCursorLeftOnce();
 
-  // New state // TODO: Undo / Redo
-  void append(String content) => state = state.append(content);
-  void deleteBackwards() => state = state.deleteBackwards();
-  void newLine() => state = state.newLine(); // TODO: Name newBlock?
+  void _performReversableAction(EditorState newState) {
+    undoStack.add(state);
+    redoStack.clear();
+    state = newState;
+  }
+
+  // Reversable actions
+  void append(String content) =>
+      _performReversableAction(state.append(content));
+
+  void deleteBackwards() => _performReversableAction(state.deleteBackwards());
+
+  // TODO: Name newBlock?
+  void newLine() => _performReversableAction(state.newLine());
+
+  // Undo / Redo
+  void undo() {
+    if (undoStack.isEmpty) return;
+    redoStack.add(state);
+    state = undoStack.removeLast();
+  }
+
+  void redo() {
+    if (redoStack.isEmpty) return;
+    undoStack.add(state);
+    state = redoStack.removeLast();
+  }
 }
 
 class EditorState {

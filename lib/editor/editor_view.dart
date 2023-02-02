@@ -68,6 +68,20 @@ class _EditorViewState extends State<EditorView> {
             });
             return;
           }
+          if (event.logicalKey == LogicalKeyboardKey.keyZ &&
+              event.isControlPressed) {
+            if (event.isShiftPressed) {
+              setState(() {
+                widget.editor.redo();
+              });
+              return;
+            } else {
+              setState(() {
+                widget.editor.undo();
+              });
+              return;
+            }
+          }
           if (event.character != null) {
             setState(() {
               widget.editor.append(event.character ?? "?");
