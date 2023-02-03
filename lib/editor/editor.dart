@@ -569,18 +569,24 @@ class EditorState {
                       cursor.blockPath.single + 1, nextSectionBlockIndex))
                   .copyWith();
           newSectionBlock = newSectionBlock.copyWith(
-              pieces: newSectionBlock.pieces.removeAt(0));
+            pieces: newSectionBlock.pieces.removeAt(0),
+          );
           final withSectionBlock = replaceBlock(
             cursor.blockPath,
             <EditorBlock>[newSectionBlock].lockUnsafe,
           );
 
           // Remove the blocks which have been moved into the section.
-          return withSectionBlock.copyWith(
+          final deletedMovedBlocks = withSectionBlock.copyWith(
             blocks: withSectionBlock.blocks.removeRange(
               cursor.blockPath.single + 1,
               nextSectionBlockIndex ?? blocks.length,
             ),
+          );
+
+          return deletedMovedBlocks.replaceCursor(
+            pieceIndex: 0,
+            offset: 0,
           );
         }
         // Append to the previous piece.
