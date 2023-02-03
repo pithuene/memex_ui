@@ -120,7 +120,7 @@ class EditorState {
       IList<int> nextPath =
           blockPath.replace(blockPath.length - 1, blockPath.last + 1);
       EditorBlock? next = getBlockFromPath(nextPath);
-      while (next == null && nextPath.isNotEmpty) {
+      while (next == null && nextPath.length > 1) {
         nextPath = nextPath.removeLast();
         nextPath = nextPath.replace(nextPath.length - 1, nextPath.last + 1);
         next = getBlockFromPath(nextPath);
