@@ -441,19 +441,27 @@ class EditorState {
         );
   }
 
+  /// Replace the block at [blockPathToReplace] with [replacementBlocks].
+  EditorState replaceBlock(
+    IList<int> blockPathToReplace,
+    IList<EditorBlock> replacementBlocks,
+  ) {
+    EditorState resultState = removeBlockAtPath(blockPathToReplace);
+    for (int i = replacementBlocks.length - 1; i >= 0; i--) {
+      resultState = resultState.insertBlockAtPath(
+        blockPathToReplace,
+        replacementBlocks[i],
+      );
+    }
+    return resultState;
+  }
+
   /// Called through [deleteBackwards] at the start of a non-paragraph block.
   EditorState turnBlockIntoParagraphBlock(IList<int> blockPath) {
     EditorBlock blockToTransform = getBlockFromPath(blockPath)!;
     IList<EditorBlock> replacementBlocks =
         blockToTransform.turnIntoParagraphBlock();
-    EditorState resultState = removeBlockAtPath(blockPath);
-    for (int i = replacementBlocks.length - 1; i >= 0; i--) {
-      resultState = resultState.insertBlockAtPath(
-        blockPath,
-        replacementBlocks[i],
-      );
-    }
-    return resultState;
+    return replaceBlock(blockPath, replacementBlocks);
   }
 
   EditorState deleteBackwards() {
@@ -538,6 +546,43 @@ class EditorState {
           pieceIndex: 1,
         ); // Cursor remains where it is, but the index changes because another piece was inserted in front.
       } else {
+        if (newContent == " " &&
+            cursor.pieceIndex == 1 &&
+            cursor.blockPath.length == 1 &&
+            getCursorBlock(cursor).runtimeType == ParagraphBlock &&
+            getCursorPreviousPiece(cursor).text!.trim() == "#") {
+          // Space after a # at the start of a [ParagraphBlock]
+          // => Transform this [ParagraphBlock] into a [SectionBlock].
+
+          // Find index of the next [SectionBlock].
+          int? nextSectionBlockIndex;
+          for (int i = cursor.blockPath.single; i < blocks.length; i++) {
+            if (blocks[i].runtimeType == SectionBlock) {
+              nextSectionBlockIndex = i;
+              break;
+            }
+          }
+
+          SectionBlock newSectionBlock =
+              (getCursorBlock(cursor) as ParagraphBlock)
+                  .turnIntoSectionBlock(blocks.sublist(
+                      cursor.blockPath.single + 1, nextSectionBlockIndex))
+                  .copyWith();
+          newSectionBlock = newSectionBlock.copyWith(
+              pieces: newSectionBlock.pieces.removeAt(0));
+          final withSectionBlock = replaceBlock(
+            cursor.blockPath,
+            <EditorBlock>[newSectionBlock].lockUnsafe,
+          );
+
+          // Remove the blocks which have been moved into the section.
+          return withSectionBlock.copyWith(
+            blocks: withSectionBlock.blocks.removeRange(
+              cursor.blockPath.single + 1,
+              nextSectionBlockIndex ?? blocks.length,
+            ),
+          );
+        }
         // Append to the previous piece.
         return replacePieceInCursorBlock(
           cursor.pieceIndex - 1,

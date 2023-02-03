@@ -65,6 +65,8 @@ class EditorBlockWithChildren extends EditorBlock {
 
   IList<EditorBlock> children;
 
+  // TODO: Maybe have a "can contain" list of block types to generally solve the issue of which blocks can contain which? Or is this not a common issue?
+
   @override
   EditorBlockWithChildren copyWith({
     IList<TextSpan>? pieces,
@@ -119,6 +121,10 @@ class ParagraphBlock extends EditorBlock {
   @override
   EditorBlock copyWith({IList<TextSpan>? pieces}) =>
       ParagraphBlock(pieces ?? this.pieces);
+
+  // TODO: Add all following blocks until the next section block into the section.
+  SectionBlock turnIntoSectionBlock(IList<EditorBlock> children) =>
+      SectionBlock(pieces, children);
 
   @override
   Widget build(BuildContext context, Cursor? cursor, int depth) =>
