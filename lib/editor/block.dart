@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:memex_ui/editor/text_view.dart';
 import 'package:memex_ui/memex_ui.dart';
@@ -82,34 +83,41 @@ class EditorBlockWithChildren extends EditorBlock {
       children.insert(0, ParagraphBlock(pieces));
 
   @override
-  Widget build(BuildContext context, Cursor? cursor, int depth) => Container(
-        decoration: BoxDecoration(border: Border.all()),
-        padding: const EdgeInsets.all(5),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            super.build(
+  Widget build(BuildContext context, Cursor? cursor, int depth) {
+    BoxDecoration? debugBorders;
+    if (showDebugFrames && kDebugMode) {
+      debugBorders = BoxDecoration(border: Border.all());
+    }
+
+    return Container(
+      decoration: debugBorders,
+      padding: const EdgeInsets.all(5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          super.build(
+            context,
+            (cursor != null && depth == cursor.blockPath.length - 1)
+                ? cursor
+                : null,
+            depth,
+          ),
+          Container(height: 5),
+          ...children.mapIndexedAndLast((index, child, last) {
+            return child.build(
               context,
-              (cursor != null && depth == cursor.blockPath.length - 1)
+              (cursor != null &&
+                      cursor.blockPath.length > depth + 1 &&
+                      index == cursor.blockPath[depth + 1])
                   ? cursor
                   : null,
-              depth,
-            ),
-            Container(height: 5),
-            ...children.mapIndexedAndLast((index, child, last) {
-              return child.build(
-                context,
-                (cursor != null &&
-                        cursor.blockPath.length > depth + 1 &&
-                        index == cursor.blockPath[depth + 1])
-                    ? cursor
-                    : null,
-                depth + 1,
-              );
-            }),
-          ],
-        ),
-      );
+              depth + 1,
+            );
+          }),
+        ],
+      ),
+    );
+  }
 }
 
 class ParagraphBlock extends EditorBlock {
@@ -156,37 +164,44 @@ class SectionBlock extends EditorBlockWithChildren {
       );
 
   @override
-  Widget build(BuildContext context, Cursor? cursor, int depth) => Container(
-        decoration: BoxDecoration(border: Border.all()),
-        padding: const EdgeInsets.all(5),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            EditorTextView(
-              block: this,
-              cursor: (cursor != null && depth == cursor.blockPath.length - 1)
+  Widget build(BuildContext context, Cursor? cursor, int depth) {
+    BoxDecoration? debugBorders;
+    if (showDebugFrames && kDebugMode) {
+      debugBorders = BoxDecoration(border: Border.all());
+    }
+
+    return Container(
+      decoration: debugBorders,
+      padding: const EdgeInsets.all(5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          EditorTextView(
+            block: this,
+            cursor: (cursor != null && depth == cursor.blockPath.length - 1)
+                ? cursor
+                : null,
+            style: const TextStyle(
+              color: Color(0xFF000000),
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              fontFamily: "Inter",
+            ),
+          ),
+          Container(height: 5),
+          ...children.mapIndexedAndLast((index, child, last) {
+            return child.build(
+              context,
+              (cursor != null &&
+                      cursor.blockPath.length > depth + 1 &&
+                      index == cursor.blockPath[depth + 1])
                   ? cursor
                   : null,
-              style: const TextStyle(
-                color: Color(0xFF000000),
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                fontFamily: "Inter",
-              ),
-            ),
-            Container(height: 5),
-            ...children.mapIndexedAndLast((index, child, last) {
-              return child.build(
-                context,
-                (cursor != null &&
-                        cursor.blockPath.length > depth + 1 &&
-                        index == cursor.blockPath[depth + 1])
-                    ? cursor
-                    : null,
-                depth + 1,
-              );
-            }),
-          ],
-        ),
-      );
+              depth + 1,
+            );
+          }),
+        ],
+      ),
+    );
+  }
 }
