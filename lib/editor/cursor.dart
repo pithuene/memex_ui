@@ -1,5 +1,6 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/widgets.dart';
+import 'package:memex_ui/editor/editor_state.dart';
 import 'package:memex_ui/memex_ui.dart';
 
 @immutable

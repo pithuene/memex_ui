@@ -9,6 +9,7 @@ import './state.dart';
 export './memex_app.dart';
 export './table/table.dart';
 export './editor/editor.dart';
+export './editor/editor_state.dart';
 export './editor/editor_view.dart';
 
 class MemexFocusNode extends FocusNode {
