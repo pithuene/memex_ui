@@ -283,11 +283,12 @@ class EditorState {
       cursor.blockPath.last + 1,
     );
 
-    return blockCut
+    EditorBlock cursorBlock = getCursorBlock(cursor);
+    final newBlockInserted = blockCut
         .insertBlockAtPath(
           newBlockPath,
-          ParagraphBlock(
-            splitState
+          cursorBlock.copyWith(
+            pieces: splitState
                 .getCursorBlock(splitState.cursor)
                 .pieces
                 .sublist(splitState.cursor.pieceIndex),
@@ -298,6 +299,16 @@ class EditorState {
           pieceIndex: 0,
           offset: 0,
         );
+
+    if (cursorBlock is! EditorBlockWithChildren) {
+      return newBlockInserted;
+    } else {
+      // Move children into the new block.
+      // The new block already contains the children,
+      // because the have been copied from the old one.
+      // Remove children from old block.
+      return newBlockInserted.clearBlockChildren(cursor.blockPath);
+    }
   }
 
   /// Replace a block at [blockPath] in a tree of [blocks] with a [newBlock].
