@@ -441,6 +441,18 @@ class EditorState {
         );
   }
 
+  /// Remove all children of the block at [blockPath].
+  EditorState clearBlockChildren(IList<int> blockPath) {
+    EditorBlock targetBlock = getBlockFromPath(blockPath)!;
+    assert(targetBlock is EditorBlockWithChildren);
+    return replaceBlockAtPath(
+      blockPath,
+      (targetBlock as EditorBlockWithChildren).copyWith(
+        children: <EditorBlock>[].lockUnsafe,
+      ),
+    );
+  }
+
   /// Insert a list of [newBlocks] at a [destinationBlockPath].
   EditorState insertBlocks(
     IList<int> destinationBlockPath,
