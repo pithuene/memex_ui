@@ -22,17 +22,6 @@ class _EditorViewState extends State<EditorView> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> blockWidgets = [];
-    for (int i = 0; i < widget.editor.state.blocks.length; i++) {
-      EditorBlock block = widget.editor.state.blocks[i];
-      Cursor? cursor;
-      if (i == widget.editor.state.cursor.blockPath[0]) {
-        cursor = widget.editor.state.cursor;
-      }
-      blockWidgets.add(block.build(context, cursor, 0));
-      blockWidgets.add(Container(height: 15));
-    }
-
     return RawKeyboardListener(
       focusNode: focusNode,
       onKey: (event) {
@@ -91,9 +80,16 @@ class _EditorViewState extends State<EditorView> {
       },
       child: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: blockWidgets,
+        child: ListView.builder(
+          itemCount: widget.editor.state.blocks.length,
+          itemBuilder: (context, index) {
+            EditorBlock block = widget.editor.state.blocks[index];
+            Cursor? cursor;
+            if (index == widget.editor.state.cursor.blockPath[0]) {
+              cursor = widget.editor.state.cursor;
+            }
+            return block.build(context, cursor, 0);
+          },
         ),
       ),
     );
