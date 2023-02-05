@@ -103,17 +103,11 @@ class EditorBlockWithChildren extends EditorBlock {
             depth,
           ),
           Container(height: 5),
-          ...children.mapIndexedAndLast((index, child, last) {
-            return child.build(
-              context,
-              (cursor != null &&
-                      cursor.blockPath.length > depth + 1 &&
-                      index == cursor.blockPath[depth + 1])
-                  ? cursor
-                  : null,
-              depth + 1,
-            );
-          }),
+          RenderBlockChildren(
+            children: children,
+            cursor: cursor,
+            depth: depth,
+          ),
         ],
       ),
     );
@@ -189,19 +183,99 @@ class SectionBlock extends EditorBlockWithChildren {
             ),
           ),
           Container(height: 5),
-          ...children.mapIndexedAndLast((index, child, last) {
-            return child.build(
-              context,
-              (cursor != null &&
-                      cursor.blockPath.length > depth + 1 &&
-                      index == cursor.blockPath[depth + 1])
-                  ? cursor
-                  : null,
-              depth + 1,
-            );
-          }),
+          RenderBlockChildren(
+            children: children,
+            cursor: cursor,
+            depth: depth,
+          ),
         ],
       ),
     );
   }
+}
+
+class BulletpointBlock extends EditorBlockWithChildren {
+  BulletpointBlock.withInitialContent(String? initialContent)
+      : super.withInitialContent(
+          initialContent: initialContent,
+          children: <EditorBlock>[].lockUnsafe,
+        );
+
+  BulletpointBlock(super.pieces, super.children);
+
+  @override
+  BulletpointBlock copyWith({
+    IList<TextSpan>? pieces,
+    IList<EditorBlock>? children,
+  }) =>
+      BulletpointBlock(
+        pieces ?? this.pieces,
+        children ?? this.children,
+      );
+
+  @override
+  Widget build(BuildContext context, Cursor? cursor, int depth) {
+    BoxDecoration? debugBorders;
+    if (showDebugFrames && kDebugMode) {
+      debugBorders = BoxDecoration(border: Border.all());
+    }
+
+    return Container(
+      decoration: debugBorders,
+      padding: const EdgeInsets.all(5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("- "),
+              Expanded(
+                child: EditorTextView(
+                  block: this,
+                  cursor:
+                      (cursor != null && depth == cursor.blockPath.length - 1)
+                          ? cursor
+                          : null,
+                ),
+              ),
+            ],
+          ),
+          RenderBlockChildren(
+            children: children,
+            cursor: cursor,
+            depth: depth,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class RenderBlockChildren extends StatelessWidget {
+  final IList<EditorBlock> children;
+  final Cursor? cursor;
+  final int depth;
+
+  const RenderBlockChildren({
+    required this.children,
+    required this.cursor,
+    required this.depth,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) => Row(
+        children: children.mapIndexedAndLast((index, child, last) {
+          return child.build(
+            context,
+            (cursor != null &&
+                    cursor!.blockPath.length > depth + 1 &&
+                    index == cursor!.blockPath[depth + 1])
+                ? cursor
+                : null,
+            depth + 1,
+          );
+        }).toList(),
+      );
 }

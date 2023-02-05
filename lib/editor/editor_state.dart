@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:memex_ui/memex_ui.dart';
+
 import './cursor.dart';
 import './block.dart';
 
@@ -20,6 +22,7 @@ class EditorState {
       ParagraphBlock.withInitialContent(
         initialContent: "Ein neuer Absatz.",
       ),
+      BulletpointBlock.withInitialContent("Eins"),
     ].lockUnsafe;
     cursor = const Cursor(
       blockPath: IListConst([0]),
@@ -519,6 +522,42 @@ class EditorState {
     }
   }
 
+  EditorState markdownShortcutH1() {
+    // Find index of the next [SectionBlock].
+    int? nextSectionBlockIndex;
+    for (int i = cursor.blockPath.single; i < blocks.length; i++) {
+      if (blocks[i].runtimeType == SectionBlock) {
+        nextSectionBlockIndex = i;
+        break;
+      }
+    }
+
+    SectionBlock newSectionBlock = (getCursorBlock(cursor) as ParagraphBlock)
+        .turnIntoSectionBlock(
+            blocks.sublist(cursor.blockPath.single + 1, nextSectionBlockIndex))
+        .copyWith();
+    newSectionBlock = newSectionBlock.copyWith(
+      pieces: newSectionBlock.pieces.removeAt(0),
+    );
+    final withSectionBlock = replaceBlockWithBlocks(
+      cursor.blockPath,
+      <EditorBlock>[newSectionBlock].lockUnsafe,
+    );
+
+    // Remove the blocks which have been moved into the section.
+    final deletedMovedBlocks = withSectionBlock.copyWith(
+      blocks: withSectionBlock.blocks.removeRange(
+        cursor.blockPath.single + 1,
+        nextSectionBlockIndex ?? blocks.length,
+      ),
+    );
+
+    return deletedMovedBlocks.replaceCursor(
+      pieceIndex: 0,
+      offset: 0,
+    );
+  }
+
   /// Insert [newContent] before the cursor.
   EditorState append(String newContent) {
     if (cursor.isAtPieceStart) {
@@ -541,41 +580,7 @@ class EditorState {
             getCursorPreviousPiece(cursor).text!.trim() == "#") {
           // Space after a # at the start of a [ParagraphBlock]
           // => Transform this [ParagraphBlock] into a [SectionBlock].
-
-          // Find index of the next [SectionBlock].
-          int? nextSectionBlockIndex;
-          for (int i = cursor.blockPath.single; i < blocks.length; i++) {
-            if (blocks[i].runtimeType == SectionBlock) {
-              nextSectionBlockIndex = i;
-              break;
-            }
-          }
-
-          SectionBlock newSectionBlock =
-              (getCursorBlock(cursor) as ParagraphBlock)
-                  .turnIntoSectionBlock(blocks.sublist(
-                      cursor.blockPath.single + 1, nextSectionBlockIndex))
-                  .copyWith();
-          newSectionBlock = newSectionBlock.copyWith(
-            pieces: newSectionBlock.pieces.removeAt(0),
-          );
-          final withSectionBlock = replaceBlockWithBlocks(
-            cursor.blockPath,
-            <EditorBlock>[newSectionBlock].lockUnsafe,
-          );
-
-          // Remove the blocks which have been moved into the section.
-          final deletedMovedBlocks = withSectionBlock.copyWith(
-            blocks: withSectionBlock.blocks.removeRange(
-              cursor.blockPath.single + 1,
-              nextSectionBlockIndex ?? blocks.length,
-            ),
-          );
-
-          return deletedMovedBlocks.replaceCursor(
-            pieceIndex: 0,
-            offset: 0,
-          );
+          return markdownShortcutH1();
         }
         // Append to the previous piece.
         return replacePieceInCursorBlock(
