@@ -441,19 +441,28 @@ class EditorState {
         );
   }
 
+  /// Insert a list of [newBlocks] at a [destinationBlockPath].
+  EditorState insertBlocks(
+    IList<int> destinationBlockPath,
+    IList<EditorBlock> newBlocks,
+  ) {
+    EditorState resultState = this;
+    for (int i = newBlocks.length - 1; i >= 0; i--) {
+      resultState = resultState.insertBlockAtPath(
+        destinationBlockPath,
+        newBlocks[i],
+      );
+    }
+    return resultState;
+  }
+
   /// Replace the block at [blockPathToReplace] with [replacementBlocks].
-  EditorState replaceBlock(
+  EditorState replaceBlockWithBlocks(
     IList<int> blockPathToReplace,
     IList<EditorBlock> replacementBlocks,
   ) {
     EditorState resultState = removeBlockAtPath(blockPathToReplace);
-    for (int i = replacementBlocks.length - 1; i >= 0; i--) {
-      resultState = resultState.insertBlockAtPath(
-        blockPathToReplace,
-        replacementBlocks[i],
-      );
-    }
-    return resultState;
+    return resultState.insertBlocks(blockPathToReplace, replacementBlocks);
   }
 
   /// Called through [deleteBackwards] at the start of a non-paragraph block.
@@ -461,7 +470,7 @@ class EditorState {
     EditorBlock blockToTransform = getBlockFromPath(blockPath)!;
     IList<EditorBlock> replacementBlocks =
         blockToTransform.turnIntoParagraphBlock();
-    return replaceBlock(blockPath, replacementBlocks);
+    return replaceBlockWithBlocks(blockPath, replacementBlocks);
   }
 
   EditorState deleteBackwards() {
@@ -571,7 +580,7 @@ class EditorState {
           newSectionBlock = newSectionBlock.copyWith(
             pieces: newSectionBlock.pieces.removeAt(0),
           );
-          final withSectionBlock = replaceBlock(
+          final withSectionBlock = replaceBlockWithBlocks(
             cursor.blockPath,
             <EditorBlock>[newSectionBlock].lockUnsafe,
           );
