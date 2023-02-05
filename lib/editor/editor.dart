@@ -278,10 +278,7 @@ class EditorState {
           .add(EditorBlock.sentinelPiece),
     );
 
-    final IList<int> newBlockPath = cursor.blockPath.replace(
-      cursor.blockPath.length - 1,
-      cursor.blockPath.last + 1,
-    );
+    final IList<int> newBlockPath = cursor.nextNeighborBlock();
 
     EditorBlock cursorBlock = getCursorBlock(cursor);
     final newBlockInserted = blockCut

@@ -36,6 +36,13 @@ class Cursor {
   /// Whether the cursor is on the first character of the current piece.
   bool get isAtPieceStart => offset == 0;
 
+  /// Get the block path of the next neighbor of the cursor block.
+  /// There is no guarantee that this neighbor exists.
+  IList<int> nextNeighborBlock() => blockPath.replace(
+        blockPath.length - 1,
+        blockPath.last + 1,
+      );
+
   Cursor copyWith({
     IList<int>? blockPath,
     int? pieceIndex,
