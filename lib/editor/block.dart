@@ -265,7 +265,8 @@ class RenderBlockChildren extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Row(
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: children.mapIndexedAndLast((index, child, last) {
           return child.build(
             context,
