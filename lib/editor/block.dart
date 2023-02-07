@@ -197,21 +197,24 @@ class BulletpointBlock extends EditorBlockWithChildren {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text("• "),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              EditorTextView(
-                block: this,
-                cursor: (cursor != null && depth == cursor.blockPath.length - 1)
-                    ? cursor
-                    : null,
-              ),
-              RenderBlockChildren(
-                children: children,
-                cursor: cursor,
-                depth: depth,
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                EditorTextView(
+                  block: this,
+                  cursor:
+                      (cursor != null && depth == cursor.blockPath.length - 1)
+                          ? cursor
+                          : null,
+                ),
+                RenderBlockChildren(
+                  children: children,
+                  cursor: cursor,
+                  depth: depth,
+                ),
+              ],
+            ),
           ),
         ],
       ),
