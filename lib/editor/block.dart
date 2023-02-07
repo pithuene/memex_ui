@@ -229,7 +229,7 @@ class BulletpointBlock extends EditorBlockWithChildren {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("- "),
+              const Text("• "),
               Expanded(
                 child: EditorTextView(
                   block: this,
