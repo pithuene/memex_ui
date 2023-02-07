@@ -38,6 +38,18 @@ class _EditorViewState extends State<EditorView> {
             });
             return;
           }
+          if (event.logicalKey == LogicalKeyboardKey.tab) {
+            if (event.isShiftPressed) {
+              setState(() {
+                widget.editor.unindent();
+              });
+            } else {
+              setState(() {
+                widget.editor.indent();
+              });
+              return;
+            }
+          }
           if (event.logicalKey == LogicalKeyboardKey.enter) {
             if (event.isShiftPressed) {
               setState(() {

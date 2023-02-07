@@ -581,6 +581,37 @@ class EditorState {
     );
   }
 
+  /// Indent the current block.
+  /// Usually makes it a child of its preceeding neighbor.
+  EditorState indent() {
+    EditorBlock cursorBlock = getCursorBlock(cursor);
+    if (cursorBlock is BulletpointBlock) {
+      IList<int> preceedingNeighborPath = cursor.previousNeighborBlock();
+      EditorBlock? preceedingNeighbor =
+          getBlockFromPath(preceedingNeighborPath);
+      if (preceedingNeighbor == null) {
+        // There is no preceeding neighbor to which this can be added.
+        return this;
+      }
+      if (preceedingNeighbor is! BulletpointBlock) {
+        // TODO: This should also check for other list blocks.
+        return this;
+      }
+      IList<int> destinationBlockPath =
+          preceedingNeighborPath.add(preceedingNeighbor.children.length);
+      return insertBlockAtPath(destinationBlockPath, cursorBlock)
+          .removeBlockAtPath(cursor.blockPath)
+          .replaceCursor(blockPath: destinationBlockPath);
+    }
+    return this;
+  }
+
+  /// Unindent the current block.
+  /// Usually makes it a neighbor of its parent.
+  EditorState unindent() {
+    return this; // TODO
+  }
+
   /// Insert [newContent] before the cursor.
   EditorState append(String newContent) {
     if (cursor.isAtPieceStart) {

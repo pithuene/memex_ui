@@ -30,6 +30,11 @@ class Cursor {
         blockPath.last + 1,
       );
 
+  IList<int> previousNeighborBlock() => blockPath.replace(
+        blockPath.length - 1,
+        blockPath.last - 1,
+      );
+
   Cursor copyWith({
     IList<int>? blockPath,
     int? pieceIndex,

@@ -26,6 +26,10 @@ class Editor {
   void append(String content) =>
       _performReversableAction(state.append(content));
 
+  void indent() => _performReversableAction(state.indent());
+
+  void unindent() => _performReversableAction(state.unindent());
+
   void deleteBackwards() => _performReversableAction(state.deleteBackwards());
 
   // TODO: Name newBlock?
