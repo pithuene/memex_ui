@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/memex_ui.dart';
 
 import './cursor.dart';
@@ -24,8 +25,8 @@ class EditorState {
       ),
       BulletpointBlock.withInitialContent("Eins"),
     ].lockUnsafe;
-    cursor = const Cursor(
-      blockPath: IListConst([0]),
+    cursor = Cursor(
+      blockPath: BlockPath.constant(const [0]),
       pieceIndex: 0,
       offset: 0,
     );
@@ -46,7 +47,7 @@ class EditorState {
     );
   }
 
-  EditorBlock? getBlockFromPath(IList<int> blockPath) {
+  EditorBlock? getBlockFromPath(BlockPath blockPath) {
     if (blockPath.isEmpty) return null;
     EditorBlock? curr = blocks.getOrNull(blockPath[0]);
     for (int i = 1; i < blockPath.length; i++) {
@@ -72,14 +73,14 @@ class EditorState {
 
   /// Find the block path to the next block.
   /// Returns null if this is the last block.
-  IList<int>? getNextBlock(IList<int> blockPath) {
+  BlockPath? getNextBlock(BlockPath blockPath) {
     EditorBlock currentBlock = getBlockFromPath(blockPath)!;
     if (currentBlock is EditorBlockWithChildren &&
         currentBlock.children.isNotEmpty) {
       // Return path to first child.
       return blockPath.add(0);
     } else {
-      IList<int> nextPath =
+      BlockPath nextPath =
           blockPath.replace(blockPath.length - 1, blockPath.last + 1);
       EditorBlock? next = getBlockFromPath(nextPath);
       while (next == null && nextPath.length > 1) {
@@ -94,7 +95,7 @@ class EditorState {
 
   /// Find the block path to the previous block.
   /// Returns null if this is the first block.
-  IList<int>? getPreviousBlock(IList<int> blockPath) {
+  BlockPath? getPreviousBlock(BlockPath blockPath) {
     if (blockPath.length == 1 && blockPath[0] == 0) {
       // First block, there is no previous one.
       return null;
@@ -102,7 +103,7 @@ class EditorState {
 
     if (blockPath.last > 0) {
       // Has previous neighbor
-      IList<int> previousBlockPath =
+      BlockPath previousBlockPath =
           blockPath.replace(blockPath.length - 1, blockPath.last - 1);
       EditorBlock previousBlock = getBlockFromPath(previousBlockPath)!;
       // Get previous neighbors last child
@@ -132,7 +133,7 @@ class EditorState {
         );
       } else {
         // On the last piece, must jump to next block.
-        IList<int>? nextBlockPath = getNextBlock(cursor.blockPath);
+        BlockPath? nextBlockPath = getNextBlock(cursor.blockPath);
         if (nextBlockPath == null) {
           // Can't move, this is the last block.
           return this;
@@ -166,7 +167,7 @@ class EditorState {
         );
       } else {
         // On the first piece, must jump to the previous block.
-        IList<int>? previousBlockPath = getPreviousBlock(cursor.blockPath);
+        BlockPath? previousBlockPath = getPreviousBlock(cursor.blockPath);
         if (previousBlockPath == null) {
           // Can't move, this is the first block.
           return this;
@@ -240,7 +241,7 @@ class EditorState {
           .add(EditorBlock.sentinelPiece),
     );
 
-    final IList<int> newBlockPath = cursor.nextNeighborBlock();
+    final BlockPath newBlockPath = cursor.blockPath.nextNeighbor();
 
     EditorBlock cursorBlock = getCursorBlock(cursor);
     final newBlockInserted = blockCut
@@ -273,7 +274,7 @@ class EditorState {
   /// Replace a block at [blockPath] in a tree of [blocks] with a [newBlock].
   IList<EditorBlock> replaceBlockInBlocksAtPath(
     IList<EditorBlock> blocks,
-    IList<int> blockPath,
+    BlockPath blockPath,
     EditorBlock newBlock,
   ) {
     if (blockPath.length == 1) {
@@ -292,7 +293,7 @@ class EditorState {
   }
 
   /// Replace the block at a given [blockPath] with a [newBlock].
-  EditorState replaceBlockAtPath(IList<int> blockPath, EditorBlock newBlock) {
+  EditorState replaceBlockAtPath(BlockPath blockPath, EditorBlock newBlock) {
     if (blockPath.length == 1) {
       return copyWith(
         blocks: blocks.replace(blockPath.single, newBlock),
@@ -309,14 +310,14 @@ class EditorState {
   }
 
   /// Insert a [newBlock] at a given [blockPath].
-  EditorState insertBlockAtPath(IList<int> blockPath, EditorBlock newBlock) {
+  EditorState insertBlockAtPath(BlockPath blockPath, EditorBlock newBlock) {
     if (blockPath.length == 1) {
       return copyWith(
         blocks: blocks.insert(blockPath.single, newBlock),
       );
     }
 
-    IList<int> parentPath = blockPath.removeLast();
+    BlockPath parentPath = blockPath.removeLast();
     return replaceBlockAtPath(
       parentPath,
       (getBlockFromPath(parentPath) as EditorBlockWithChildren).copyWith(
@@ -331,14 +332,14 @@ class EditorState {
   }
 
   /// Remove the block at a given [blockPath].
-  EditorState removeBlockAtPath(IList<int> blockPath) {
+  EditorState removeBlockAtPath(BlockPath blockPath) {
     if (blockPath.length == 1) {
       return copyWith(
         blocks: blocks.removeAt(blockPath.single),
       );
     }
 
-    IList<int> parentPath = blockPath.removeLast();
+    BlockPath parentPath = blockPath.removeLast();
     return replaceBlockAtPath(
       parentPath,
       (getBlockFromPath(parentPath) as EditorBlockWithChildren).copyWith(
@@ -371,7 +372,7 @@ class EditorState {
   }
 
   EditorState replaceCursor({
-    IList<int>? blockPath,
+    BlockPath? blockPath,
     int? pieceIndex,
     int? offset,
   }) {
@@ -384,7 +385,7 @@ class EditorState {
   }
 
   /// Append the content of the block at [blockPathToRemove] to the previous block and delete it.
-  EditorState mergeWithPreviousBlock(IList<int> blockPathToRemove) {
+  EditorState mergeWithPreviousBlock(BlockPath blockPathToRemove) {
     EditorBlock blockToRemove = getBlockFromPath(blockPathToRemove)!;
 
     // Turn block into ParagraphBlock before merging it with anything.
@@ -392,7 +393,7 @@ class EditorState {
 
     // TODO: What if the previous block can't be merged with (is an image or something)? Notion just skips it in that case and merges with what is before that.
 
-    IList<int>? previousBlockPath = getPreviousBlock(blockPathToRemove);
+    BlockPath? previousBlockPath = getPreviousBlock(blockPathToRemove);
     if (previousBlockPath == null) {
       // There is no previous block to merge with.
       return this;
@@ -412,7 +413,7 @@ class EditorState {
   }
 
   /// Remove all children of the block at [blockPath].
-  EditorState clearBlockChildren(IList<int> blockPath) {
+  EditorState clearBlockChildren(BlockPath blockPath) {
     EditorBlock targetBlock = getBlockFromPath(blockPath)!;
     assert(targetBlock is EditorBlockWithChildren);
     return replaceBlockAtPath(
@@ -425,7 +426,7 @@ class EditorState {
 
   /// Insert a list of [newBlocks] at a [destinationBlockPath].
   EditorState insertBlocks(
-    IList<int> destinationBlockPath,
+    BlockPath destinationBlockPath,
     IList<EditorBlock> newBlocks,
   ) {
     EditorState resultState = this;
@@ -440,7 +441,7 @@ class EditorState {
 
   /// Replace the block at [blockPathToReplace] with [replacementBlocks].
   EditorState replaceBlockWithBlocks(
-    IList<int> blockPathToReplace,
+    BlockPath blockPathToReplace,
     IList<EditorBlock> replacementBlocks,
   ) {
     EditorState resultState = removeBlockAtPath(blockPathToReplace);
@@ -448,7 +449,7 @@ class EditorState {
   }
 
   /// Called through [deleteBackwards] at the start of a non-paragraph block.
-  EditorState turnBlockIntoParagraphBlock(IList<int> blockPath) {
+  EditorState turnBlockIntoParagraphBlock(BlockPath blockPath) {
     EditorBlock blockToTransform = getBlockFromPath(blockPath)!;
     IList<EditorBlock> replacementBlocks =
         blockToTransform.turnIntoParagraphBlock();
@@ -573,7 +574,7 @@ class EditorState {
   EditorState indent() {
     EditorBlock cursorBlock = getCursorBlock(cursor);
     if (cursorBlock is BulletpointBlock) {
-      IList<int> preceedingNeighborPath = cursor.previousNeighborBlock();
+      BlockPath preceedingNeighborPath = cursor.blockPath.previousNeighbor();
       EditorBlock? preceedingNeighbor =
           getBlockFromPath(preceedingNeighborPath);
       if (preceedingNeighbor == null) {
@@ -584,7 +585,7 @@ class EditorState {
         // TODO: This should also check for other list blocks.
         return this;
       }
-      IList<int> destinationBlockPath =
+      BlockPath destinationBlockPath =
           preceedingNeighborPath.add(preceedingNeighbor.children.length);
       return insertBlockAtPath(destinationBlockPath, cursorBlock)
           .removeBlockAtPath(cursor.blockPath)
@@ -596,7 +597,7 @@ class EditorState {
   /// Unindent the current block.
   /// Usually makes it a neighbor of its parent.
   EditorState unindent() {
-    IList<int> destinationPath = cursor.blockPath.removeLast();
+    BlockPath destinationPath = cursor.blockPath.removeLast();
     if (destinationPath.isEmpty) {
       // Can't indent, already top level block.
       return this;

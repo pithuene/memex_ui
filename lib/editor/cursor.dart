@@ -1,5 +1,5 @@
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/widgets.dart';
+import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/editor_state.dart';
 import 'package:memex_ui/memex_ui.dart';
 
@@ -12,7 +12,7 @@ class Cursor {
   });
 
   /// A list of indices specifying the cursor block.
-  final IList<int> blockPath;
+  final BlockPath blockPath;
   final int pieceIndex;
   final int offset;
 
@@ -23,20 +23,8 @@ class Cursor {
   /// Whether the cursor is on the first character of the current piece.
   bool get isAtPieceStart => offset == 0;
 
-  /// Get the block path of the next neighbor of the cursor block.
-  /// There is no guarantee that this neighbor exists.
-  IList<int> nextNeighborBlock() => blockPath.replace(
-        blockPath.length - 1,
-        blockPath.last + 1,
-      );
-
-  IList<int> previousNeighborBlock() => blockPath.replace(
-        blockPath.length - 1,
-        blockPath.last - 1,
-      );
-
   Cursor copyWith({
-    IList<int>? blockPath,
+    BlockPath? blockPath,
     int? pieceIndex,
     int? offset,
   }) {
