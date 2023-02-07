@@ -48,6 +48,11 @@ class EditorBlock {
   EditorBlock copyWith({IList<TextSpan>? pieces}) =>
       EditorBlock(pieces ?? this.pieces);
 
+  EditorBlock replacePieces(
+    IList<TextSpan> Function(IList<TextSpan>) piecesChange,
+  ) =>
+      copyWith(pieces: piecesChange(pieces));
+
   /// Turn this block into a [ParagraphBlock].
   /// Returns a list of [EditorBlock]s to replace it.
   /// If the block has no children, the result list should simply contain a single [ParagraphBlock].
@@ -80,6 +85,11 @@ class EditorBlockWithChildren extends EditorBlock {
         pieces ?? this.pieces,
         children ?? this.children,
       );
+
+  EditorBlockWithChildren replaceChildren(
+    IList<EditorBlock> Function(IList<EditorBlock>) childrenChange,
+  ) =>
+      copyWith(children: childrenChange(children));
 
   @override
   IList<EditorBlock> turnIntoParagraphBlock() =>

@@ -21,7 +21,6 @@ class BlockPath {
   BlockPath add(int item) => BlockPath(_path.add(item));
   BlockPath replace(int index, int value) =>
       BlockPath(_path.replace(index, value));
-  BlockPath removeLast() => BlockPath(_path.removeLast());
   BlockPath sublist(int start, [int? end]) =>
       BlockPath(_path.sublist(start, end));
 
@@ -32,7 +31,7 @@ class BlockPath {
   BlockPath firstChild() => BlockPath(_path.add(0));
 
   /// Path to this blocks parent.
-  BlockPath parent() => removeLast();
+  BlockPath parent() => BlockPath(_path.removeLast());
 
   /// Whether this block has no parent.
   bool get isTopLevel => _path.length == 1;

@@ -204,43 +204,50 @@ class EditorState {
           offset: 0,
         );
 
-    if (cursorBlock is! EditorBlockWithChildren) {
-      return newBlockInserted;
-    } else {
+    if (cursorBlock is EditorBlockWithChildren) {
       // Move children into the new block.
       // The new block already contains the children,
       // because the have been copied from the old one.
       // Remove children from old block.
       return newBlockInserted.clearBlockChildren(cursor.blockPath);
     }
+
+    return newBlockInserted;
   }
 
-  /// Replace a block at [blockPath] in a tree of [blocks] with a [newBlock].
-  IList<EditorBlock> replaceBlockInBlocksAtPath(
-    IList<EditorBlock> blocks,
+  /// Transform the block at a given [blockPath]
+  /// throguh a [blockChange] function.
+  EditorState replaceBlockAtPath(
     BlockPath blockPath,
-    EditorBlock newBlock,
+    EditorBlock Function(EditorBlock) blockChange,
   ) {
-    if (blockPath.length == 1) {
-      return blocks.replace(blockPath[0], newBlock);
-    }
-    return blocks.replace(
-      blockPath[0],
-      (blocks[blockPath[0]] as EditorBlockWithChildren).copyWith(
-        children: replaceBlockInBlocksAtPath(
-          (blocks[blockPath[0]] as EditorBlockWithChildren).children,
-          blockPath.sublist(1),
-          newBlock,
+    /// Replace a block at [blockPath] in a tree of [blocks] with a [newBlock].
+    IList<EditorBlock> replaceBlockInBlocksAtPath(
+      IList<EditorBlock> blocks,
+      BlockPath blockPath,
+      EditorBlock newBlock,
+    ) {
+      if (blockPath.isTopLevel) {
+        return blocks.replace(blockPath[0], newBlock);
+      }
+      return blocks.replace(
+        blockPath[0],
+        (blocks[blockPath[0]] as EditorBlockWithChildren).replaceChildren(
+          (children) => replaceBlockInBlocksAtPath(
+            children,
+            blockPath.sublist(1),
+            newBlock,
+          ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
-  /// Replace the block at a given [blockPath] with a [newBlock].
-  EditorState replaceBlockAtPath(BlockPath blockPath, EditorBlock newBlock) {
-    if (blockPath.length == 1) {
+    if (blockPath.isTopLevel) {
       return copyWith(
-        blocks: blocks.replace(blockPath.single, newBlock),
+        blocks: blocks.replace(
+          blockPath.single,
+          blockChange(getBlockFromPath(blockPath)!),
+        ),
       );
     }
 
@@ -248,29 +255,25 @@ class EditorState {
       blocks: replaceBlockInBlocksAtPath(
         blocks,
         blockPath,
-        newBlock,
+        blockChange(getBlockFromPath(blockPath)!),
       ),
     );
   }
 
   /// Insert a [newBlock] at a given [blockPath].
   EditorState insertBlockAtPath(BlockPath blockPath, EditorBlock newBlock) {
-    if (blockPath.length == 1) {
-      return copyWith(
-        blocks: blocks.insert(blockPath.single, newBlock),
-      );
+    if (blockPath.isTopLevel) {
+      return copyWith(blocks: blocks.insert(blockPath.single, newBlock));
     }
 
-    BlockPath parentPath = blockPath.removeLast();
+    BlockPath parentPath = blockPath.parent();
     return replaceBlockAtPath(
       parentPath,
-      (getBlockFromPath(parentPath) as EditorBlockWithChildren).copyWith(
-        children: (getBlockFromPath(parentPath) as EditorBlockWithChildren)
-            .children
-            .insert(
-              blockPath.last,
-              newBlock,
-            ),
+      (parentBlock) => (parentBlock as EditorBlockWithChildren).replaceChildren(
+        (children) => children.insert(
+          blockPath.last,
+          newBlock,
+        ),
       ),
     );
   }
@@ -283,26 +286,20 @@ class EditorState {
       );
     }
 
-    BlockPath parentPath = blockPath.removeLast();
+    BlockPath parentPath = blockPath.parent();
     return replaceBlockAtPath(
       parentPath,
-      (getBlockFromPath(parentPath) as EditorBlockWithChildren).copyWith(
-        children: (getBlockFromPath(parentPath) as EditorBlockWithChildren)
-            .children
-            .removeAt(blockPath.last),
-      ),
+      (parentBlock) => (parentBlock as EditorBlockWithChildren)
+          .replaceChildren((children) => children.removeAt(blockPath.last)),
     );
   }
 
   EditorState replacePiecesInCursorBlock(
     IList<TextSpan> Function(IList<TextSpan>) pieceChange,
   ) {
-    final EditorBlock cursorBlock = getCursorBlock(cursor);
     return replaceBlockAtPath(
       cursor.blockPath,
-      cursorBlock.copyWith(
-        pieces: pieceChange(cursorBlock.pieces),
-      ),
+      (cursorBlock) => cursorBlock.replacePieces(pieceChange),
     );
   }
 
@@ -327,11 +324,12 @@ class EditorState {
     int? offset,
   }) {
     return copyWith(
-        cursor: cursor.copyWith(
-      blockPath: blockPath,
-      pieceIndex: pieceIndex,
-      offset: offset,
-    ));
+      cursor: cursor.copyWith(
+        blockPath: blockPath,
+        pieceIndex: pieceIndex,
+        offset: offset,
+      ),
+    );
   }
 
   /// Append the content of the block at [blockPathToRemove] to the previous block and delete it.
@@ -348,29 +346,29 @@ class EditorState {
       // There is no previous block to merge with.
       return this;
     }
-    EditorBlock previousBlock = getBlockFromPath(previousBlockPath)!;
+
+    int cursorPieceIndexAferMerge =
+        getBlockFromPath(previousBlockPath)!.pieces.length - 1;
 
     return replaceBlockAtPath(
       previousBlockPath,
-      previousBlock.copyWith(
-        pieces: previousBlock.pieces.removeLast().addAll(blockToRemove.pieces),
+      (previousBlock) => previousBlock.replacePieces(
+        (pieces) => pieces.removeLast().addAll(blockToRemove.pieces),
       ),
     ).removeBlockAtPath(blockPathToRemove).replaceCursor(
           blockPath: previousBlockPath,
-          pieceIndex: previousBlock.pieces.length - 1,
+          pieceIndex: cursorPieceIndexAferMerge,
           offset: 0,
         );
   }
 
   /// Remove all children of the block at [blockPath].
   EditorState clearBlockChildren(BlockPath blockPath) {
-    EditorBlock targetBlock = getBlockFromPath(blockPath)!;
-    assert(targetBlock is EditorBlockWithChildren);
+    assert(getBlockFromPath(blockPath)! is EditorBlockWithChildren);
     return replaceBlockAtPath(
       blockPath,
-      (targetBlock as EditorBlockWithChildren).copyWith(
-        children: <EditorBlock>[].lockUnsafe,
-      ),
+      (targetBlock) => (targetBlock as EditorBlockWithChildren)
+          .replaceChildren((children) => <EditorBlock>[].lockUnsafe),
     );
   }
 
@@ -474,11 +472,11 @@ class EditorState {
   }
 
   EditorState markdownShortcutBulletpoint() {
-    BulletpointBlock newBulletpointBlock =
+    EditorBlock newBulletpointBlock =
         (getCursorBlock(cursor) as ParagraphBlock).turnIntoBulletpointBlock();
     // Remove the first piece, which triggered the transformation.
-    newBulletpointBlock = newBulletpointBlock.copyWith(
-      pieces: newBulletpointBlock.pieces.removeAt(0),
+    newBulletpointBlock = newBulletpointBlock.replacePieces(
+      (pieces) => pieces.removeAt(0),
     );
 
     return replaceBlockWithBlocks(
@@ -491,21 +489,12 @@ class EditorState {
   }
 
   EditorState markdownShortcutH1() {
-    // Find index of the next [SectionBlock].
-    int? nextSectionBlockIndex;
-    for (int i = cursor.blockPath.single; i < blocks.length; i++) {
-      if (blocks[i].runtimeType == SectionBlock) {
-        nextSectionBlockIndex = i;
-        break;
-      }
-    }
-
-    SectionBlock newSectionBlock =
+    EditorBlock newSectionBlock =
         (getCursorBlock(cursor) as ParagraphBlock).turnIntoSectionBlock();
 
     // Remove the first piece, which triggered the transformation.
-    newSectionBlock = newSectionBlock.copyWith(
-      pieces: newSectionBlock.pieces.removeAt(0),
+    newSectionBlock = newSectionBlock.replacePieces(
+      (pieces) => pieces.removeAt(0),
     );
 
     final withSectionBlock = replaceBlockWithBlocks(
@@ -547,7 +536,7 @@ class EditorState {
   /// Unindent the current block.
   /// Usually makes it a neighbor of its parent.
   EditorState unindent() {
-    BlockPath destinationPath = cursor.blockPath.removeLast();
+    BlockPath destinationPath = cursor.blockPath.parent();
     if (destinationPath.isEmpty) {
       // Can't indent, already top level block.
       return this;
