@@ -64,6 +64,9 @@ class EditorBlockWithChildren extends EditorBlock {
 
   EditorBlockWithChildren(super.pieces, this.children);
 
+  bool get hasChildren => children.isNotEmpty;
+  int get lastChildIndex => children.length - 1;
+
   IList<EditorBlock> children;
 
   // TODO: Maybe have a "can contain" list of block types to generally solve the issue of which blocks can contain which? Or is this not a common issue?

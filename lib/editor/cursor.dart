@@ -23,6 +23,12 @@ class Cursor {
   /// Whether the cursor is on the first character of the current piece.
   bool get isAtPieceStart => offset == 0;
 
+  /// Whether the cursor is on the last piece of its block.
+  bool isOnLastPiece(EditorState state) =>
+      pieceIndex == state.getCursorBlock(this).pieces.length - 1;
+
+  bool get isOnFirstPiece => pieceIndex == 0;
+
   Cursor copyWith({
     BlockPath? blockPath,
     int? pieceIndex,
