@@ -609,7 +609,19 @@ class EditorState {
   /// Unindent the current block.
   /// Usually makes it a neighbor of its parent.
   EditorState unindent() {
-    return this; // TODO
+    IList<int> destinationPath = cursor.blockPath.removeLast();
+    if (destinationPath.isEmpty) {
+      // Can't indent, already top level block.
+      return this;
+    }
+    destinationPath = destinationPath.replace(
+      destinationPath.length - 1,
+      destinationPath.last + 1,
+    );
+
+    return insertBlockAtPath(destinationPath, getCursorBlock(cursor))
+        .removeBlockAtPath(cursor.blockPath)
+        .replaceCursor(blockPath: destinationPath);
   }
 
   /// Insert [newContent] before the cursor.
