@@ -180,9 +180,7 @@ class EditorState {
     final splitState = splitBeforeCursor();
     assert(splitState.cursor.isAtPieceStart);
     final blockCut = splitState.replacePiecesInCursorBlock(
-      splitState
-          .getCursorBlock(splitState.cursor)
-          .pieces
+      (pieces) => pieces
           .sublist(0, splitState.cursor.pieceIndex)
           .add(EditorBlock.sentinelPiece),
     );
@@ -296,25 +294,31 @@ class EditorState {
     );
   }
 
-  EditorState replacePiecesInCursorBlock(IList<TextSpan> pieces) {
+  EditorState replacePiecesInCursorBlock(
+    IList<TextSpan> Function(IList<TextSpan>) pieceChange,
+  ) {
+    final EditorBlock cursorBlock = getCursorBlock(cursor);
     return replaceBlockAtPath(
       cursor.blockPath,
-      getCursorBlock(cursor).copyWith(
-        pieces: pieces,
+      cursorBlock.copyWith(
+        pieces: pieceChange(cursorBlock.pieces),
       ),
     );
   }
 
   EditorState replacePieceInCursorBlock(int pieceIndex, TextSpan newPiece) {
-    return replacePiecesInCursorBlock(getCursorBlock(cursor).pieces.replace(
-          pieceIndex,
-          newPiece,
-        ));
+    return replacePiecesInCursorBlock(
+      (pieces) => pieces.replace(
+        pieceIndex,
+        newPiece,
+      ),
+    );
   }
 
   EditorState insertPieceInCursorBlock(int pieceIndex, TextSpan newPiece) {
     return replacePiecesInCursorBlock(
-        getCursorBlock(cursor).pieces.insert(pieceIndex, newPiece));
+      (pieces) => pieces.insert(pieceIndex, newPiece),
+    );
   }
 
   EditorState replaceCursor({
@@ -410,7 +414,7 @@ class EditorState {
         if (getCursorPreviousPiece(cursor).text!.length == 1) {
           // Piece will be empty, simply remove it.
           return replacePiecesInCursorBlock(
-            getCursorBlock(cursor).pieces.removeAt(cursor.pieceIndex - 1),
+            (pieces) => pieces.removeAt(cursor.pieceIndex - 1),
           ).replaceCursor(pieceIndex: cursor.pieceIndex - 1);
         } else {
           // Previous piece will not be empty, cut its last character.
