@@ -128,6 +128,9 @@ class ParagraphBlock extends EditorBlock {
   SectionBlock turnIntoSectionBlock(IList<EditorBlock> children) =>
       SectionBlock(pieces, children);
 
+  BulletpointBlock turnIntoBulletpointBlock() =>
+      BulletpointBlock(pieces, <EditorBlock>[].lockUnsafe);
+
   @override
   Widget build(BuildContext context, Cursor? cursor, int depth) =>
       EditorTextView(

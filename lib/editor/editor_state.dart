@@ -522,6 +522,23 @@ class EditorState {
     }
   }
 
+  EditorState markdownShortcutBulletpoint() {
+    BulletpointBlock newBulletpointBlock =
+        (getCursorBlock(cursor) as ParagraphBlock).turnIntoBulletpointBlock();
+    // Remove the first piece, which triggered the transformation.
+    newBulletpointBlock = newBulletpointBlock.copyWith(
+      pieces: newBulletpointBlock.pieces.removeAt(0),
+    );
+
+    return replaceBlockWithBlocks(
+      cursor.blockPath,
+      <EditorBlock>[newBulletpointBlock].lockUnsafe,
+    ).replaceCursor(
+      pieceIndex: 0,
+      offset: 0,
+    );
+  }
+
   EditorState markdownShortcutH1() {
     // Find index of the next [SectionBlock].
     int? nextSectionBlockIndex;
@@ -532,13 +549,19 @@ class EditorState {
       }
     }
 
-    SectionBlock newSectionBlock = (getCursorBlock(cursor) as ParagraphBlock)
-        .turnIntoSectionBlock(
-            blocks.sublist(cursor.blockPath.single + 1, nextSectionBlockIndex))
-        .copyWith();
+    SectionBlock newSectionBlock =
+        (getCursorBlock(cursor) as ParagraphBlock).turnIntoSectionBlock(
+      blocks.sublist(
+        cursor.blockPath.single + 1,
+        nextSectionBlockIndex,
+      ),
+    );
+
+    // Remove the first piece, which triggered the transformation.
     newSectionBlock = newSectionBlock.copyWith(
       pieces: newSectionBlock.pieces.removeAt(0),
     );
+
     final withSectionBlock = replaceBlockWithBlocks(
       cursor.blockPath,
       <EditorBlock>[newSectionBlock].lockUnsafe,
@@ -581,6 +604,14 @@ class EditorState {
           // Space after a # at the start of a [ParagraphBlock]
           // => Transform this [ParagraphBlock] into a [SectionBlock].
           return markdownShortcutH1();
+        }
+        if (newContent == " " &&
+            cursor.pieceIndex == 1 &&
+            getCursorBlock(cursor).runtimeType == ParagraphBlock &&
+            getCursorPreviousPiece(cursor).text!.trim() == "-") {
+          // Space after a - at the start of a [ParagraphBlock]
+          // => Transform this [ParagraphBlock] into a [BulletpointBlock].
+          return markdownShortcutBulletpoint();
         }
         // Append to the previous piece.
         return replacePieceInCursorBlock(
