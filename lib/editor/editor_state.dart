@@ -550,12 +550,7 @@ class EditorState {
     }
 
     SectionBlock newSectionBlock =
-        (getCursorBlock(cursor) as ParagraphBlock).turnIntoSectionBlock(
-      blocks.sublist(
-        cursor.blockPath.single + 1,
-        nextSectionBlockIndex,
-      ),
-    );
+        (getCursorBlock(cursor) as ParagraphBlock).turnIntoSectionBlock();
 
     // Remove the first piece, which triggered the transformation.
     newSectionBlock = newSectionBlock.copyWith(
@@ -567,15 +562,7 @@ class EditorState {
       <EditorBlock>[newSectionBlock].lockUnsafe,
     );
 
-    // Remove the blocks which have been moved into the section.
-    final deletedMovedBlocks = withSectionBlock.copyWith(
-      blocks: withSectionBlock.blocks.removeRange(
-        cursor.blockPath.single + 1,
-        nextSectionBlockIndex ?? blocks.length,
-      ),
-    );
-
-    return deletedMovedBlocks.replaceCursor(
+    return withSectionBlock.replaceCursor(
       pieceIndex: 0,
       offset: 0,
     );

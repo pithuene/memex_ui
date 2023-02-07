@@ -9,7 +9,7 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 /// A block inside an [EditorState].
 class EditorBlock {
-  EditorBlock.withInitialContent(String? initialContent) {
+  EditorBlock.withInitialContent({String? initialContent}) {
     if (initialContent != null) {
       assert(initialContent.isNotEmpty);
       pieces = pieces.add(TextSpan(text: initialContent));
@@ -60,7 +60,7 @@ class EditorBlockWithChildren extends EditorBlock {
   EditorBlockWithChildren.withInitialContent({
     String? initialContent,
     required this.children,
-  }) : super.withInitialContent(initialContent);
+  }) : super.withInitialContent(initialContent: initialContent);
 
   EditorBlockWithChildren(super.pieces, this.children);
 
@@ -116,7 +116,7 @@ class EditorBlockWithChildren extends EditorBlock {
 
 class ParagraphBlock extends EditorBlock {
   ParagraphBlock.withInitialContent({String? initialContent})
-      : super.withInitialContent(initialContent);
+      : super.withInitialContent(initialContent: initialContent);
 
   ParagraphBlock(super.pieces);
 
@@ -124,9 +124,7 @@ class ParagraphBlock extends EditorBlock {
   EditorBlock copyWith({IList<TextSpan>? pieces}) =>
       ParagraphBlock(pieces ?? this.pieces);
 
-  // TODO: Add all following blocks until the next section block into the section.
-  SectionBlock turnIntoSectionBlock(IList<EditorBlock> children) =>
-      SectionBlock(pieces, children);
+  SectionBlock turnIntoSectionBlock() => SectionBlock(pieces);
 
   BulletpointBlock turnIntoBulletpointBlock() =>
       BulletpointBlock(pieces, <EditorBlock>[].lockUnsafe);
@@ -139,59 +137,28 @@ class ParagraphBlock extends EditorBlock {
       );
 }
 
-class SectionBlock extends EditorBlockWithChildren {
+class SectionBlock extends EditorBlock {
   SectionBlock.withInitialContent(String? initialContent)
-      : super.withInitialContent(
-          initialContent: initialContent,
-          children: <EditorBlock>[
-            ParagraphBlock.withInitialContent(initialContent: "Content")
-          ].lockUnsafe,
-        );
+      : super.withInitialContent(initialContent: initialContent);
 
-  SectionBlock(super.pieces, super.children);
+  SectionBlock(super.pieces);
 
   @override
-  SectionBlock copyWith({
-    IList<TextSpan>? pieces,
-    IList<EditorBlock>? children,
-  }) =>
-      SectionBlock(
-        pieces ?? this.pieces,
-        children ?? this.children,
-      );
+  SectionBlock copyWith({IList<TextSpan>? pieces}) =>
+      SectionBlock(pieces ?? this.pieces);
 
   @override
   Widget build(BuildContext context, Cursor? cursor, int depth) {
-    BoxDecoration? debugBorders;
-    if (showDebugFrames && kDebugMode) {
-      debugBorders = BoxDecoration(border: Border.all());
-    }
-
-    return Container(
-      decoration: debugBorders,
-      padding: const EdgeInsets.all(5),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          EditorTextView(
-            block: this,
-            cursor: (cursor != null && depth == cursor.blockPath.length - 1)
-                ? cursor
-                : null,
-            style: const TextStyle(
-              color: Color(0xFF000000),
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              fontFamily: "Inter",
-            ),
-          ),
-          Container(height: 5),
-          RenderBlockChildren(
-            children: children,
-            cursor: cursor,
-            depth: depth,
-          ),
-        ],
+    return EditorTextView(
+      block: this,
+      cursor: (cursor != null && depth == cursor.blockPath.length - 1)
+          ? cursor
+          : null,
+      style: const TextStyle(
+        color: Color(0xFF000000),
+        fontSize: 32,
+        fontWeight: FontWeight.bold,
+        fontFamily: "Inter",
       ),
     );
   }
