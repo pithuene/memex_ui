@@ -1,5 +1,7 @@
 import 'package:memex_ui/editor/block.dart';
+import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/cursor.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 import './editor.dart';
 
@@ -100,7 +102,7 @@ class _EditorViewState extends State<EditorView> {
             if (index == widget.editor.state.cursor.blockPath[0]) {
               cursor = widget.editor.state.cursor;
             }
-            return block.build(context, cursor, 0);
+            return block.build(context, cursor, BlockPath.constant([index]));
           },
         ),
       ),

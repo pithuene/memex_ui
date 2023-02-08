@@ -18,6 +18,11 @@ class BlockPath {
 
   int operator [](int index) => _path[index];
 
+  @override
+  bool operator ==(Object other) => (other is BlockPath)
+      ? (identical(other, this) || other._path.deepEquals(_path))
+      : false;
+
   BlockPath add(int item) => BlockPath(_path.add(item));
   BlockPath replace(int index, int value) =>
       BlockPath(_path.replace(index, value));

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:memex_ui/editor/block_path.dart';
 
 import './cursor.dart';
 import './block.dart';
@@ -14,6 +15,7 @@ const showDebugFrames = true;
 class EditorTextView extends StatelessWidget {
   EditorTextView({
     required this.block,
+    required this.blockPath,
     this.cursor,
     this.style = const TextStyle(
       color: Colors.black,
@@ -22,6 +24,7 @@ class EditorTextView extends StatelessWidget {
     super.key,
   });
   final EditorBlock block;
+  final BlockPath blockPath;
   final Cursor? cursor;
   final TextStyle style;
 
@@ -29,6 +32,8 @@ class EditorTextView extends StatelessWidget {
 
   Rect caretRect = Rect.zero;
   StreamController<void> caretChanged = StreamController();
+
+  bool get isCursorInThisBlock => cursor?.blockPath == blockPath;
 
   /// To calculate where to paint the caret,
   /// the text must have already been layed out.
@@ -55,11 +60,10 @@ class EditorTextView extends StatelessWidget {
   }
 
   Rect getCaretRect() {
-    if (cursor == null) return Rect.zero;
+    if (cursor == null || !isCursorInThisBlock) return Rect.zero;
     RenderParagraph? renderParagraph = getRenderParagraph();
     if (renderParagraph == null) return Rect.zero;
-    int? offsetIndex = block.getCursorOffset(cursor!);
-    if (offsetIndex == null) return Rect.zero; // Cursor not in this block.
+    int offsetIndex = block.getCursorOffset(cursor!);
     TextPosition position = TextPosition(offset: offsetIndex);
     /*final boxes = renderParagraph.getBoxesForSelection(
       TextSelection(

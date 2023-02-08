@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/text_view.dart';
 import 'package:memex_ui/memex_ui.dart';
 
@@ -26,8 +27,7 @@ class EditorBlock {
   IList<TextSpan> pieces = <TextSpan>[].lockUnsafe;
 
   /// Calculate the offset of the cursor in this block.
-  /// Returns null if the cursor is not in this block.
-  int? getCursorOffset(Cursor cursor) {
+  int getCursorOffset(Cursor cursor) {
     int offset = 0;
     for (int i = 0; i < cursor.pieceIndex; i++) {
       offset += pieces[i].text!.length;
@@ -39,9 +39,10 @@ class EditorBlock {
   /// The function called to create the the widget showing a block.
   /// By default, this just shows the text content,
   /// generally you need to override this function.
-  Widget build(BuildContext context, Cursor? cursor, int depth) =>
+  Widget build(BuildContext context, Cursor? cursor, BlockPath path) =>
       EditorTextView(
         block: this,
+        blockPath: path,
         cursor: cursor,
       );
 
@@ -96,7 +97,7 @@ class EditorBlockWithChildren extends EditorBlock {
       children.insert(0, ParagraphBlock(pieces));
 
   @override
-  Widget build(BuildContext context, Cursor? cursor, int depth) {
+  Widget build(BuildContext context, Cursor? cursor, BlockPath path) {
     BoxDecoration? debugBorders;
     if (showDebugFrames && kDebugMode) {
       debugBorders = BoxDecoration(border: Border.all());
@@ -110,16 +111,14 @@ class EditorBlockWithChildren extends EditorBlock {
         children: [
           super.build(
             context,
-            (cursor != null && depth == cursor.blockPath.length - 1)
-                ? cursor
-                : null,
-            depth,
+            cursor,
+            path,
           ),
           Container(height: 5),
           RenderBlockChildren(
             children: children,
             cursor: cursor,
-            depth: depth,
+            parentPath: path,
           ),
         ],
       ),
@@ -143,9 +142,10 @@ class ParagraphBlock extends EditorBlock {
       BulletpointBlock(pieces, <EditorBlock>[].lockUnsafe);
 
   @override
-  Widget build(BuildContext context, Cursor? cursor, int depth) =>
+  Widget build(BuildContext context, Cursor? cursor, BlockPath path) =>
       EditorTextView(
         block: this,
+        blockPath: path,
         cursor: cursor,
       );
 }
@@ -161,12 +161,11 @@ class SectionBlock extends EditorBlock {
       SectionBlock(pieces ?? this.pieces);
 
   @override
-  Widget build(BuildContext context, Cursor? cursor, int depth) {
+  Widget build(BuildContext context, Cursor? cursor, BlockPath path) {
     return EditorTextView(
       block: this,
-      cursor: (cursor != null && depth == cursor.blockPath.length - 1)
-          ? cursor
-          : null,
+      blockPath: path,
+      cursor: cursor,
       style: const TextStyle(
         color: Color(0xFF000000),
         fontSize: 32,
@@ -197,7 +196,7 @@ class BulletpointBlock extends EditorBlockWithChildren {
       );
 
   @override
-  Widget build(BuildContext context, Cursor? cursor, int depth) {
+  Widget build(BuildContext context, Cursor? cursor, BlockPath path) {
     BoxDecoration? debugBorders;
     if (showDebugFrames && kDebugMode) {
       debugBorders = BoxDecoration(border: Border.all());
@@ -216,15 +215,13 @@ class BulletpointBlock extends EditorBlockWithChildren {
               children: [
                 EditorTextView(
                   block: this,
-                  cursor:
-                      (cursor != null && depth == cursor.blockPath.length - 1)
-                          ? cursor
-                          : null,
+                  blockPath: path,
+                  cursor: cursor,
                 ),
                 RenderBlockChildren(
                   children: children,
                   cursor: cursor,
-                  depth: depth,
+                  parentPath: path,
                 ),
               ],
             ),
@@ -238,12 +235,12 @@ class BulletpointBlock extends EditorBlockWithChildren {
 class RenderBlockChildren extends StatelessWidget {
   final IList<EditorBlock> children;
   final Cursor? cursor;
-  final int depth;
+  final BlockPath parentPath;
 
   const RenderBlockChildren({
     required this.children,
     required this.cursor,
-    required this.depth,
+    required this.parentPath,
     super.key,
   });
 
@@ -253,12 +250,8 @@ class RenderBlockChildren extends StatelessWidget {
         children: children.mapIndexedAndLast((index, child, last) {
           return child.build(
             context,
-            (cursor != null &&
-                    cursor!.blockPath.length > depth + 1 &&
-                    index == cursor!.blockPath[depth + 1])
-                ? cursor
-                : null,
-            depth + 1,
+            cursor,
+            parentPath.add(index),
           );
         }).toList(),
       );
