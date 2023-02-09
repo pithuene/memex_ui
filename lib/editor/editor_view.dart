@@ -25,10 +25,6 @@ class _EditorViewState extends State<EditorView> {
 
   @override
   Widget build(BuildContext context) {
-    Selection selection = Selection(
-      start: widget.editor.state.selectionStart,
-      end: widget.editor.state.cursor,
-    );
     return RawKeyboardListener(
       focusNode: focusNode,
       onKey: (event) {
@@ -105,7 +101,7 @@ class _EditorViewState extends State<EditorView> {
             EditorBlock block = widget.editor.state.blocks[index];
             return block.build(
               context: context,
-              selection: selection,
+              selection: widget.editor.state.selection,
               path: BlockPath.constant([index]),
             );
           },

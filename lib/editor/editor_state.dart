@@ -18,7 +18,12 @@ class Selection {
     required this.end,
   });
 
+  const Selection.collapsed(this.end) : start = null;
+
   bool get isEmpty => start == null;
+
+  /// Whether there is a selection which does not cross block boundaries.
+  bool get isInSingleBlock => !isEmpty && start!.blockPath == end.blockPath;
 
   /// Either [start] or [end], whichever comes first in the document.
   Cursor get first => (end.isBefore(start!)) ? end : start!;
@@ -36,6 +41,23 @@ class Selection {
       return false;
     }
   }
+
+  /// Collapse the selection to its end.
+  Selection collapse() => copyWithStart(null);
+
+  Selection copyWithEnd(Cursor end) {
+    return Selection(
+      start: start,
+      end: end,
+    );
+  }
+
+  Selection copyWithStart(Cursor? start) {
+    return Selection(
+      start: start,
+      end: end,
+    );
+  }
 }
 
 /// A persistent datastructure representing the entire state
@@ -45,18 +67,13 @@ class EditorState {
   /// The top level blocks of the editor.
   late final IList<EditorBlock> blocks;
 
-  /// If there is a selection, this marks its start.
-  /// The selection ends at [cursor].
-  final Cursor? selectionStart;
+  late final Selection selection;
 
-  /// Location of the caret.
-  /// Also marks the end of the current selection.
-  late final Cursor cursor;
+  Cursor get cursor => selection.end;
 
-  bool get hasSelection => selectionStart != null;
+  bool get hasSelection => !selection.isEmpty;
 
-  EditorState.withInitialContent(String? initialContent)
-      : selectionStart = null {
+  EditorState.withInitialContent(String? initialContent) {
     blocks = <EditorBlock>[
       SectionBlock.withInitialContent(initialContent),
       ParagraphBlock.withInitialContent(
@@ -64,34 +81,32 @@ class EditorState {
       ),
       BulletpointBlock.withInitialContent("Eins"),
     ].lockUnsafe;
-    cursor = Cursor(
-      blockPath: BlockPath.constant(const [0]),
-      pieceIndex: 0,
-      offset: 0,
+    selection = Selection.collapsed(
+      Cursor(
+        blockPath: BlockPath.constant(const [0]),
+        pieceIndex: 0,
+        offset: 0,
+      ),
     );
   }
 
   EditorState({
     required this.blocks,
-    required this.cursor,
-    this.selectionStart,
+    required this.selection,
   });
 
   EditorState removeSelection() => EditorState(
         blocks: blocks,
-        selectionStart: null,
-        cursor: cursor,
+        selection: selection.collapse(),
       );
 
   EditorState copyWith({
     IList<EditorBlock>? blocks,
-    Cursor? cursor,
-    Cursor? selectionStart,
+    Selection? selection,
   }) {
     return EditorState(
       blocks: blocks ?? this.blocks,
-      selectionStart: selectionStart ?? this.selectionStart,
-      cursor: cursor ?? this.cursor,
+      selection: selection ?? this.selection,
     );
   }
 
@@ -120,7 +135,12 @@ class EditorState {
       getCursorBlock(cursor).pieces[cursor.pieceIndex + 1];
 
   /// Start a selection at the current [cursor].
-  EditorState beginSelection() => copyWith(selectionStart: cursor);
+  EditorState beginSelection() => copyWith(
+        selection: Selection(
+          start: selection.end,
+          end: selection.end,
+        ),
+      );
 
   /// Called before beginning a cursor movement.
   /// Handles selection state.
@@ -137,14 +157,6 @@ class EditorState {
   /// Return a new cursor one character to the right from a given one.
   EditorState moveCursorRightOnce(bool isSelecting) {
     EditorState state = beginCursorMove(isSelecting);
-
-    if (!hasSelection && isSelecting) {
-      state = beginSelection();
-    } else if (hasSelection && !isSelecting) {
-      state = removeSelection();
-    } else {
-      state = this;
-    }
 
     if (!cursor.isAtPieceEnd(this)) {
       return state.replaceCursor(offset: cursor.offset + 1);
@@ -181,9 +193,11 @@ class EditorState {
 
     if (!cursor.isOnFirstPiece) {
       return state.copyWith(
-        cursor: cursor.copyWith(
-          pieceIndex: cursor.pieceIndex - 1,
-          offset: getCursorPreviousPiece(cursor).text!.length - 1,
+        selection: selection.copyWithEnd(
+          cursor.copyWith(
+            pieceIndex: cursor.pieceIndex - 1,
+            offset: getCursorPreviousPiece(cursor).text!.length - 1,
+          ),
         ),
       );
     }
@@ -226,7 +240,7 @@ class EditorState {
 
   /// Splits the piece which contains the cursor,
   /// so the cursor is at offset zero afterwards.
-  EditorState splitBeforeCursor() {
+  EditorState splitBeforeCursor(Cursor cursor) {
     if (cursor.isAtPieceStart) return this;
 
     return insertPieceInCursorBlock(
@@ -252,7 +266,7 @@ class EditorState {
   /// Insert a "hard break".
   /// Split the block at the current cursor.
   EditorState newLine() {
-    final splitState = splitBeforeCursor();
+    final splitState = splitBeforeCursor(cursor);
     assert(splitState.cursor.isAtPieceStart);
     final blockCut = splitState.replacePiecesInCursorBlock(
       (pieces) => pieces
@@ -399,10 +413,12 @@ class EditorState {
     int? offset,
   }) {
     return copyWith(
-      cursor: cursor.copyWith(
-        blockPath: blockPath,
-        pieceIndex: pieceIndex,
-        offset: offset,
+      selection: selection.copyWithEnd(
+        cursor.copyWith(
+          blockPath: blockPath,
+          pieceIndex: pieceIndex,
+          offset: offset,
+        ),
       ),
     );
   }
