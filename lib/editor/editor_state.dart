@@ -77,6 +77,12 @@ class EditorState {
     this.selectionStart,
   });
 
+  EditorState removeSelection() => EditorState(
+        blocks: blocks,
+        selectionStart: null,
+        cursor: cursor,
+      );
+
   EditorState copyWith({
     IList<EditorBlock>? blocks,
     Cursor? cursor,
@@ -120,7 +126,7 @@ class EditorState {
       state = state.copyWith(selectionStart: state.cursor);
     }
     if (hasSelection && !isSelecting) {
-      state = state.copyWith(selectionStart: null);
+      state = state.removeSelection();
     }
 
     if (!cursor.isAtPieceEnd(this)) {
