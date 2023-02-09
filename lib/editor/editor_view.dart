@@ -41,7 +41,7 @@ class _EditorViewState extends State<EditorView> {
           }
           if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
             setState(() {
-              widget.editor.moveCursorLeftOnce();
+              widget.editor.moveCursorLeftOnce(event.isShiftPressed);
             });
             return;
           }

@@ -15,7 +15,8 @@ class Editor {
   // Non reversable actions
   void moveCursorRightOnce(bool isSelecting) =>
       state = state.moveCursorRightOnce(isSelecting);
-  void moveCursorLeftOnce() => state = state.moveCursorLeftOnce();
+  void moveCursorLeftOnce(bool isSelecting) =>
+      state = state.moveCursorLeftOnce(isSelecting);
 
   void _performReversableAction(EditorState newState) {
     undoStack.add(state);

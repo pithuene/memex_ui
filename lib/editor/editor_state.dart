@@ -119,14 +119,31 @@ class EditorState {
   TextSpan getCursorNextPiece(Cursor cursor) =>
       getCursorBlock(cursor).pieces[cursor.pieceIndex + 1];
 
+  /// Start a selection at the current [cursor].
+  EditorState beginSelection() => copyWith(selectionStart: cursor);
+
+  /// Called before beginning a cursor movement.
+  /// Handles selection state.
+  EditorState beginCursorMove(bool isSelecting) {
+    if (!hasSelection && isSelecting) {
+      return beginSelection();
+    } else if (hasSelection && !isSelecting) {
+      return removeSelection();
+    } else {
+      return this;
+    }
+  }
+
   /// Return a new cursor one character to the right from a given one.
   EditorState moveCursorRightOnce(bool isSelecting) {
-    EditorState state = this;
+    EditorState state = beginCursorMove(isSelecting);
+
     if (!hasSelection && isSelecting) {
-      state = state.copyWith(selectionStart: state.cursor);
-    }
-    if (hasSelection && !isSelecting) {
-      state = state.removeSelection();
+      state = beginSelection();
+    } else if (hasSelection && !isSelecting) {
+      state = removeSelection();
+    } else {
+      state = this;
     }
 
     if (!cursor.isAtPieceEnd(this)) {
@@ -154,14 +171,16 @@ class EditorState {
   }
 
   /// Move the cursor left by one character.
-  EditorState moveCursorLeftOnce() {
+  EditorState moveCursorLeftOnce(bool isSelecting) {
+    EditorState state = beginCursorMove(isSelecting);
+
     if (!cursor.isAtPieceStart) {
-      return replaceCursor(offset: cursor.offset - 1);
+      return state.replaceCursor(offset: cursor.offset - 1);
     }
     // At the beginning of a piece, must jump.
 
     if (!cursor.isOnFirstPiece) {
-      return copyWith(
+      return state.copyWith(
         cursor: cursor.copyWith(
           pieceIndex: cursor.pieceIndex - 1,
           offset: getCursorPreviousPiece(cursor).text!.length - 1,
@@ -173,12 +192,12 @@ class EditorState {
     BlockPath? previousBlockPath = cursor.blockPath.previous(this);
     if (previousBlockPath == null) {
       // Can't move, this is the first block.
-      return this;
+      return state;
     }
     // There is another block to jump to.
 
     EditorBlock previousBlock = getBlockFromPath(previousBlockPath)!;
-    return replaceCursor(
+    return state.replaceCursor(
       blockPath: previousBlockPath,
       pieceIndex: previousBlock.pieces.length - 1,
       offset: previousBlock.pieces.last.text!.length - 1,
@@ -187,10 +206,10 @@ class EditorState {
 
   /// Move the cursor left by a given distance.
   /// To move by one character use [moveCursorLeftOnce].
-  EditorState moveCursorLeft(int distance) {
+  EditorState moveCursorLeft(int distance, bool isSelecting) {
     EditorState curr = this;
     for (int i = 0; i < distance; i++) {
-      curr = curr.moveCursorLeftOnce();
+      curr = curr.moveCursorLeftOnce(isSelecting);
     }
     return curr;
   }
