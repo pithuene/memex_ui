@@ -9,15 +9,54 @@ import './block.dart';
 import 'package:flutter/material.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
+@immutable
+class Selection {
+  final Cursor? start;
+  final Cursor end;
+  const Selection({
+    this.start,
+    required this.end,
+  });
+
+  bool get isEmpty => start == null;
+
+  /// Either [start] or [end], whichever comes first in the document.
+  Cursor get first => (end.isBefore(start!)) ? end : start!;
+
+  /// Either [start] or [end], whichever comes later in the document.
+  Cursor get last => (end.isBefore(start!)) ? start! : end;
+
+  /// Whether the selection crosses a given [block].
+  bool containsBlock(BlockPath block) {
+    if (isEmpty) return false;
+    if (last.blockPath.compareTo(block) >= 0 &&
+        first.blockPath.compareTo(block) <= 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
+
 /// A persistent datastructure representing the entire state
 /// of a rich text editor including content
 /// aswell as cursor and selection.
 class EditorState {
   /// The top level blocks of the editor.
   late final IList<EditorBlock> blocks;
+
+  /// If there is a selection, this marks its start.
+  /// The selection ends at [cursor].
+  final Cursor? selectionStart;
+
+  /// Location of the caret.
+  /// Also marks the end of the current selection.
   late final Cursor cursor;
 
-  EditorState.withInitialContent(String? initialContent) {
+  bool get hasSelection => selectionStart != null;
+
+  EditorState.withInitialContent(String? initialContent)
+      : selectionStart = null {
     blocks = <EditorBlock>[
       SectionBlock.withInitialContent(initialContent),
       ParagraphBlock.withInitialContent(
@@ -35,14 +74,17 @@ class EditorState {
   EditorState({
     required this.blocks,
     required this.cursor,
+    this.selectionStart,
   });
 
   EditorState copyWith({
     IList<EditorBlock>? blocks,
     Cursor? cursor,
+    Cursor? selectionStart,
   }) {
     return EditorState(
       blocks: blocks ?? this.blocks,
+      selectionStart: selectionStart ?? this.selectionStart,
       cursor: cursor ?? this.cursor,
     );
   }
@@ -72,13 +114,21 @@ class EditorState {
       getCursorBlock(cursor).pieces[cursor.pieceIndex + 1];
 
   /// Return a new cursor one character to the right from a given one.
-  EditorState moveCursorRightOnce() {
+  EditorState moveCursorRightOnce(bool isSelecting) {
+    EditorState state = this;
+    if (!hasSelection && isSelecting) {
+      state = state.copyWith(selectionStart: state.cursor);
+    }
+    if (hasSelection && !isSelecting) {
+      state = state.copyWith(selectionStart: null);
+    }
+
     if (!cursor.isAtPieceEnd(this)) {
-      return replaceCursor(offset: cursor.offset + 1);
+      return state.replaceCursor(offset: cursor.offset + 1);
     }
     // At the end of a piece, must jump.
     if (!cursor.isOnLastPiece(this)) {
-      return replaceCursor(
+      return state.replaceCursor(
         pieceIndex: cursor.pieceIndex + 1,
         offset: 0,
       );
@@ -87,10 +137,10 @@ class EditorState {
     BlockPath? nextBlockPath = cursor.blockPath.next(this);
     if (nextBlockPath == null) {
       // Can't move, this is the last block.
-      return this;
+      return state;
     }
     // There is another block to jump to.
-    return replaceCursor(
+    return state.replaceCursor(
       blockPath: nextBlockPath,
       pieceIndex: 0,
       offset: 0,
@@ -141,10 +191,10 @@ class EditorState {
 
   /// Move the cursor right by a given distance.
   /// To move by one character use [moveCursorRightOnce].
-  EditorState moveCursorRight(int distance) {
+  EditorState moveCursorRight(int distance, bool isSelecting) {
     EditorState curr = this;
     for (int i = 0; i < distance; i++) {
-      curr = curr.moveCursorRightOnce();
+      curr = curr.moveCursorRightOnce(isSelecting);
     }
     return curr;
   }

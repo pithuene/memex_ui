@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:memex_ui/editor/block_path.dart';
+import 'package:memex_ui/memex_ui.dart';
 
 import './cursor.dart';
 import './block.dart';
@@ -16,7 +17,7 @@ class EditorTextView extends StatelessWidget {
   EditorTextView({
     required this.block,
     required this.blockPath,
-    this.cursor,
+    required this.selection,
     this.style = const TextStyle(
       color: Colors.black,
       fontFamily: "Inter",
@@ -25,15 +26,16 @@ class EditorTextView extends StatelessWidget {
   });
   final EditorBlock block;
   final BlockPath blockPath;
-  final Cursor? cursor;
+  final Selection selection;
   final TextStyle style;
 
   final GlobalKey textKey = GlobalKey();
 
   Rect caretRect = Rect.zero;
   StreamController<void> caretChanged = StreamController();
+  List<TextBox> selectionBoxes = [];
 
-  bool get isCursorInThisBlock => cursor?.blockPath == blockPath;
+  bool get isCursorInThisBlock => selection.end.blockPath == blockPath;
 
   /// To calculate where to paint the caret,
   /// the text must have already been layed out.
@@ -45,11 +47,14 @@ class EditorTextView extends StatelessWidget {
   /// and only the caret painter is rebuilt using a [StreamBuilder].
   void scheduleTextLayoutUpdate() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      Rect newCaretRect = getCaretRect();
+      /*Rect newCaretRect = getCaretRect();
       if (newCaretRect != caretRect) {
         caretRect = newCaretRect;
         caretChanged.sink.add(null);
-      }
+      }*/
+      caretRect = getCaretRect();
+      selectionBoxes = getSelectionBoxes();
+      caretChanged.sink.add(null);
     });
   }
 
@@ -59,19 +64,25 @@ class EditorTextView extends StatelessWidget {
         : null;
   }
 
-  Rect getCaretRect() {
-    if (cursor == null || !isCursorInThisBlock) return Rect.zero;
+  List<TextBox> getSelectionBoxes() {
+    bool isPartOfSelection = selection.containsBlock(blockPath);
     RenderParagraph? renderParagraph = getRenderParagraph();
-    if (renderParagraph == null) return Rect.zero;
-    int offsetIndex = block.getCursorOffset(cursor!);
-    TextPosition position = TextPosition(offset: offsetIndex);
-    /*final boxes = renderParagraph.getBoxesForSelection(
+    if (renderParagraph == null) return [];
+    final boxes = renderParagraph.getBoxesForSelection(
       TextSelection(
-        baseOffset: offsetIndex,
-        extentOffset: offsetIndex + 1,
+        baseOffset: 0,
+        extentOffset: 1,
       ),
     );
-    return boxes[0].toRect();*/
+    return boxes;
+  }
+
+  Rect getCaretRect() {
+    if (!isCursorInThisBlock) return Rect.zero;
+    RenderParagraph? renderParagraph = getRenderParagraph();
+    if (renderParagraph == null) return Rect.zero;
+    int offsetIndex = block.getCursorOffset(selection.end);
+    TextPosition position = TextPosition(offset: offsetIndex);
     Offset offset = renderParagraph.getOffsetForCaret(
       position,
       Rect.zero,
@@ -110,8 +121,10 @@ class EditorTextView extends StatelessWidget {
             stream: caretChanged.stream,
             builder: (context, snapshot) => CustomPaint(
               painter: CaretPainter(
-                color: Colors.black38,
-                rect: caretRect,
+                caretColor: Colors.black38,
+                caretRect: caretRect,
+                selectionColor: Colors.lightBlue.withOpacity(0.5),
+                selectionBoxes: selectionBoxes,
               ),
             ),
           ),
@@ -122,19 +135,32 @@ class EditorTextView extends StatelessWidget {
 }
 
 class CaretPainter extends CustomPainter {
-  final Color color;
-  final Rect rect;
-  final Paint paintStyle;
+  final Color caretColor;
+  final Rect caretRect;
+
+  final Color selectionColor;
+  final List<TextBox> selectionBoxes;
+
+  final Paint caretPaintStyle;
+  final Paint selectionPaintStyle;
 
   CaretPainter({
-    required this.color,
-    required this.rect,
-  }) : paintStyle = Paint()..color = color;
+    required this.caretColor,
+    required this.caretRect,
+    required this.selectionColor,
+    required this.selectionBoxes,
+  })  : caretPaintStyle = Paint()..color = caretColor,
+        selectionPaintStyle = Paint()..color = selectionColor;
 
   @override
   void paint(Canvas canvas, Size size) {
-    paintStyle.style = PaintingStyle.fill;
-    canvas.drawRect(rect, paintStyle);
+    caretPaintStyle.style = PaintingStyle.fill;
+    canvas.drawRect(caretRect, caretPaintStyle);
+
+    selectionPaintStyle.style = PaintingStyle.fill;
+    for (TextBox selectionBox in selectionBoxes) {
+      canvas.drawRect(selectionBox.toRect(), selectionPaintStyle);
+    }
   }
 
   @override

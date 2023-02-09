@@ -13,7 +13,8 @@ class Editor {
   StreamController<void> onCursorChange = StreamController.broadcast();
 
   // Non reversable actions
-  void moveCursorRightOnce() => state = state.moveCursorRightOnce();
+  void moveCursorRightOnce(bool isSelecting) =>
+      state = state.moveCursorRightOnce(isSelecting);
   void moveCursorLeftOnce() => state = state.moveCursorLeftOnce();
 
   void _performReversableAction(EditorState newState) {

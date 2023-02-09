@@ -2,6 +2,7 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
 import 'package:memex_ui/editor/block.dart';
 import 'package:memex_ui/memex_ui.dart';
+import 'dart:math';
 
 @immutable
 class BlockPath {
@@ -22,6 +23,23 @@ class BlockPath {
   bool operator ==(Object other) => (other is BlockPath)
       ? (identical(other, this) || other._path.deepEquals(_path))
       : false;
+
+  int compareTo(BlockPath other) {
+    int sharedLength = min(length, other.length);
+    for (int i = 0; i < sharedLength; i++) {
+      if (this[i] < other[i]) {
+        return -1;
+      } else if (this[i] > other[i]) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }
+    // The shared part is the same.
+    if (length == other.length) return 0;
+    // The shorter path is the smaller one.
+    return length.compareTo(other.length);
+  }
 
   BlockPath add(int item) => BlockPath(_path.add(item));
   BlockPath replace(int index, int value) =>

@@ -29,6 +29,19 @@ class Cursor {
 
   bool get isOnFirstPiece => pieceIndex == 0;
 
+  /// Whether the position of this cursor points to a place before the [other] cursor.
+  bool isBefore(Cursor other) {
+    int blockComparisonResult = blockPath.compareTo(other.blockPath);
+    if (blockComparisonResult < 0) {
+      return true;
+    } else if (blockComparisonResult > 0) {
+      return false;
+    } else {
+      if (pieceIndex != other.pieceIndex) return pieceIndex < other.pieceIndex;
+      return offset < other.offset;
+    }
+  }
+
   Cursor copyWith({
     BlockPath? blockPath,
     int? pieceIndex,

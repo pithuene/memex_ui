@@ -2,6 +2,7 @@ import 'package:memex_ui/editor/block.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/cursor.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:memex_ui/memex_ui.dart';
 
 import './editor.dart';
 
@@ -24,13 +25,17 @@ class _EditorViewState extends State<EditorView> {
 
   @override
   Widget build(BuildContext context) {
+    Selection selection = Selection(
+      start: widget.editor.state.selectionStart,
+      end: widget.editor.state.cursor,
+    );
     return RawKeyboardListener(
       focusNode: focusNode,
       onKey: (event) {
         if (event.runtimeType == RawKeyDownEvent) {
           if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
             setState(() {
-              widget.editor.moveCursorRightOnce();
+              widget.editor.moveCursorRightOnce(event.isShiftPressed);
             });
             return;
           }
@@ -98,11 +103,11 @@ class _EditorViewState extends State<EditorView> {
           itemCount: widget.editor.state.blocks.length,
           itemBuilder: (context, index) {
             EditorBlock block = widget.editor.state.blocks[index];
-            Cursor? cursor;
-            if (index == widget.editor.state.cursor.blockPath[0]) {
-              cursor = widget.editor.state.cursor;
-            }
-            return block.build(context, cursor, BlockPath.constant([index]));
+            return block.build(
+              context: context,
+              selection: selection,
+              path: BlockPath.constant([index]),
+            );
           },
         ),
       ),

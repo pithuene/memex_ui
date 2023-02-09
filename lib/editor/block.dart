@@ -36,14 +36,21 @@ class EditorBlock {
     return offset;
   }
 
+  /// Calculate the sum of the text length of all pieces.
+  int getTotalTextLength() => pieces.sumBy((e) => e.text!.length);
+
   /// The function called to create the the widget showing a block.
   /// By default, this just shows the text content,
   /// generally you need to override this function.
-  Widget build(BuildContext context, Cursor? cursor, BlockPath path) =>
+  Widget build({
+    required BuildContext context,
+    required BlockPath path,
+    required Selection selection,
+  }) =>
       EditorTextView(
         block: this,
         blockPath: path,
-        cursor: cursor,
+        selection: selection,
       );
 
   EditorBlock copyWith({IList<TextSpan>? pieces}) =>
@@ -97,7 +104,11 @@ class EditorBlockWithChildren extends EditorBlock {
       children.insert(0, ParagraphBlock(pieces));
 
   @override
-  Widget build(BuildContext context, Cursor? cursor, BlockPath path) {
+  Widget build({
+    required BuildContext context,
+    required BlockPath path,
+    required Selection selection,
+  }) {
     BoxDecoration? debugBorders;
     if (showDebugFrames && kDebugMode) {
       debugBorders = BoxDecoration(border: Border.all());
@@ -110,14 +121,14 @@ class EditorBlockWithChildren extends EditorBlock {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           super.build(
-            context,
-            cursor,
-            path,
+            context: context,
+            path: path,
+            selection: selection,
           ),
           Container(height: 5),
           RenderBlockChildren(
             children: children,
-            cursor: cursor,
+            selection: selection,
             parentPath: path,
           ),
         ],
@@ -142,11 +153,15 @@ class ParagraphBlock extends EditorBlock {
       BulletpointBlock(pieces, <EditorBlock>[].lockUnsafe);
 
   @override
-  Widget build(BuildContext context, Cursor? cursor, BlockPath path) =>
+  Widget build({
+    required BuildContext context,
+    required BlockPath path,
+    required Selection selection,
+  }) =>
       EditorTextView(
         block: this,
         blockPath: path,
-        cursor: cursor,
+        selection: selection,
       );
 }
 
@@ -161,19 +176,22 @@ class SectionBlock extends EditorBlock {
       SectionBlock(pieces ?? this.pieces);
 
   @override
-  Widget build(BuildContext context, Cursor? cursor, BlockPath path) {
-    return EditorTextView(
-      block: this,
-      blockPath: path,
-      cursor: cursor,
-      style: const TextStyle(
-        color: Color(0xFF000000),
-        fontSize: 32,
-        fontWeight: FontWeight.bold,
-        fontFamily: "Inter",
-      ),
-    );
-  }
+  Widget build({
+    required BuildContext context,
+    required BlockPath path,
+    required Selection selection,
+  }) =>
+      EditorTextView(
+        block: this,
+        blockPath: path,
+        selection: selection,
+        style: const TextStyle(
+          color: Color(0xFF000000),
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+          fontFamily: "Inter",
+        ),
+      );
 }
 
 class BulletpointBlock extends EditorBlockWithChildren {
@@ -196,7 +214,11 @@ class BulletpointBlock extends EditorBlockWithChildren {
       );
 
   @override
-  Widget build(BuildContext context, Cursor? cursor, BlockPath path) {
+  Widget build({
+    required BuildContext context,
+    required BlockPath path,
+    required Selection selection,
+  }) {
     BoxDecoration? debugBorders;
     if (showDebugFrames && kDebugMode) {
       debugBorders = BoxDecoration(border: Border.all());
@@ -216,11 +238,11 @@ class BulletpointBlock extends EditorBlockWithChildren {
                 EditorTextView(
                   block: this,
                   blockPath: path,
-                  cursor: cursor,
+                  selection: selection,
                 ),
                 RenderBlockChildren(
                   children: children,
-                  cursor: cursor,
+                  selection: selection,
                   parentPath: path,
                 ),
               ],
@@ -234,12 +256,12 @@ class BulletpointBlock extends EditorBlockWithChildren {
 
 class RenderBlockChildren extends StatelessWidget {
   final IList<EditorBlock> children;
-  final Cursor? cursor;
+  final Selection selection;
   final BlockPath parentPath;
 
   const RenderBlockChildren({
     required this.children,
-    required this.cursor,
+    required this.selection,
     required this.parentPath,
     super.key,
   });
@@ -248,10 +270,11 @@ class RenderBlockChildren extends StatelessWidget {
   Widget build(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: children.mapIndexedAndLast((index, child, last) {
+          BlockPath childBlockPath = parentPath.add(index);
           return child.build(
-            context,
-            cursor,
-            parentPath.add(index),
+            context: context,
+            selection: selection,
+            path: childBlockPath,
           );
         }).toList(),
       );
