@@ -65,13 +65,23 @@ class EditorTextView extends StatelessWidget {
   }
 
   List<TextBox> getSelectionBoxes() {
-    bool isPartOfSelection = selection.containsBlock(blockPath);
+    if (selection.isEmpty) return [];
+    if (!selection.containsBlock(blockPath)) return [];
     RenderParagraph? renderParagraph = getRenderParagraph();
     if (renderParagraph == null) return [];
+
+    int baseOffset = (selection.first.blockPath == blockPath)
+        ? block.getCursorOffset(selection.first) // Starts in this block
+        : 0; // Starts before this block
+
+    int extentOffset = (selection.last.blockPath == blockPath)
+        ? block.getCursorOffset(selection.last) // Ends in this block
+        : block.getTotalTextLength() - 1; // Ends after this block
+
     final boxes = renderParagraph.getBoxesForSelection(
       TextSelection(
-        baseOffset: 0,
-        extentOffset: 1,
+        baseOffset: baseOffset,
+        extentOffset: extentOffset,
       ),
     );
     return boxes;
@@ -120,7 +130,7 @@ class EditorTextView extends StatelessWidget {
           StreamBuilder(
             stream: caretChanged.stream,
             builder: (context, snapshot) => CustomPaint(
-              painter: CaretPainter(
+              painter: Textmarker(
                 caretColor: Colors.black38,
                 caretRect: caretRect,
                 selectionColor: Colors.lightBlue.withOpacity(0.5),
@@ -134,7 +144,7 @@ class EditorTextView extends StatelessWidget {
   }
 }
 
-class CaretPainter extends CustomPainter {
+class Textmarker extends CustomPainter {
   final Color caretColor;
   final Rect caretRect;
 
@@ -144,7 +154,7 @@ class CaretPainter extends CustomPainter {
   final Paint caretPaintStyle;
   final Paint selectionPaintStyle;
 
-  CaretPainter({
+  Textmarker({
     required this.caretColor,
     required this.caretRect,
     required this.selectionColor,
@@ -164,7 +174,7 @@ class CaretPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(CaretPainter oldDelegate) {
+  bool shouldRepaint(Textmarker oldDelegate) {
     return true;
   }
 }
