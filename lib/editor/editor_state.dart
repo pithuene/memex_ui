@@ -820,6 +820,10 @@ class EditorState {
 
   /// Insert [newContent] before the cursor.
   EditorState append(String newContent) {
+    if (!selection.isEmpty) {
+      return deleteSelection().append(newContent);
+    }
+
     if (cursor.isAtPieceStart) {
       if (cursor.pieceIndex == 0) {
         // There is no previous piece, insert one.
