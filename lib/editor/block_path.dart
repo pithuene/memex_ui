@@ -112,4 +112,15 @@ class BlockPath {
     }
     return result;
   }
+
+  /// Whether this path points to a (potentially nested)
+  /// child of the [potentialParent] path.
+  bool isChildOf(BlockPath potentialParent) {
+    if (length <= potentialParent.length) return false;
+    int sharedLength = min(length, potentialParent.length);
+    for (int i = 0; i < sharedLength; i++) {
+      if (this[i] != potentialParent[i]) return false;
+    }
+    return true;
+  }
 }

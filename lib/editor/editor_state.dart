@@ -186,7 +186,7 @@ class EditorState {
 
   /// Splits the piece which contains the cursor,
   /// so the cursor is at offset zero afterwards.
-  EditorState splitBeforeCursor(Cursor cursor) {
+  EditorState splitBeforeCursor() {
     // Splitting at one cursor when there are multiple cursors would invalidate the pieceIndex;
     assert(selection.isEmpty);
 
@@ -215,7 +215,7 @@ class EditorState {
   /// Insert a "hard break".
   /// Split the block at the current cursor.
   EditorState newLine() {
-    final splitState = splitBeforeCursor(cursor);
+    final splitState = splitBeforeCursor();
     assert(splitState.cursor.isAtPieceStart);
     final blockCut = splitState.replacePiecesInCursorBlock(
       (pieces) => pieces
@@ -316,7 +316,8 @@ class EditorState {
     );
   }
 
-  /// Remove the block at a given [blockPath].
+  /// Remove the block at a given [blockPath]
+  /// **including all its children**.
   EditorState removeBlockAtPath(BlockPath blockPath) {
     if (blockPath.length == 1) {
       return copyWith(
@@ -761,8 +762,55 @@ class EditorState {
     }
     // Selection across multiple blocks
 
-    // TODO
-    return this;
+    Cursor selectionFirst = selection.first;
+    Cursor selectionLast = selection.last;
+    EditorState state = this;
+    // Delete first blocks content up to the end.
+    state = state
+        .replacePiecesInBlock(
+          selectionFirst.blockPath,
+          (pieces) => pieces.removeRange(selectionFirst.pieceIndex + 1,
+              getBlockFromPath(selectionFirst.blockPath)!.pieces.length - 1),
+        )
+        .substringPieceContent(
+          blockPath: selectionFirst.blockPath,
+          pieceIndex: selectionFirst.pieceIndex,
+          start: 0,
+          end: selectionFirst.offset,
+        );
+    // Delete all blocks in between
+    // Get the next block after the selection start, delete it or unwrap it, until the next block is the one on which the selection ends.
+    EditorBlock selectionLastBlock = getBlockFromPath(selectionLast.blockPath)!;
+    BlockPath currPath = selectionFirst.blockPath.next(state)!;
+    EditorBlock curr = getBlockFromPath(currPath)!;
+    while (curr != selectionLastBlock) {
+      // Remove or unwrap
+      if (curr is EditorBlockWithChildren) {
+        state = state.replaceBlockWithBlocks(currPath, curr.children);
+      } else {
+        state = state.removeBlockAtPath(currPath);
+      }
+      currPath = selectionFirst.blockPath.next(state)!;
+      curr = state.getBlockFromPath(currPath)!;
+    }
+    // Delete in last block up to the selection end
+    state = state
+        .substringPieceContent(
+          blockPath: currPath,
+          pieceIndex: selectionLast.pieceIndex,
+          start: selectionLast.offset,
+        )
+        .replacePiecesInBlock(
+          currPath,
+          (pieces) => pieces.removeRange(0, selectionLast.pieceIndex),
+        );
+    // Merge first and last block.
+    IList<EditorBlock> replacementBlocks =
+        state.getBlockFromPath(currPath)!.turnIntoParagraphBlock();
+    state = state.replaceBlockWithBlocks(currPath, replacementBlocks);
+    state = state.mergeWithPreviousBlock(currPath);
+    state = state.collapseSelection();
+    return state;
   }
 
   /// Insert [newContent] before the cursor.
