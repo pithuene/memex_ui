@@ -24,6 +24,9 @@ class BlockPath {
       ? (identical(other, this) || other._path.deepEquals(_path))
       : false;
 
+  @override
+  String toString() => _path.toString();
+
   int compareTo(BlockPath other) {
     int sharedLength = min(length, other.length);
     for (int i = 0; i < sharedLength; i++) {

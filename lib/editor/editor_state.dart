@@ -71,8 +71,6 @@ class EditorState {
 
   Cursor get cursor => selection.end;
 
-  bool get hasSelection => !selection.isEmpty;
-
   EditorState.withInitialContent(String? initialContent) {
     blocks = <EditorBlock>[
       SectionBlock.withInitialContent(initialContent),
@@ -95,7 +93,7 @@ class EditorState {
     required this.selection,
   });
 
-  EditorState removeSelection() => EditorState(
+  EditorState collapseSelection() => EditorState(
         blocks: blocks,
         selection: selection.collapse(),
       );
@@ -145,78 +143,25 @@ class EditorState {
   /// Called before beginning a cursor movement.
   /// Handles selection state.
   EditorState beginCursorMove(bool isSelecting) {
-    if (!hasSelection && isSelecting) {
+    if (selection.isEmpty && isSelecting) {
       return beginSelection();
-    } else if (hasSelection && !isSelecting) {
-      return removeSelection();
+    } else if (!selection.isEmpty && !isSelecting) {
+      return collapseSelection();
     } else {
       return this;
     }
   }
 
   /// Return a new cursor one character to the right from a given one.
-  EditorState moveCursorRightOnce(bool isSelecting) {
-    EditorState state = beginCursorMove(isSelecting);
-
-    if (!cursor.isAtPieceEnd(this)) {
-      return state.replaceCursor(offset: cursor.offset + 1);
-    }
-    // At the end of a piece, must jump.
-    if (!cursor.isOnLastPiece(this)) {
-      return state.replaceCursor(
-        pieceIndex: cursor.pieceIndex + 1,
-        offset: 0,
+  EditorState moveCursorRightOnce(bool isSelecting) =>
+      beginCursorMove(isSelecting).replaceCursor(
+        cursor.moveRightOnce(this),
       );
-    }
-    // On the last piece, must jump to next block.
-    BlockPath? nextBlockPath = cursor.blockPath.next(this);
-    if (nextBlockPath == null) {
-      // Can't move, this is the last block.
-      return state;
-    }
-    // There is another block to jump to.
-    return state.replaceCursor(
-      blockPath: nextBlockPath,
-      pieceIndex: 0,
-      offset: 0,
-    );
-  }
 
   /// Move the cursor left by one character.
-  EditorState moveCursorLeftOnce(bool isSelecting) {
-    EditorState state = beginCursorMove(isSelecting);
-
-    if (!cursor.isAtPieceStart) {
-      return state.replaceCursor(offset: cursor.offset - 1);
-    }
-    // At the beginning of a piece, must jump.
-
-    if (!cursor.isOnFirstPiece) {
-      return state.copyWith(
-        selection: selection.copyWithEnd(
-          cursor.copyWith(
-            pieceIndex: cursor.pieceIndex - 1,
-            offset: getCursorPreviousPiece(cursor).text!.length - 1,
-          ),
-        ),
-      );
-    }
-    // On the first piece, must jump to the previous block.
-
-    BlockPath? previousBlockPath = cursor.blockPath.previous(this);
-    if (previousBlockPath == null) {
-      // Can't move, this is the first block.
-      return state;
-    }
-    // There is another block to jump to.
-
-    EditorBlock previousBlock = getBlockFromPath(previousBlockPath)!;
-    return state.replaceCursor(
-      blockPath: previousBlockPath,
-      pieceIndex: previousBlock.pieces.length - 1,
-      offset: previousBlock.pieces.last.text!.length - 1,
-    );
-  }
+  EditorState moveCursorLeftOnce(bool isSelecting) => replaceCursor(
+        cursor.moveLeftOnce(this),
+      ).beginCursorMove(isSelecting);
 
   /// Move the cursor left by a given distance.
   /// To move by one character use [moveCursorLeftOnce].
@@ -241,6 +186,9 @@ class EditorState {
   /// Splits the piece which contains the cursor,
   /// so the cursor is at offset zero afterwards.
   EditorState splitBeforeCursor(Cursor cursor) {
+    // Splitting at one cursor when there are multiple cursors would invalidate the pieceIndex;
+    assert(selection.isEmpty);
+
     if (cursor.isAtPieceStart) return this;
 
     return insertPieceInCursorBlock(
@@ -257,7 +205,7 @@ class EditorState {
             style: getCursorPiece(cursor).style,
           ),
         )
-        .replaceCursor(
+        .copyWithCursor(
           pieceIndex: cursor.pieceIndex + 1,
           offset: 0,
         );
@@ -287,7 +235,7 @@ class EditorState {
                 .sublist(splitState.cursor.pieceIndex),
           ),
         )
-        .replaceCursor(
+        .copyWithCursor(
           blockPath: newBlockPath,
           pieceIndex: 0,
           offset: 0,
@@ -383,14 +331,21 @@ class EditorState {
     );
   }
 
+  /// Transform pieces in a given [block].
+  EditorState replacePiecesInBlock(
+    BlockPath block,
+    IList<TextSpan> Function(IList<TextSpan>) pieceChange,
+  ) =>
+      replaceBlockAtPath(
+        block,
+        (block) => block.replacePieces(pieceChange),
+      );
+
+  /// Transform pieces in the cursor block.
   EditorState replacePiecesInCursorBlock(
     IList<TextSpan> Function(IList<TextSpan>) pieceChange,
-  ) {
-    return replaceBlockAtPath(
-      cursor.blockPath,
-      (cursorBlock) => cursorBlock.replacePieces(pieceChange),
-    );
-  }
+  ) =>
+      replacePiecesInBlock(cursor.blockPath, pieceChange);
 
   EditorState replacePieceInCursorBlock(int pieceIndex, TextSpan newPiece) {
     return replacePiecesInCursorBlock(
@@ -407,7 +362,10 @@ class EditorState {
     );
   }
 
-  EditorState replaceCursor({
+  EditorState replaceCursor(Cursor cursor) =>
+      copyWith(selection: selection.copyWithEnd(cursor));
+
+  EditorState copyWithCursor({
     BlockPath? blockPath,
     int? pieceIndex,
     int? offset,
@@ -446,7 +404,7 @@ class EditorState {
       (previousBlock) => previousBlock.replacePieces(
         (pieces) => pieces.removeLast().addAll(blockToRemove.pieces),
       ),
-    ).removeBlockAtPath(blockPathToRemove).replaceCursor(
+    ).removeBlockAtPath(blockPathToRemove).copyWithCursor(
           blockPath: previousBlockPath,
           pieceIndex: cursorPieceIndexAferMerge,
           offset: 0,
@@ -496,6 +454,10 @@ class EditorState {
   }
 
   EditorState deleteBackwards() {
+    if (!selection.isEmpty) {
+      return deleteSelection();
+    }
+
     if (cursor.isAtPieceStart) {
       // Cursor at the start means you can simply cut the last character off the previous piece.
       if (cursor.pieceIndex > 0) {
@@ -504,7 +466,7 @@ class EditorState {
           // Piece will be empty, simply remove it.
           return replacePiecesInCursorBlock(
             (pieces) => pieces.removeAt(cursor.pieceIndex - 1),
-          ).replaceCursor(pieceIndex: cursor.pieceIndex - 1);
+          ).copyWithCursor(pieceIndex: cursor.pieceIndex - 1);
         } else {
           // Previous piece will not be empty, cut its last character.
           return replacePieceInCursorBlock(
@@ -535,7 +497,7 @@ class EditorState {
           style: getCursorPiece(cursor).style,
           text: getCursorPiece(cursor).text!.substring(1),
         ),
-      ).replaceCursor(offset: 0);
+      ).copyWithCursor(offset: 0);
     } else {
       // Cursor in the middle of a piece, split required.
       return insertPieceInCursorBlock(
@@ -555,7 +517,7 @@ class EditorState {
               text: getCursorPiece(cursor).text!.substring(cursor.offset),
             ),
           )
-          .replaceCursor(
+          .copyWithCursor(
             pieceIndex: cursor.pieceIndex + 1,
             offset: 0,
           );
@@ -573,7 +535,7 @@ class EditorState {
     return replaceBlockWithBlocks(
       cursor.blockPath,
       <EditorBlock>[newBulletpointBlock].lockUnsafe,
-    ).replaceCursor(
+    ).copyWithCursor(
       pieceIndex: 0,
       offset: 0,
     );
@@ -593,7 +555,7 @@ class EditorState {
       <EditorBlock>[newSectionBlock].lockUnsafe,
     );
 
-    return withSectionBlock.replaceCursor(
+    return withSectionBlock.copyWithCursor(
       pieceIndex: 0,
       offset: 0,
     );
@@ -619,7 +581,7 @@ class EditorState {
           preceedingNeighborPath.add(preceedingNeighbor.children.length);
       return insertBlockAtPath(destinationBlockPath, cursorBlock)
           .removeBlockAtPath(cursor.blockPath)
-          .replaceCursor(blockPath: destinationBlockPath);
+          .copyWithCursor(blockPath: destinationBlockPath);
     }
     return this;
   }
@@ -639,7 +601,169 @@ class EditorState {
 
     return insertBlockAtPath(destinationPath, getCursorBlock(cursor))
         .removeBlockAtPath(cursor.blockPath)
-        .replaceCursor(blockPath: destinationPath);
+        .copyWithCursor(blockPath: destinationPath);
+  }
+
+  /// Delete a piece and adjust the selection if necessary.
+  EditorState deletePiece({
+    required BlockPath blockPath,
+    required int pieceIndex,
+  }) {
+    Selection selection = this.selection;
+    // Shift selection.start if necessary
+    if (!selection.isEmpty && selection.start!.blockPath == blockPath) {
+      if (selection.start!.pieceIndex == pieceIndex) {
+        // Get the new selection start by putting a cursor
+        // at the end of the deleted piece and moving ot right once.
+        Cursor newSelectionStart = Cursor(
+          blockPath: selection.start!.blockPath,
+          pieceIndex: selection.start!.pieceIndex,
+          offset: getBlockFromPath(blockPath)!
+                  .pieces[selection.start!.pieceIndex]
+                  .text!
+                  .length -
+              1,
+        ).moveRightOnce(this);
+        selection = selection.copyWithStart(newSelectionStart);
+      } else if (selection.start!.pieceIndex > pieceIndex) {
+        selection = selection.copyWithStart(
+          selection.start!.copyWith(
+            pieceIndex: selection.start!.pieceIndex - 1,
+          ),
+        );
+      }
+    }
+    // Shift selection.end if necessary
+    if (selection.end.blockPath == blockPath) {
+      if (selection.end.pieceIndex == pieceIndex) {
+        // Get the new selection start by putting a cursor
+        // at the end of the deleted piece and moving ot right once.
+        Cursor newSelectionEnd = Cursor(
+          blockPath: selection.end.blockPath,
+          pieceIndex: selection.end.pieceIndex,
+          offset: getBlockFromPath(blockPath)!
+                  .pieces[selection.end.pieceIndex]
+                  .text!
+                  .length -
+              1,
+        ).moveRightOnce(this);
+        selection = selection.copyWithEnd(newSelectionEnd);
+      } else if (selection.end.pieceIndex > pieceIndex) {
+        selection = selection.copyWithEnd(
+          selection.end.copyWith(
+            pieceIndex: selection.end.pieceIndex - 1,
+          ),
+        );
+      }
+    }
+
+    return replacePiecesInBlock(
+      blockPath,
+      (pieces) => pieces.removeAt(pieceIndex),
+    ).copyWith(selection: selection);
+  }
+
+  /// Replace the content of the piece at [pieceIndex] in [block]
+  /// with its substring from [start] inclusive to [end] exclusive.
+  /// If the piece has no content left, it is deleted and the
+  /// selection is adjusted accordingly.
+  EditorState substringPieceContent({
+    required BlockPath blockPath,
+    required int pieceIndex,
+    required int start,
+    int? end,
+  }) {
+    EditorBlock block = getBlockFromPath(blockPath)!;
+    TextSpan newPiece = TextSpan(
+      style: block.pieces[pieceIndex].style,
+      text: block.pieces[pieceIndex].text!.substring(start, end),
+    );
+    if (newPiece.text!.isEmpty) {
+      return deletePiece(blockPath: blockPath, pieceIndex: pieceIndex);
+    } else {
+      return replacePiecesInBlock(
+        blockPath,
+        (pieces) => pieces.replace(
+          pieceIndex,
+          newPiece,
+        ),
+      );
+    }
+  }
+
+  /// Delete all content in the current selection.
+  EditorState deleteSelection() {
+    if (selection.isEmpty) return this;
+
+    if (selection.isInSingleBlock) {
+      EditorBlock selectionBlock = getCursorBlock(selection.start!);
+      Cursor selectionFirst = selection.first;
+      Cursor selectionLast = selection.last;
+
+      if (selectionFirst.pieceIndex == selectionLast.pieceIndex) {
+        TextSpan selectionPiece =
+            selectionBlock.pieces[selectionFirst.pieceIndex];
+
+        if (selectionFirst.offset == 0 &&
+            selectionLast.offset == selectionPiece.text!.length - 1) {
+          // Piece will be empty
+          return replacePiecesInCursorBlock(
+            (pieces) => pieces.removeAt(selectionFirst.pieceIndex),
+          ).collapseSelection().copyWithCursor(
+                offset: 0,
+                pieceIndex: selectionFirst.pieceIndex + 1,
+              );
+        }
+
+        return replacePieceInCursorBlock(
+          selectionFirst.pieceIndex,
+          TextSpan(
+            style: selectionPiece.style,
+            text: selectionPiece.text!.replaceRange(
+              selectionFirst.offset,
+              selectionLast.offset,
+              "",
+            ),
+          ),
+        ).collapseSelection().copyWithCursor(offset: selectionFirst.offset);
+      }
+
+      // Not in the same piece
+      // Delete in first piece after offset
+      EditorState state = this;
+      state = state.substringPieceContent(
+        blockPath: cursor.blockPath,
+        pieceIndex: selectionFirst.pieceIndex,
+        start: 0,
+        end: selectionFirst.offset,
+      );
+      // Delete in last piece up to offset
+      state = state.substringPieceContent(
+        blockPath: cursor.blockPath,
+        pieceIndex: selectionLast.pieceIndex,
+        start: selectionLast.offset,
+      );
+      // Delete all pieces between
+      for (int i = selectionFirst.pieceIndex + 1;
+          i < selectionLast.pieceIndex;
+          i++) {
+        state = state.deletePiece(
+          blockPath: cursor.blockPath,
+          pieceIndex: i,
+        );
+      }
+      // Move the cursor to first character after the selection that got deleted.
+      state = state.copyWith(
+        selection: Selection.collapsed(
+          state.selection.last.copyWith(offset: 0),
+        ),
+      );
+      return state;
+    }
+    // Selection across multiple blocks
+
+    // TODO
+    return this;
   }
 
   /// Insert [newContent] before the cursor.
@@ -653,7 +777,7 @@ class EditorState {
             text: newContent,
             style: getCursorPiece(cursor).style,
           ),
-        ).replaceCursor(
+        ).copyWithCursor(
           pieceIndex: 1,
         ); // Cursor remains where it is, but the index changes because another piece was inserted in front.
       } else {
@@ -702,7 +826,7 @@ class EditorState {
               style: getCursorPiece(cursor).style,
             ),
           ) // Cursor remains where it is, but the index changes because another piece was inserted in front.
-          .replaceCursor(
+          .copyWithCursor(
             pieceIndex: cursor.pieceIndex + 1,
             offset: 0,
           );
