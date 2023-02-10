@@ -159,9 +159,10 @@ class EditorState {
       );
 
   /// Move the cursor left by one character.
-  EditorState moveCursorLeftOnce(bool isSelecting) => replaceCursor(
+  EditorState moveCursorLeftOnce(bool isSelecting) =>
+      beginCursorMove(isSelecting).replaceCursor(
         cursor.moveLeftOnce(this),
-      ).beginCursorMove(isSelecting);
+      );
 
   /// Move the cursor left by a given distance.
   /// To move by one character use [moveCursorLeftOnce].
