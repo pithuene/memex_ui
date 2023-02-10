@@ -700,20 +700,20 @@ class EditorState {
       Cursor selectionFirst = selection.first;
       Cursor selectionLast = selection.last;
 
+      if (selectionFirst.pieceIndex == selectionLast.pieceIndex - 1 &&
+          selectionFirst.offset == 0 &&
+          selectionLast.offset == 0) {
+        // Selection contains exactly the piece selectionFirst.pieceIndex
+        // and the piece will be empty.
+        return deletePiece(
+          blockPath: selectionFirst.blockPath,
+          pieceIndex: selectionFirst.pieceIndex,
+        ).collapseSelection();
+      }
+
       if (selectionFirst.pieceIndex == selectionLast.pieceIndex) {
         TextSpan selectionPiece =
             selectionBlock.pieces[selectionFirst.pieceIndex];
-
-        if (selectionFirst.offset == 0 &&
-            selectionLast.offset == selectionPiece.text!.length - 1) {
-          // Piece will be empty
-          return replacePiecesInCursorBlock(
-            (pieces) => pieces.removeAt(selectionFirst.pieceIndex),
-          ).collapseSelection().copyWithCursor(
-                offset: 0,
-                pieceIndex: selectionFirst.pieceIndex + 1,
-              );
-        }
 
         return replacePieceInCursorBlock(
           selectionFirst.pieceIndex,

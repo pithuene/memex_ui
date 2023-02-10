@@ -63,5 +63,32 @@ void main() {
         offset: 0,
       ),
     );
+
+    // Delete the piece with content "r".
+    state = state.moveCursorRightOnce(true);
+    expect(
+      state.selection.start,
+      Cursor(
+        blockPath: BlockPath([0].lockUnsafe),
+        pieceIndex: 1,
+        offset: 0,
+      ),
+    );
+    expect(
+      state.selection.end,
+      Cursor(
+        blockPath: BlockPath([0].lockUnsafe),
+        pieceIndex: 2,
+        offset: 0,
+      ),
+    );
+    state = state.deleteBackwards();
+    expect(
+      state.blocks[0].pieces,
+      <TextSpan>[
+        const TextSpan(text: "f"),
+        EditorBlock.sentinelPiece,
+      ].lockUnsafe,
+    );
   });
 }
