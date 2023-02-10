@@ -766,18 +766,23 @@ class EditorState {
     Cursor selectionLast = selection.last;
     EditorState state = this;
     // Delete first blocks content up to the end.
-    state = state
-        .replacePiecesInBlock(
-          selectionFirst.blockPath,
-          (pieces) => pieces.removeRange(selectionFirst.pieceIndex + 1,
-              getBlockFromPath(selectionFirst.blockPath)!.pieces.length - 1),
-        )
-        .substringPieceContent(
-          blockPath: selectionFirst.blockPath,
-          pieceIndex: selectionFirst.pieceIndex,
-          start: 0,
-          end: selectionFirst.offset,
-        );
+    if (getBlockFromPath(selectionFirst.blockPath)!.pieces.length - 1 >
+        selectionFirst.pieceIndex) {
+      // Only if this is not the last piece already
+      state = state
+          .replacePiecesInBlock(
+            selectionFirst.blockPath,
+            (pieces) => pieces.removeRange(selectionFirst.pieceIndex + 1,
+                getBlockFromPath(selectionFirst.blockPath)!.pieces.length - 1),
+          )
+          .substringPieceContent(
+            // Last piece is always sentinel. No need to edit content.
+            blockPath: selectionFirst.blockPath,
+            pieceIndex: selectionFirst.pieceIndex,
+            start: 0,
+            end: selectionFirst.offset,
+          );
+    }
     // Delete all blocks in between
     // Get the next block after the selection start, delete it or unwrap it, until the next block is the one on which the selection ends.
     EditorBlock selectionLastBlock = getBlockFromPath(selectionLast.blockPath)!;
