@@ -90,5 +90,80 @@ void main() {
         EditorBlock.sentinelPiece,
       ].lockUnsafe,
     );
+    expect(
+      state.cursor,
+      Cursor(
+        blockPath: BlockPath([0].lockUnsafe),
+        pieceIndex: 1,
+        offset: 0,
+      ),
+    );
+
+    // Move cursor back to the front
+    state = state.moveCursorLeftOnce(false);
+    expect(
+      state.cursor,
+      Cursor(
+        blockPath: BlockPath([0].lockUnsafe),
+        pieceIndex: 0,
+        offset: 0,
+      ),
+    );
+
+    // Insert a new block
+    state = state.append("foo");
+    expect(
+      state.blocks[0].pieces,
+      <TextSpan>[
+        const TextSpan(text: "foo"),
+        const TextSpan(text: "f"),
+        EditorBlock.sentinelPiece,
+      ].lockUnsafe,
+    );
+    // Move back to the start
+    state = state.moveCursorLeft(3, false);
+    expect(
+      state.cursor,
+      Cursor(
+        blockPath: BlockPath([0].lockUnsafe),
+        pieceIndex: 0,
+        offset: 0,
+      ),
+    );
+    // Select "foof"
+    state = state.moveCursorRight(4, true);
+    expect(
+      state.selection.start,
+      Cursor(
+        blockPath: BlockPath([0].lockUnsafe),
+        pieceIndex: 0,
+        offset: 0,
+      ),
+    );
+    expect(
+      state.selection.end,
+      Cursor(
+        blockPath: BlockPath([0].lockUnsafe),
+        pieceIndex: 2,
+        offset: 0,
+      ),
+    );
+    // Delete "foof"
+    state = state.deleteBackwards();
+    expect(
+      state.blocks[0].pieces,
+      <TextSpan>[
+        EditorBlock.sentinelPiece,
+      ].lockUnsafe,
+    );
+    expect(state.selection.isEmpty, true);
+    expect(
+      state.cursor,
+      Cursor(
+        blockPath: BlockPath([0].lockUnsafe),
+        pieceIndex: 0,
+        offset: 0,
+      ),
+    );
   });
 }

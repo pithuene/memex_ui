@@ -729,34 +729,32 @@ class EditorState {
       }
 
       // Not in the same piece
-      // Delete in first piece after offset
       EditorState state = this;
-      state = state.substringPieceContent(
-        blockPath: cursor.blockPath,
-        pieceIndex: selectionFirst.pieceIndex,
-        start: 0,
-        end: selectionFirst.offset,
-      );
       // Delete in last piece up to offset
       state = state.substringPieceContent(
-        blockPath: cursor.blockPath,
+        blockPath: state.cursor.blockPath,
         pieceIndex: selectionLast.pieceIndex,
         start: selectionLast.offset,
+      );
+      // Move the cursor
+      state = state.copyWith(
+        selection: Selection.collapsed(selectionLast.copyWith(offset: 0)),
       );
       // Delete all pieces between
       for (int i = selectionFirst.pieceIndex + 1;
           i < selectionLast.pieceIndex;
           i++) {
         state = state.deletePiece(
-          blockPath: cursor.blockPath,
+          blockPath: state.cursor.blockPath,
           pieceIndex: i,
         );
       }
-      // Move the cursor to first character after the selection that got deleted.
-      state = state.copyWith(
-        selection: Selection.collapsed(
-          state.selection.last.copyWith(offset: 0),
-        ),
+      // Delete in first piece after offset
+      state = state.substringPieceContent(
+        blockPath: cursor.blockPath,
+        pieceIndex: selectionFirst.pieceIndex,
+        start: 0,
+        end: selectionFirst.offset,
       );
       return state;
     }
