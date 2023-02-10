@@ -34,12 +34,12 @@ class BlockPath {
         return -1;
       } else if (this[i] > other[i]) {
         return 1;
-      } else {
-        return 0;
       }
     }
     // The shared part is the same.
-    if (length == other.length) return 0;
+    if (length == other.length) {
+      return 0;
+    }
     // The shorter path is the smaller one.
     return length.compareTo(other.length);
   }
