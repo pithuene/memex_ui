@@ -5,12 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:macos_ui/macos_ui.dart';
 
 import './state.dart';
+export './state.dart';
 
 export './memex_app.dart';
 export './table/table.dart';
 export './editor/editor.dart';
 export './editor/editor_state.dart';
 export './editor/editor_view.dart';
+export './editor/markdown.dart';
 
 class MemexFocusNode extends FocusNode {
   @override
