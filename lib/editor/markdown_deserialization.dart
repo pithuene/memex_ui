@@ -32,6 +32,15 @@ IList<TextSpan> _parseContent(List jsonContent) {
           );
         }
         break;
+      case "SoftBreak":
+        {
+          pieces.add(
+            const TextSpan(
+              text: "\n",
+            ),
+          );
+        }
+        break;
       default:
         {
           // TODO: Return an error
@@ -111,7 +120,7 @@ Future<Map> pandocMarkdownToJson(File markdownFile) async {
     "pandoc",
     [
       "-f",
-      "markdown",
+      "markdown+lists_without_preceding_blankline",
       "-t",
       "json",
       markdownFile.path,

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/painting.dart';
 import 'package:test/test.dart';
 
@@ -165,5 +168,13 @@ void main() {
         offset: 0,
       ),
     );
+  });
+
+  test('markdown (de)serialization', () async {
+    File markdownFile = File("./test/doc.md");
+    EditorState fromMarkdown = await parseMarkdown(markdownFile);
+    String toMarkdown = await serializeEditorState(fromMarkdown);
+    String originalMarkdown = await markdownFile.readAsString();
+    expect(originalMarkdown, toMarkdown);
   });
 }

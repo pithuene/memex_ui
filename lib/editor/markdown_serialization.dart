@@ -32,21 +32,25 @@ Future<String> serializeEditorState(EditorState state) async {
       .transform(utf8.decoder)
       .forEach((chunk) => error.write(chunk));
 
-  var jsonDocument = {
-    "pandoc-api-version": [1, 22, 2, 1],
-    "meta": {},
-    "blocks": _serializeEditorBlocks(state.blocks).toList(),
-  };
-  pandocProcess.stdin.write(jsonEncode(jsonDocument));
+  pandocProcess.stdin.write(jsonEncode(serializeEditorStateToJSON(state)));
   await pandocProcess.stdin.flush();
   await pandocProcess.stdin.close();
   int exitCode = await pandocProcess.exitCode;
 
   if (exitCode != 0) {
-    print(jsonEncode(jsonDocument));
+    print(jsonEncode(serializeEditorStateToJSON(state)));
     return Future.error("Pandoc JSON to markdown error: ${error.toString()}");
   }
   return result.toString();
+}
+
+Map serializeEditorStateToJSON(EditorState state) {
+  var jsonDocument = {
+    "pandoc-api-version": [1, 22, 2, 1],
+    "meta": {},
+    "blocks": _serializeEditorBlocks(state.blocks).toList(),
+  };
+  return jsonDocument;
 }
 
 List _serializeTextContent(IList<TextSpan> pieces) {
