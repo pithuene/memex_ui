@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:memex_ui/editor/block.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/cursor.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+
 import 'package:memex_ui/memex_ui.dart';
 
 import './editor.dart';
@@ -13,8 +16,12 @@ class EditorView extends StatefulWidget {
   const EditorView({
     super.key,
     required this.editor,
+    required this.openFile,
+    required this.saveFile,
   });
   final Editor editor;
+  final Future<File> Function() openFile;
+  final Future<void> Function(String content) saveFile;
 
   @override
   State<StatefulWidget> createState() => _EditorViewState();
@@ -85,6 +92,27 @@ class _EditorViewState extends State<EditorView> {
               });
               return;
             }
+          }
+          if (event.logicalKey == LogicalKeyboardKey.keyS &&
+              event.isControlPressed) {
+            serializeEditorState(widget.editor.state).then((markdown) {
+              widget.saveFile(markdown);
+            }).onError((error, stackTrace) {
+              print(error);
+              return null;
+            });
+            return;
+          }
+          if (event.logicalKey == LogicalKeyboardKey.keyO &&
+              event.isControlPressed) {
+            widget.openFile().then((selectedFile) {
+              parseMarkdown(selectedFile).then((newState) {
+                setState(() {
+                  widget.editor.state = newState;
+                });
+              });
+            });
+            return;
           }
           if (event.character != null) {
             setState(() {
