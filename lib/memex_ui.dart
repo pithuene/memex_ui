@@ -12,7 +12,8 @@ export './table/table.dart';
 export './editor/editor.dart';
 export './editor/editor_state.dart';
 export './editor/editor_view.dart';
-export './editor/markdown.dart';
+export './editor/markdown_serialization.dart';
+export './editor/markdown_deserialization.dart';
 
 class MemexFocusNode extends FocusNode {
   @override
