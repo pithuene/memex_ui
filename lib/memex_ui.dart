@@ -15,6 +15,8 @@ export './editor/editor_view.dart';
 export './editor/markdown_serialization.dart';
 export './editor/markdown_deserialization.dart';
 
+export './filepicker/filepicker.dart';
+
 class MemexFocusNode extends FocusNode {
   @override
   set onKey(FocusOnKeyCallback? _onKey) {
