@@ -11,7 +11,7 @@ import 'package:memex_ui/memex_ui.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 /// Parse the text content components in pandocs JSON format.
-IList<TextSpan> _parseContent(List jsonContent) {
+IList<TextSpan> _parseContent(List jsonContent, bool appendSentinel) {
   List<TextSpan> pieces = [];
   for (Map jsonPiece in jsonContent) {
     switch (jsonPiece["t"]) {
@@ -42,11 +42,33 @@ IList<TextSpan> _parseContent(List jsonContent) {
           );
         }
         break;
+      case "Quoted":
+        {
+          String quoteType = jsonPiece["c"][0]["t"];
+          TextSpan? quotePiece;
+          if (quoteType == "SingleQuote") {
+            quotePiece = const TextSpan(text: "'");
+          } else if (quoteType == "DoubleQuote") {
+            quotePiece = const TextSpan(text: "\"");
+          } else {
+            print("Unknown quote type $quoteType");
+          }
+
+          if (quotePiece != null) pieces.add(quotePiece);
+          pieces.addAll(
+            _parseContent(
+              jsonPiece["c"][1],
+              false,
+            ),
+          );
+          if (quotePiece != null) pieces.add(quotePiece);
+        }
+        break;
       case "Link":
         {
           // You can not apply styles inside the label of a link.
           String pieceContent = TextSpan(
-            children: _parseContent(jsonPiece["c"][1]).removeLast().unlockView,
+            children: _parseContent(jsonPiece["c"][1], false).unlockView,
           ).toPlainText();
           pieces.add(
             LinkSpan(
@@ -65,14 +87,16 @@ IList<TextSpan> _parseContent(List jsonContent) {
         break;
     }
   }
-  pieces.add(EditorBlock.sentinelPiece);
+  if (appendSentinel) {
+    pieces.add(EditorBlock.sentinelPiece);
+  }
   return pieces.lockUnsafe;
 }
 
 List<EditorBlock> _parseBulletList(List bulletListEntries) {
   EditorBlock _parseBulletListEntry(List bulletListEntryWithChildren) =>
       BulletpointBlock(
-        _parseContent(bulletListEntryWithChildren[0]["c"]),
+        _parseContent(bulletListEntryWithChildren[0]["c"], true),
         _parseBlocks(bulletListEntryWithChildren.sublist(1)).toIList(),
       );
 
@@ -96,10 +120,10 @@ List<EditorBlock> _parseBlock(Map jsonBlock) {
   String type = jsonBlock["t"];
   switch (type) {
     case "Header":
-      return [SectionBlock(_parseContent(jsonBlock["c"][2]))];
+      return [SectionBlock(_parseContent(jsonBlock["c"][2], true))];
     //final level = jsonBlock["c"][0];
     case "Para":
-      return [ParagraphBlock(_parseContent(jsonBlock["c"]))];
+      return [ParagraphBlock(_parseContent(jsonBlock["c"], true))];
     case "BulletList":
       return _parseBulletList(jsonBlock["c"]);
     default:
