@@ -177,7 +177,7 @@ class _FilepickerState extends State<Filepicker> {
       autofocus: true,
       focusNode: focusNode,
       onKeyEvent: (event) {
-        if (event is KeyDownEvent) {
+        if (event is KeyDownEvent || event is KeyRepeatEvent) {
           if (event.logicalKey == LogicalKeyboardKey.escape) {
             close();
           } else if (event.logicalKey == LogicalKeyboardKey.keyH) {
