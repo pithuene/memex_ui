@@ -5,6 +5,7 @@ import 'package:flutter/painting.dart';
 import 'package:memex_ui/editor/block.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/cursor.dart';
+import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/memex_ui.dart';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
@@ -41,10 +42,25 @@ IList<TextSpan> _parseContent(List jsonContent) {
           );
         }
         break;
+      case "Link":
+        {
+          // You can not apply styles inside the label of a link.
+          String pieceContent = TextSpan(
+            children: _parseContent(jsonPiece["c"][1]).removeLast().unlockView,
+          ).toPlainText();
+          pieces.add(
+            LinkSpan(
+              text: pieceContent,
+              target: jsonPiece["c"][2][0],
+            ),
+          );
+        }
+        break;
       default:
         {
           // TODO: Return an error
           print("Failed to parse content piece of type ${jsonPiece["t"]}");
+          print(jsonPiece);
         }
         break;
     }

@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/painting.dart';
 import 'package:memex_ui/editor/block.dart';
+import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/memex_ui.dart';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
@@ -53,13 +54,37 @@ Map serializeEditorStateToJSON(EditorState state) {
   return jsonDocument;
 }
 
+Map _serializePiece(InlineSpan piece) {
+  switch (piece.runtimeType) {
+    case TextSpan:
+      return {
+        "t": "Str",
+        "c": (piece as TextSpan).text,
+      };
+    case LinkSpan:
+      return {
+        "t": "Link",
+        "c": [
+          ["", [], []],
+          [
+            {"t": "Str", "c": (piece as LinkSpan).text!},
+          ],
+          [piece.target, ""],
+        ],
+      };
+    default:
+      {
+        print("Failed to serialize piece of type ${piece.runtimeType}!");
+        return {
+          "t": "Str",
+          "c": piece.toPlainText(),
+        };
+      }
+  }
+}
+
 List _serializeTextContent(IList<TextSpan> pieces) {
-  return [
-    {
-      "t": "Str",
-      "c": TextSpan(children: pieces.removeLast().unlockView).toPlainText(),
-    }
-  ];
+  return pieces.removeLast().map((piece) => _serializePiece(piece)).toList();
 }
 
 /// Find the index the last block in a streak of blocks of type [blockType].

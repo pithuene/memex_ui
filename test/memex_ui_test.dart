@@ -175,6 +175,6 @@ void main() {
     EditorState fromMarkdown = await parseMarkdown(markdownFile);
     String toMarkdown = await serializeEditorState(fromMarkdown);
     String originalMarkdown = await markdownFile.readAsString();
-    expect(originalMarkdown, toMarkdown);
+    expect(toMarkdown, originalMarkdown);
   });
 }
