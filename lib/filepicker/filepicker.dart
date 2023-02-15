@@ -76,10 +76,12 @@ class _FilepickerState extends State<Filepicker> {
   }
 
   void moveLeft() {
-    setState(() {
-      currentPath = current.parent.path.split("/").sublist(1).lockUnsafe;
-      updateColumns();
-    });
+    if (currentPath.length > 1) {
+      setState(() {
+        currentPath = current.parent.path.split("/").sublist(1).lockUnsafe;
+        updateColumns();
+      });
+    }
   }
 
   void moveRight() {
@@ -143,7 +145,8 @@ class _FilepickerState extends State<Filepicker> {
     Directory parent = current.parent;
     Directory parentsParent = parent.parent;
 
-    leftColumn = parentsParent.listSync();
+    leftColumn =
+        (parent.path == parentsParent.path) ? [] : parentsParent.listSync();
     centerColumn = parent.listSync();
     rightColumn = (current is Directory)
         ? rightColumn = (current as Directory).listSync()
