@@ -11,15 +11,20 @@ import 'package:memex_ui/memex_ui.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 /// Parse the text content components in pandocs JSON format.
-IList<TextSpan> _parseContent(List jsonContent, bool appendSentinel) {
+IList<TextSpan> _parseContent({
+  required List content,
+  bool appendSentinel = false,
+  TextStyle? style,
+}) {
   List<TextSpan> pieces = [];
-  for (Map jsonPiece in jsonContent) {
+  for (Map jsonPiece in content) {
     switch (jsonPiece["t"]) {
       case "Str":
         {
           pieces.add(
             TextSpan(
               text: jsonPiece["c"],
+              style: style,
             ),
           );
         }
@@ -27,8 +32,9 @@ IList<TextSpan> _parseContent(List jsonContent, bool appendSentinel) {
       case "Space":
         {
           pieces.add(
-            const TextSpan(
+            TextSpan(
               text: " ",
+              style: style,
             ),
           );
         }
@@ -36,8 +42,20 @@ IList<TextSpan> _parseContent(List jsonContent, bool appendSentinel) {
       case "SoftBreak":
         {
           pieces.add(
-            const TextSpan(
+            TextSpan(
               text: "\n",
+              style: style,
+            ),
+          );
+        }
+        break;
+      case "Strong":
+        {
+          pieces.addAll(
+            _parseContent(
+              content: jsonPiece["c"],
+              style: (style ?? const TextStyle())
+                  .copyWith(fontWeight: FontWeight.bold),
             ),
           );
         }
@@ -47,19 +65,22 @@ IList<TextSpan> _parseContent(List jsonContent, bool appendSentinel) {
           String quoteType = jsonPiece["c"][0]["t"];
           TextSpan? quotePiece;
           if (quoteType == "SingleQuote") {
-            quotePiece = const TextSpan(text: "'");
+            quotePiece = TextSpan(
+              text: "'",
+              style: style,
+            );
           } else if (quoteType == "DoubleQuote") {
-            quotePiece = const TextSpan(text: "\"");
+            quotePiece = TextSpan(
+              text: "\"",
+              style: style,
+            );
           } else {
             print("Unknown quote type $quoteType");
           }
 
           if (quotePiece != null) pieces.add(quotePiece);
           pieces.addAll(
-            _parseContent(
-              jsonPiece["c"][1],
-              false,
-            ),
+            _parseContent(content: jsonPiece["c"][1]),
           );
           if (quotePiece != null) pieces.add(quotePiece);
         }
@@ -68,12 +89,13 @@ IList<TextSpan> _parseContent(List jsonContent, bool appendSentinel) {
         {
           // You can not apply styles inside the label of a link.
           String pieceContent = TextSpan(
-            children: _parseContent(jsonPiece["c"][1], false).unlockView,
+            children: _parseContent(content: jsonPiece["c"][1]).unlockView,
           ).toPlainText();
           pieces.add(
             LinkSpan(
               text: pieceContent,
               target: jsonPiece["c"][2][0],
+              style: style,
             ),
           );
         }
@@ -96,7 +118,10 @@ IList<TextSpan> _parseContent(List jsonContent, bool appendSentinel) {
 List<EditorBlock> _parseBulletList(List bulletListEntries) {
   EditorBlock _parseBulletListEntry(List bulletListEntryWithChildren) =>
       BulletpointBlock(
-        _parseContent(bulletListEntryWithChildren[0]["c"], true),
+        _parseContent(
+          content: bulletListEntryWithChildren[0]["c"],
+          appendSentinel: true,
+        ),
         _parseBlocks(bulletListEntryWithChildren.sublist(1)).toIList(),
       );
 
@@ -120,10 +145,24 @@ List<EditorBlock> _parseBlock(Map jsonBlock) {
   String type = jsonBlock["t"];
   switch (type) {
     case "Header":
-      return [SectionBlock(_parseContent(jsonBlock["c"][2], true))];
+      return [
+        SectionBlock(
+          _parseContent(
+            content: jsonBlock["c"][2],
+            appendSentinel: true,
+          ),
+        )
+      ];
     //final level = jsonBlock["c"][0];
     case "Para":
-      return [ParagraphBlock(_parseContent(jsonBlock["c"], true))];
+      return [
+        ParagraphBlock(
+          _parseContent(
+            content: jsonBlock["c"],
+            appendSentinel: true,
+          ),
+        )
+      ];
     case "BulletList":
       return _parseBulletList(jsonBlock["c"]);
     default:

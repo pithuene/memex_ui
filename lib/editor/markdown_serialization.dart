@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 
 import 'package:flutter/painting.dart';
+import 'package:memex_ui/boxed_value.dart';
 import 'package:memex_ui/editor/block.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/memex_ui.dart';
@@ -19,7 +20,11 @@ Future<String> serializeEditorState(EditorState state) async {
       "-f",
       "json",
       "-t",
-      "markdown-simple_tables-grid_tables-multiline_tables-smart",
+      "markdown"
+          "-simple_tables"
+          "-grid_tables"
+          "-multiline_tables"
+          "-smart",
     ],
   );
 
@@ -59,7 +64,7 @@ Map _serializePiece(InlineSpan piece) {
     case TextSpan:
       return {
         "t": "Str",
-        "c": (piece as TextSpan).text,
+        "c": (piece as TextSpan).text!,
       };
     case LinkSpan:
       return {
@@ -67,9 +72,12 @@ Map _serializePiece(InlineSpan piece) {
         "c": [
           ["", [], []],
           [
-            {"t": "Str", "c": (piece as LinkSpan).text!},
+            {
+              "t": "Str",
+              "c": (piece as TextSpan).text!,
+            },
           ],
-          [piece.target, ""],
+          [(piece as LinkSpan).target, ""],
         ],
       };
     default:
@@ -84,7 +92,44 @@ Map _serializePiece(InlineSpan piece) {
 }
 
 List _serializeTextContent(IList<TextSpan> pieces) {
-  return pieces.removeLast().map((piece) => _serializePiece(piece)).toList();
+  void addBatchToList(
+    List batch,
+    List destination,
+    FontWeight fontWeight,
+  ) {
+    if (fontWeight == FontWeight.bold) {
+      destination.add({
+        "t": "Strong",
+        "c": [...batch],
+      });
+    } else if (fontWeight == FontWeight.normal) {
+      destination.addAll(batch);
+    } else {
+      print("Unknown fontWeight $fontWeight");
+      destination.addAll(batch);
+    }
+  }
+
+  FontWeight fontWeight = FontWeight.normal;
+  List serializedPieces = [];
+  List pieceBatch = [];
+  for (TextSpan piece in pieces.removeLast()) {
+    if (piece.style?.fontWeight == fontWeight) {
+      // Nothing changed.
+      pieceBatch.add(_serializePiece(piece));
+    } else if (piece.style == null && fontWeight == FontWeight.normal) {
+      // Style not set, but already using the default.
+      pieceBatch.add(_serializePiece(piece));
+    } else {
+      // Style changed.
+      addBatchToList(pieceBatch, serializedPieces, fontWeight);
+      pieceBatch.clear();
+      fontWeight = piece.style?.fontWeight ?? FontWeight.normal;
+      pieceBatch.add(_serializePiece(piece));
+    }
+  }
+  addBatchToList(pieceBatch, serializedPieces, fontWeight);
+  return serializedPieces;
 }
 
 /// Find the index the last block in a streak of blocks of type [blockType].
