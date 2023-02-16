@@ -60,6 +60,17 @@ IList<TextSpan> _parseContent({
           );
         }
         break;
+      case "Emph":
+        {
+          pieces.addAll(
+            _parseContent(
+              content: jsonPiece["c"],
+              style: (style ?? const TextStyle())
+                  .copyWith(fontStyle: FontStyle.italic),
+            ),
+          );
+        }
+        break;
       case "Quoted":
         {
           String quoteType = jsonPiece["c"][0]["t"];

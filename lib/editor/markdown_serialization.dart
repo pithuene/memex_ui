@@ -92,44 +92,63 @@ Map _serializePiece(InlineSpan piece) {
 }
 
 List _serializeTextContent(IList<TextSpan> pieces) {
-  void addBatchToList(
-    List batch,
-    List destination,
-    FontWeight fontWeight,
+  List recursiveSerializeTextContent(
+    IList<TextSpan> pieces,
+    IMap state,
   ) {
-    if (fontWeight == FontWeight.bold) {
-      destination.add({
-        "t": "Strong",
-        "c": [...batch],
-      });
-    } else if (fontWeight == FontWeight.normal) {
-      destination.addAll(batch);
-    } else {
-      print("Unknown fontWeight $fontWeight");
-      destination.addAll(batch);
+    List serializedPieces = [];
+    IList<TextSpan> remainingPieces = pieces;
+    while (remainingPieces.isNotEmpty) {
+      final nextPiece = remainingPieces.first;
+      if (nextPiece.style?.fontWeight == FontWeight.bold &&
+          state["fontWeight"] != FontWeight.bold) {
+        // Starting bold
+        int firstNonBold = remainingPieces.indexWhere(
+          (piece) => piece.style?.fontWeight != FontWeight.bold,
+        );
+        if (firstNonBold < 0) {
+          firstNonBold = remainingPieces.length;
+        }
+        serializedPieces.add({
+          "t": "Strong",
+          "c": recursiveSerializeTextContent(
+            remainingPieces.sublist(0, firstNonBold),
+            state.add("fontWeight", FontWeight.bold),
+          ),
+        });
+        remainingPieces = remainingPieces.removeRange(0, firstNonBold);
+      } else if (nextPiece.style?.fontStyle == FontStyle.italic &&
+          state["fontStyle"] != FontStyle.italic) {
+        // Starting italic
+        int firstNonItalic = remainingPieces.indexWhere(
+          (piece) => piece.style?.fontStyle != FontStyle.italic,
+        );
+        if (firstNonItalic < 0) {
+          firstNonItalic = remainingPieces.length;
+        }
+        serializedPieces.add({
+          "t": "Emph",
+          "c": recursiveSerializeTextContent(
+            remainingPieces.sublist(0, firstNonItalic),
+            state.add("fontStyle", FontStyle.italic),
+          ),
+        });
+        remainingPieces = remainingPieces.removeRange(0, firstNonItalic);
+      } else {
+        serializedPieces.add(_serializePiece(nextPiece));
+        remainingPieces = remainingPieces.removeAt(0);
+      }
     }
+    return serializedPieces;
   }
 
-  FontWeight fontWeight = FontWeight.normal;
-  List serializedPieces = [];
-  List pieceBatch = [];
-  for (TextSpan piece in pieces.removeLast()) {
-    if (piece.style?.fontWeight == fontWeight) {
-      // Nothing changed.
-      pieceBatch.add(_serializePiece(piece));
-    } else if (piece.style == null && fontWeight == FontWeight.normal) {
-      // Style not set, but already using the default.
-      pieceBatch.add(_serializePiece(piece));
-    } else {
-      // Style changed.
-      addBatchToList(pieceBatch, serializedPieces, fontWeight);
-      pieceBatch.clear();
-      fontWeight = piece.style?.fontWeight ?? FontWeight.normal;
-      pieceBatch.add(_serializePiece(piece));
-    }
-  }
-  addBatchToList(pieceBatch, serializedPieces, fontWeight);
-  return serializedPieces;
+  return recursiveSerializeTextContent(
+    pieces.removeLast(),
+    {
+      "fontWeight": FontWeight.normal,
+      "fontStyle": FontStyle.normal,
+    }.toIMap(),
+  );
 }
 
 /// Find the index the last block in a streak of blocks of type [blockType].
