@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:memex_ui/editor/block_path.dart';
+import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/memex_ui.dart';
 
 import './cursor.dart';
@@ -123,13 +124,13 @@ class EditorState {
     return getBlockFromPath(cursor.blockPath)!;
   }
 
-  TextSpan getCursorPiece(Cursor cursor) =>
+  Piece getCursorPiece(Cursor cursor) =>
       getCursorBlock(cursor).pieces[cursor.pieceIndex];
 
-  TextSpan getCursorPreviousPiece(Cursor cursor) =>
+  Piece getCursorPreviousPiece(Cursor cursor) =>
       getCursorBlock(cursor).pieces[cursor.pieceIndex - 1];
 
-  TextSpan getCursorNextPiece(Cursor cursor) =>
+  Piece getCursorNextPiece(Cursor cursor) =>
       getCursorBlock(cursor).pieces[cursor.pieceIndex + 1];
 
   /// Start a selection at the current [cursor].
@@ -194,17 +195,11 @@ class EditorState {
 
     return insertPieceInCursorBlock(
       cursor.pieceIndex,
-      TextSpan(
-        text: getCursorPiece(cursor).text!.substring(0, cursor.offset),
-        style: getCursorPiece(cursor).style,
-      ),
+      getCursorPiece(cursor).substring(0, cursor.offset),
     )
         .replacePieceInCursorBlock(
           cursor.pieceIndex + 1,
-          TextSpan(
-            text: getCursorPiece(cursor).text!.substring(cursor.offset),
-            style: getCursorPiece(cursor).style,
-          ),
+          getCursorPiece(cursor).substring(cursor.offset),
         )
         .copyWithCursor(
           pieceIndex: cursor.pieceIndex + 1,
@@ -218,9 +213,8 @@ class EditorState {
     final splitState = splitBeforeCursor();
     assert(splitState.cursor.isAtPieceStart);
     final blockCut = splitState.replacePiecesInCursorBlock(
-      (pieces) => pieces
-          .sublist(0, splitState.cursor.pieceIndex)
-          .add(EditorBlock.sentinelPiece),
+      (pieces) =>
+          pieces.sublist(0, splitState.cursor.pieceIndex).add(Piece.sentinel),
     );
 
     final BlockPath newBlockPath = cursor.blockPath.nextNeighbor();
@@ -336,7 +330,7 @@ class EditorState {
   /// Transform pieces in a given [block].
   EditorState replacePiecesInBlock(
     BlockPath block,
-    IList<TextSpan> Function(IList<TextSpan>) pieceChange,
+    IList<Piece> Function(IList<Piece>) pieceChange,
   ) =>
       replaceBlockAtPath(
         block,
@@ -345,11 +339,11 @@ class EditorState {
 
   /// Transform pieces in the cursor block.
   EditorState replacePiecesInCursorBlock(
-    IList<TextSpan> Function(IList<TextSpan>) pieceChange,
+    IList<Piece> Function(IList<Piece>) pieceChange,
   ) =>
       replacePiecesInBlock(cursor.blockPath, pieceChange);
 
-  EditorState replacePieceInCursorBlock(int pieceIndex, TextSpan newPiece) {
+  EditorState replacePieceInCursorBlock(int pieceIndex, Piece newPiece) {
     return replacePiecesInCursorBlock(
       (pieces) => pieces.replace(
         pieceIndex,
@@ -358,7 +352,7 @@ class EditorState {
     );
   }
 
-  EditorState insertPieceInCursorBlock(int pieceIndex, TextSpan newPiece) {
+  EditorState insertPieceInCursorBlock(int pieceIndex, Piece newPiece) {
     return replacePiecesInCursorBlock(
       (pieces) => pieces.insert(pieceIndex, newPiece),
     );
@@ -464,7 +458,7 @@ class EditorState {
       // Cursor at the start means you can simply cut the last character off the previous piece.
       if (cursor.pieceIndex > 0) {
         // There is a previous piece
-        if (getCursorPreviousPiece(cursor).text!.length == 1) {
+        if (getCursorPreviousPiece(cursor).text.length == 1) {
           // Piece will be empty, simply remove it.
           return replacePiecesInCursorBlock(
             (pieces) => pieces.removeAt(cursor.pieceIndex - 1),
@@ -473,13 +467,7 @@ class EditorState {
           // Previous piece will not be empty, cut its last character.
           return replacePieceInCursorBlock(
             cursor.pieceIndex - 1,
-            TextSpan(
-              style: getCursorPreviousPiece(cursor).style,
-              text: getCursorPreviousPiece(cursor).text!.substring(
-                    0,
-                    getCursorPreviousPiece(cursor).text!.length - 1,
-                  ),
-            ),
+            getCursorPreviousPiece(cursor).substring(0, -1),
           );
         }
       } else {
@@ -495,29 +483,17 @@ class EditorState {
       // Cursor on the second character means you can simply cut the first character off the current piece.
       return replacePieceInCursorBlock(
         cursor.pieceIndex,
-        TextSpan(
-          style: getCursorPiece(cursor).style,
-          text: getCursorPiece(cursor).text!.substring(1),
-        ),
+        getCursorPiece(cursor).substring(1),
       ).copyWithCursor(offset: 0);
     } else {
       // Cursor in the middle of a piece, split required.
       return insertPieceInCursorBlock(
         cursor.pieceIndex,
-        TextSpan(
-          style: getCursorPiece(cursor).style,
-          text: getCursorPiece(cursor).text!.substring(
-                0,
-                cursor.offset - 1,
-              ),
-        ),
+        getCursorPiece(cursor).substring(0, cursor.offset - 1),
       )
           .replacePieceInCursorBlock(
             cursor.pieceIndex + 1,
-            TextSpan(
-              style: getCursorPiece(cursor).style,
-              text: getCursorPiece(cursor).text!.substring(cursor.offset),
-            ),
+            getCursorPiece(cursor).substring(cursor.offset),
           )
           .copyWithCursor(
             pieceIndex: cursor.pieceIndex + 1,
@@ -676,11 +652,8 @@ class EditorState {
     int? end,
   }) {
     EditorBlock block = getBlockFromPath(blockPath)!;
-    TextSpan newPiece = TextSpan(
-      style: block.pieces[pieceIndex].style,
-      text: block.pieces[pieceIndex].text!.substring(start, end),
-    );
-    if (newPiece.text!.isEmpty) {
+    Piece newPiece = block.pieces[pieceIndex].substring(start, end);
+    if (newPiece.text.isEmpty) {
       return deletePiece(blockPath: blockPath, pieceIndex: pieceIndex);
     } else {
       return replacePiecesInBlock(
@@ -714,18 +687,12 @@ class EditorState {
       }
 
       if (selectionFirst.pieceIndex == selectionLast.pieceIndex) {
-        TextSpan selectionPiece =
-            selectionBlock.pieces[selectionFirst.pieceIndex];
-
         return replacePieceInCursorBlock(
           selectionFirst.pieceIndex,
-          TextSpan(
-            style: selectionPiece.style,
-            text: selectionPiece.text!.replaceRange(
-              selectionFirst.offset,
-              selectionLast.offset,
-              "",
-            ),
+          selectionBlock.pieces[selectionFirst.pieceIndex].replaceRange(
+            selectionFirst.offset,
+            selectionLast.offset,
+            "",
           ),
         ).collapseSelection().copyWithCursor(offset: selectionFirst.offset);
       }
@@ -829,10 +796,7 @@ class EditorState {
         // There is no previous piece, insert one.
         return insertPieceInCursorBlock(
           0,
-          TextSpan(
-            text: newContent,
-            style: getCursorPiece(cursor).style,
-          ),
+          getCursorPiece(cursor).copyWith(text: newContent),
         ).copyWithCursor(
           pieceIndex: 1,
         ); // Cursor remains where it is, but the index changes because another piece was inserted in front.
@@ -841,7 +805,7 @@ class EditorState {
             cursor.pieceIndex == 1 &&
             cursor.blockPath.length == 1 &&
             getCursorBlock(cursor).runtimeType == ParagraphBlock &&
-            getCursorPreviousPiece(cursor).text!.trim() == "#") {
+            getCursorPreviousPiece(cursor).text.trim() == "#") {
           // Space after a # at the start of a [ParagraphBlock]
           // => Transform this [ParagraphBlock] into a [SectionBlock].
           return markdownShortcutH1();
@@ -849,7 +813,7 @@ class EditorState {
         if (newContent == " " &&
             cursor.pieceIndex == 1 &&
             getCursorBlock(cursor).runtimeType == ParagraphBlock &&
-            getCursorPreviousPiece(cursor).text!.trim() == "-") {
+            getCursorPreviousPiece(cursor).text.trim() == "-") {
           // Space after a - at the start of a [ParagraphBlock]
           // => Transform this [ParagraphBlock] into a [BulletpointBlock].
           return markdownShortcutBulletpoint();
@@ -857,10 +821,7 @@ class EditorState {
         // Append to the previous piece.
         return replacePieceInCursorBlock(
           cursor.pieceIndex - 1,
-          TextSpan(
-            text: getCursorPreviousPiece(cursor).text! + newContent,
-            style: getCursorPreviousPiece(cursor).style,
-          ),
+          getCursorPreviousPiece(cursor).append(newContent),
         );
       }
     } else {
@@ -868,19 +829,12 @@ class EditorState {
       // Insert first half.
       return insertPieceInCursorBlock(
         cursor.pieceIndex,
-        TextSpan(
-          text: getCursorPiece(cursor).text!.substring(0, cursor.offset) +
-              newContent,
-          style: getCursorPiece(cursor).style,
-        ),
+        getCursorPiece(cursor).substring(0, cursor.offset).append(newContent),
       )
           .replacePieceInCursorBlock(
             // Append to the second half.
             cursor.pieceIndex + 1,
-            TextSpan(
-              text: getCursorPiece(cursor).text!.substring(cursor.offset),
-              style: getCursorPiece(cursor).style,
-            ),
+            getCursorPiece(cursor).substring(cursor.offset),
           ) // Cursor remains where it is, but the index changes because another piece was inserted in front.
           .copyWithCursor(
             pieceIndex: cursor.pieceIndex + 1,

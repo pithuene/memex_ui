@@ -11,20 +11,22 @@ import 'package:memex_ui/memex_ui.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 /// Parse the text content components in pandocs JSON format.
-IList<TextSpan> _parseContent({
+IList<Piece> _parseContent({
   required List content,
   bool appendSentinel = false,
-  TextStyle? style,
+  bool isBold = false,
+  bool isItalic = false,
 }) {
-  List<TextSpan> pieces = [];
+  List<Piece> pieces = [];
   for (Map jsonPiece in content) {
     switch (jsonPiece["t"]) {
       case "Str":
         {
           pieces.add(
-            TextSpan(
+            Piece(
               text: jsonPiece["c"],
-              style: style,
+              isBold: isBold,
+              isItalic: isItalic,
             ),
           );
         }
@@ -32,9 +34,10 @@ IList<TextSpan> _parseContent({
       case "Space":
         {
           pieces.add(
-            TextSpan(
+            Piece(
               text: " ",
-              style: style,
+              isBold: isBold,
+              isItalic: isItalic,
             ),
           );
         }
@@ -42,9 +45,10 @@ IList<TextSpan> _parseContent({
       case "SoftBreak":
         {
           pieces.add(
-            TextSpan(
+            Piece(
               text: "\n",
-              style: style,
+              isBold: isBold,
+              isItalic: isItalic,
             ),
           );
         }
@@ -54,8 +58,8 @@ IList<TextSpan> _parseContent({
           pieces.addAll(
             _parseContent(
               content: jsonPiece["c"],
-              style: (style ?? const TextStyle())
-                  .copyWith(fontWeight: FontWeight.bold),
+              isBold: true,
+              isItalic: isItalic,
             ),
           );
         }
@@ -65,8 +69,8 @@ IList<TextSpan> _parseContent({
           pieces.addAll(
             _parseContent(
               content: jsonPiece["c"],
-              style: (style ?? const TextStyle())
-                  .copyWith(fontStyle: FontStyle.italic),
+              isBold: isBold,
+              isItalic: true,
             ),
           );
         }
@@ -74,16 +78,18 @@ IList<TextSpan> _parseContent({
       case "Quoted":
         {
           String quoteType = jsonPiece["c"][0]["t"];
-          TextSpan? quotePiece;
+          Piece? quotePiece;
           if (quoteType == "SingleQuote") {
-            quotePiece = TextSpan(
+            quotePiece = Piece(
               text: "'",
-              style: style,
+              isBold: isBold,
+              isItalic: isItalic,
             );
           } else if (quoteType == "DoubleQuote") {
-            quotePiece = TextSpan(
+            quotePiece = Piece(
               text: "\"",
-              style: style,
+              isBold: isBold,
+              isItalic: isItalic,
             );
           } else {
             print("Unknown quote type $quoteType");
@@ -100,13 +106,16 @@ IList<TextSpan> _parseContent({
         {
           // You can not apply styles inside the label of a link.
           String pieceContent = TextSpan(
-            children: _parseContent(content: jsonPiece["c"][1]).unlockView,
+            children: _parseContent(content: jsonPiece["c"][1])
+                .map((element) => element.toSpan())
+                .toList(),
           ).toPlainText();
           pieces.add(
-            LinkSpan(
+            LinkPiece(
               text: pieceContent,
               target: jsonPiece["c"][2][0],
-              style: style,
+              isBold: isBold,
+              isItalic: isItalic,
             ),
           );
         }
@@ -121,7 +130,7 @@ IList<TextSpan> _parseContent({
     }
   }
   if (appendSentinel) {
-    pieces.add(EditorBlock.sentinelPiece);
+    pieces.add(Piece.sentinel);
   }
   return pieces.lockUnsafe;
 }

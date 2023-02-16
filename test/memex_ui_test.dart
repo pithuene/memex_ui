@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/painting.dart';
+import 'package:memex_ui/editor/pieces.dart';
 import 'package:test/test.dart';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
@@ -14,10 +15,10 @@ void main() {
   test('delete across piece boundary', () {
     var state = EditorState(
       blocks: <EditorBlock>[
-        ParagraphBlock(<TextSpan>[
-          const TextSpan(text: "foo"),
-          const TextSpan(text: "bar"),
-          EditorBlock.sentinelPiece,
+        ParagraphBlock(<Piece>[
+          const Piece(text: "foo"),
+          const Piece(text: "bar"),
+          Piece.sentinel,
         ].lockUnsafe),
       ].lockUnsafe,
       selection: Selection(
@@ -50,14 +51,14 @@ void main() {
     state = state.deleteBackwards();
     expect(
       state.blocks[0].pieces,
-      <TextSpan>[
-        const TextSpan(text: "f"),
-        const TextSpan(text: "r"),
-        EditorBlock.sentinelPiece,
+      <Piece>[
+        const Piece(text: "f"),
+        const Piece(text: "r"),
+        Piece.sentinel,
       ].lockUnsafe,
     );
     expect(state.selection.isEmpty, true);
-    expect(state.blocks[0].pieces[1].text!.length, 1);
+    expect(state.blocks[0].pieces[1].text.length, 1);
     expect(
       state.cursor,
       Cursor(
@@ -88,9 +89,9 @@ void main() {
     state = state.deleteBackwards();
     expect(
       state.blocks[0].pieces,
-      <TextSpan>[
-        const TextSpan(text: "f"),
-        EditorBlock.sentinelPiece,
+      <Piece>[
+        const Piece(text: "f"),
+        Piece.sentinel,
       ].lockUnsafe,
     );
     expect(
@@ -117,10 +118,10 @@ void main() {
     state = state.append("foo");
     expect(
       state.blocks[0].pieces,
-      <TextSpan>[
-        const TextSpan(text: "foo"),
-        const TextSpan(text: "f"),
-        EditorBlock.sentinelPiece,
+      <Piece>[
+        const Piece(text: "foo"),
+        const Piece(text: "f"),
+        Piece.sentinel,
       ].lockUnsafe,
     );
     // Move back to the start
@@ -155,9 +156,7 @@ void main() {
     state = state.deleteBackwards();
     expect(
       state.blocks[0].pieces,
-      <TextSpan>[
-        EditorBlock.sentinelPiece,
-      ].lockUnsafe,
+      <Piece>[Piece.sentinel].lockUnsafe,
     );
     expect(state.selection.isEmpty, true);
     expect(

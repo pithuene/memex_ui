@@ -122,7 +122,7 @@ class EditorTextView extends StatelessWidget {
           RichText(
             key: textKey,
             text: TextSpan(
-              children: block.pieces.unlockView,
+              children: block.pieces.map((piece) => piece.toSpan()).toList(),
               style: style,
             ),
           ),

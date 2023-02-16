@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:memex_ui/editor/block_path.dart';
+import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/editor/text_view.dart';
 import 'package:memex_ui/memex_ui.dart';
 
@@ -13,31 +14,27 @@ class EditorBlock {
   EditorBlock.withInitialContent({String? initialContent}) {
     if (initialContent != null) {
       assert(initialContent.isNotEmpty);
-      pieces = pieces.add(TextSpan(text: initialContent));
+      pieces = pieces.add(Piece(text: initialContent));
     }
-    pieces = pieces.add(sentinelPiece);
+    pieces = pieces.add(Piece.sentinel);
   }
 
   EditorBlock(this.pieces);
 
-  /// An empty piece at the end of the text.
-  /// The cursor is placed here to append text.
-  static const TextSpan sentinelPiece = TextSpan(text: ' ');
-
-  IList<TextSpan> pieces = <TextSpan>[].lockUnsafe;
+  IList<Piece> pieces = <Piece>[].lockUnsafe;
 
   /// Calculate the offset of the cursor in this block.
   int getCursorOffset(Cursor cursor) {
     int offset = 0;
     for (int i = 0; i < cursor.pieceIndex; i++) {
-      offset += pieces[i].text!.length;
+      offset += pieces[i].text.length;
     }
     offset += cursor.offset;
     return offset;
   }
 
   /// Calculate the sum of the text length of all pieces.
-  int getTotalTextLength() => pieces.sumBy((e) => e.text!.length);
+  int getTotalTextLength() => pieces.sumBy((e) => e.text.length);
 
   /// The function called to create the the widget showing a block.
   /// By default, this just shows the text content,
@@ -53,11 +50,11 @@ class EditorBlock {
         selection: selection,
       );
 
-  EditorBlock copyWith({IList<TextSpan>? pieces}) =>
+  EditorBlock copyWith({IList<Piece>? pieces}) =>
       EditorBlock(pieces ?? this.pieces);
 
   EditorBlock replacePieces(
-    IList<TextSpan> Function(IList<TextSpan>) piecesChange,
+    IList<Piece> Function(IList<Piece>) piecesChange,
   ) =>
       copyWith(pieces: piecesChange(pieces));
 
@@ -86,7 +83,7 @@ class EditorBlockWithChildren extends EditorBlock {
 
   @override
   EditorBlockWithChildren copyWith({
-    IList<TextSpan>? pieces,
+    IList<Piece>? pieces,
     IList<EditorBlock>? children,
   }) =>
       EditorBlockWithChildren(
@@ -144,7 +141,7 @@ class ParagraphBlock extends EditorBlock {
   ParagraphBlock(super.pieces);
 
   @override
-  EditorBlock copyWith({IList<TextSpan>? pieces}) =>
+  EditorBlock copyWith({IList<Piece>? pieces}) =>
       ParagraphBlock(pieces ?? this.pieces);
 
   SectionBlock turnIntoSectionBlock() => SectionBlock(pieces);
@@ -172,7 +169,7 @@ class SectionBlock extends EditorBlock {
   SectionBlock(super.pieces);
 
   @override
-  SectionBlock copyWith({IList<TextSpan>? pieces}) =>
+  SectionBlock copyWith({IList<Piece>? pieces}) =>
       SectionBlock(pieces ?? this.pieces);
 
   @override
@@ -205,7 +202,7 @@ class BulletpointBlock extends EditorBlockWithChildren {
 
   @override
   BulletpointBlock copyWith({
-    IList<TextSpan>? pieces,
+    IList<Piece>? pieces,
     IList<EditorBlock>? children,
   }) =>
       BulletpointBlock(

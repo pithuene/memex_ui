@@ -1,8 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
 
-import 'package:flutter/painting.dart';
-import 'package:memex_ui/boxed_value.dart';
 import 'package:memex_ui/editor/block.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/memex_ui.dart';
@@ -59,14 +57,14 @@ Map serializeEditorStateToJSON(EditorState state) {
   return jsonDocument;
 }
 
-Map _serializePiece(InlineSpan piece) {
+Map _serializePiece(Piece piece) {
   switch (piece.runtimeType) {
-    case TextSpan:
+    case Piece:
       return {
         "t": "Str",
-        "c": (piece as TextSpan).text!,
+        "c": piece.text,
       };
-    case LinkSpan:
+    case LinkPiece:
       return {
         "t": "Link",
         "c": [
@@ -74,10 +72,10 @@ Map _serializePiece(InlineSpan piece) {
           [
             {
               "t": "Str",
-              "c": (piece as TextSpan).text!,
+              "c": piece.text,
             },
           ],
-          [(piece as LinkSpan).target, ""],
+          [(piece as LinkPiece).target, ""],
         ],
       };
     default:
@@ -85,27 +83,24 @@ Map _serializePiece(InlineSpan piece) {
         print("Failed to serialize piece of type ${piece.runtimeType}!");
         return {
           "t": "Str",
-          "c": piece.toPlainText(),
+          "c": piece.text,
         };
       }
   }
 }
 
-List _serializeTextContent(IList<TextSpan> pieces) {
+List _serializeTextContent(IList<Piece> pieces) {
   List recursiveSerializeTextContent(
-    IList<TextSpan> pieces,
-    IMap state,
+    IList<Piece> pieces,
+    IMap<String, bool> state,
   ) {
     List serializedPieces = [];
-    IList<TextSpan> remainingPieces = pieces;
+    IList<Piece> remainingPieces = pieces;
     while (remainingPieces.isNotEmpty) {
       final nextPiece = remainingPieces.first;
-      if (nextPiece.style?.fontWeight == FontWeight.bold &&
-          state["fontWeight"] != FontWeight.bold) {
+      if (nextPiece.isBold && !state["isBold"]!) {
         // Starting bold
-        int firstNonBold = remainingPieces.indexWhere(
-          (piece) => piece.style?.fontWeight != FontWeight.bold,
-        );
+        int firstNonBold = remainingPieces.indexWhere((piece) => !piece.isBold);
         if (firstNonBold < 0) {
           firstNonBold = remainingPieces.length;
         }
@@ -113,16 +108,14 @@ List _serializeTextContent(IList<TextSpan> pieces) {
           "t": "Strong",
           "c": recursiveSerializeTextContent(
             remainingPieces.sublist(0, firstNonBold),
-            state.add("fontWeight", FontWeight.bold),
+            state.add("isBold", true),
           ),
         });
         remainingPieces = remainingPieces.removeRange(0, firstNonBold);
-      } else if (nextPiece.style?.fontStyle == FontStyle.italic &&
-          state["fontStyle"] != FontStyle.italic) {
+      } else if (nextPiece.isItalic && !state["isItalic"]!) {
         // Starting italic
-        int firstNonItalic = remainingPieces.indexWhere(
-          (piece) => piece.style?.fontStyle != FontStyle.italic,
-        );
+        int firstNonItalic =
+            remainingPieces.indexWhere((piece) => !piece.isItalic);
         if (firstNonItalic < 0) {
           firstNonItalic = remainingPieces.length;
         }
@@ -130,7 +123,7 @@ List _serializeTextContent(IList<TextSpan> pieces) {
           "t": "Emph",
           "c": recursiveSerializeTextContent(
             remainingPieces.sublist(0, firstNonItalic),
-            state.add("fontStyle", FontStyle.italic),
+            state.add("isItalic", true),
           ),
         });
         remainingPieces = remainingPieces.removeRange(0, firstNonItalic);
@@ -145,8 +138,8 @@ List _serializeTextContent(IList<TextSpan> pieces) {
   return recursiveSerializeTextContent(
     pieces.removeLast(),
     {
-      "fontWeight": FontWeight.normal,
-      "fontStyle": FontStyle.normal,
+      "isBold": false,
+      "isItalic": false,
     }.toIMap(),
   );
 }
