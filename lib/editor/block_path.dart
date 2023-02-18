@@ -7,7 +7,7 @@ import 'dart:math';
 @immutable
 class BlockPath {
   const BlockPath(this._path);
-  BlockPath.constant(Iterable<int> path) : _path = path.toIList();
+  BlockPath.fromIterable(Iterable<int> path) : _path = path.toIList();
   final IList<int> _path;
 
   int get length => _path.length;

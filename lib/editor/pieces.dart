@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:memex_ui/editor/piece_path.dart';
 
 @immutable
 class Piece {
@@ -35,7 +37,11 @@ class Piece {
           other.isItalic == isItalic)
       : false;
 
-  InlineSpan toSpan() => TextSpan(
+  /// The number of editable characters in the [InlineSpan]s
+  /// returned by this pieces [toSpan] method.
+  int getLength(bool containsCursor) => text.length;
+
+  InlineSpan toSpan(bool containsCursor) => TextSpan(
         text: text,
         style: TextStyle(
           fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
@@ -57,6 +63,54 @@ class Piece {
 }
 
 @immutable
+class InlineBlock extends Piece {
+  final IList<Piece> children;
+  const InlineBlock({
+    required this.children,
+  }) : super(
+          text: "",
+          isBold: false,
+          isItalic: false,
+        );
+
+  @override
+  int getLength(bool containsCursor) {
+    return children.sumBy((child) => child.getLength(containsCursor));
+  }
+
+  bool get hasChildren => children.isNotEmpty;
+
+  @override
+  InlineBlock copyWith({
+    String? text,
+    bool? isBold,
+    bool? isItalic,
+    IList<Piece>? children,
+  }) {
+    assert(text == null);
+    assert(isBold == null);
+    assert(isItalic == null);
+    return InlineBlock(
+      children: children ?? this.children,
+    );
+  }
+
+  InlineBlock replaceChildren(
+    IList<Piece> Function(IList<Piece>) childrenChange,
+  ) =>
+      copyWith(children: childrenChange(children));
+
+  @override
+  InlineSpan toSpan(bool containsCursor) {
+    List<InlineSpan> childSpans = [];
+    for (int i = 0; i < children.length; i++) {
+      childSpans.add(children[i].toSpan(containsCursor));
+    }
+    return TextSpan(children: childSpans);
+  }
+}
+
+/*@immutable
 class LinkPiece extends Piece {
   final String target;
   const LinkPiece({
@@ -65,4 +119,4 @@ class LinkPiece extends Piece {
     required super.isBold,
     required super.isItalic,
   });
-}
+}*/

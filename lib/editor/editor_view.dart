@@ -130,7 +130,7 @@ class _EditorViewState extends State<EditorView> {
             return block.build(
               context: context,
               selection: widget.editor.state.selection,
-              path: BlockPath.constant([index]),
+              path: BlockPath.fromIterable([index]),
             );
           },
         ),

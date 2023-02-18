@@ -70,11 +70,19 @@ class EditorTextView extends StatelessWidget {
     if (renderParagraph == null) return [];
 
     int baseOffset = (selection.first.blockPath == blockPath)
-        ? block.getCursorOffset(selection.first) // Starts in this block
+        ? block.getCursorOffset(
+            selection.first,
+            isCursorInThisBlock,
+            selection.end,
+          ) // Starts in this block
         : 0; // Starts before this block
 
     int extentOffset = (selection.last.blockPath == blockPath)
-        ? block.getCursorOffset(selection.last) // Ends in this block
+        ? block.getCursorOffset(
+            selection.last,
+            isCursorInThisBlock,
+            selection.end,
+          ) // Ends in this block
         : block.getTotalTextLength() - 1; // Ends after this block
 
     final boxes = renderParagraph.getBoxesForSelection(
@@ -90,7 +98,11 @@ class EditorTextView extends StatelessWidget {
     if (!isCursorInThisBlock) return Rect.zero;
     RenderParagraph? renderParagraph = getRenderParagraph();
     if (renderParagraph == null) return Rect.zero;
-    int offsetIndex = block.getCursorOffset(selection.end);
+    int offsetIndex = block.getCursorOffset(
+      selection.end,
+      true,
+      selection.end,
+    );
     TextPosition position = TextPosition(offset: offsetIndex);
     Offset offset = renderParagraph.getOffsetForCaret(
       position,
@@ -115,6 +127,15 @@ class EditorTextView extends StatelessWidget {
       debugBorders = BoxDecoration(border: Border.all());
     }
 
+    List<InlineSpan> childSpans = [];
+    for (int i = 0; i < block.pieces.length; i++) {
+      childSpans.add(
+        block.pieces[i].toSpan(
+          isCursorInThisBlock && selection.end.piecePath[0] == i,
+        ),
+      );
+    }
+
     return Container(
       decoration: debugBorders,
       child: Stack(
@@ -122,7 +143,7 @@ class EditorTextView extends StatelessWidget {
           RichText(
             key: textKey,
             text: TextSpan(
-              children: block.pieces.map((piece) => piece.toSpan()).toList(),
+              children: childSpans,
               style: style,
             ),
           ),

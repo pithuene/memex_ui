@@ -64,7 +64,7 @@ Map _serializePiece(Piece piece) {
         "t": "Str",
         "c": piece.text,
       };
-    case LinkPiece:
+    /*case LinkPiece:
       return {
         "t": "Link",
         "c": [
@@ -77,7 +77,7 @@ Map _serializePiece(Piece piece) {
           ],
           [(piece as LinkPiece).target, ""],
         ],
-      };
+      };*/
     default:
       {
         print("Failed to serialize piece of type ${piece.runtimeType}!");

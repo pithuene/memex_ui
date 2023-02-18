@@ -2,33 +2,41 @@ import 'package:flutter/widgets.dart';
 import 'package:memex_ui/editor/block.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/editor_state.dart';
+import 'package:memex_ui/editor/piece_path.dart';
 import 'package:memex_ui/memex_ui.dart';
 
 @immutable
 class Cursor {
   const Cursor({
     required this.blockPath,
-    required this.pieceIndex,
+    required this.piecePath,
     required this.offset,
   });
 
   /// A list of indices specifying the cursor block.
   final BlockPath blockPath;
-  final int pieceIndex;
+  final PiecePath piecePath;
   final int offset;
 
   /// Whether the cursor is on the last character of the current piece.
   bool isAtPieceEnd(EditorState editorState) =>
-      offset == editorState.getCursorPiece(this).text!.length - 1;
+      offset == editorState.getCursorPiece(this).text.length - 1;
 
   /// Whether the cursor is on the first character of the current piece.
   bool get isAtPieceStart => offset == 0;
 
   /// Whether the cursor is on the last piece of its block.
-  bool isOnLastPiece(EditorState state) =>
-      pieceIndex == state.getCursorBlock(this).pieces.length - 1;
+  bool isOnLastPiece(EditorState state) {
+    EditorBlock cursorBlock = state.getCursorBlock(this);
+    return piecePath.isLast(cursorBlock);
+  }
 
-  bool get isOnFirstPiece => pieceIndex == 0;
+  bool get isOnFirstPiece {
+    for (int i = 0; i < piecePath.length; i++) {
+      if (piecePath[i] != 0) return false;
+    }
+    return true;
+  }
 
   /// Whether the position of this cursor points to a place before the [other] cursor.
   bool isBefore(Cursor other) {
@@ -38,19 +46,25 @@ class Cursor {
     } else if (blockComparisonResult > 0) {
       return false;
     } else {
-      if (pieceIndex != other.pieceIndex) return pieceIndex < other.pieceIndex;
-      return offset < other.offset;
+      int pieceComparisonResult = piecePath.compareTo(other.piecePath);
+      if (pieceComparisonResult < 0) {
+        return true;
+      } else if (pieceComparisonResult > 0) {
+        return false;
+      } else {
+        return offset < other.offset;
+      }
     }
   }
 
   Cursor copyWith({
     BlockPath? blockPath,
-    int? pieceIndex,
+    PiecePath? piecePath,
     int? offset,
   }) {
     return Cursor(
       blockPath: blockPath ?? this.blockPath,
-      pieceIndex: pieceIndex ?? this.pieceIndex,
+      piecePath: piecePath ?? this.piecePath,
       offset: offset ?? this.offset,
     );
   }
@@ -58,13 +72,12 @@ class Cursor {
   @override
   bool operator ==(Object other) => (other is Cursor)
       ? (other.blockPath == blockPath &&
-          other.pieceIndex == pieceIndex &&
+          other.piecePath == piecePath &&
           other.offset == offset)
       : false;
 
   @override
-  String toString() =>
-      "block: $blockPath, piece: $pieceIndex, offset: $offset)";
+  String toString() => "block: $blockPath, piece: $piecePath, offset: $offset)";
 
   Cursor moveLeftOnce(EditorState state) {
     if (!isAtPieceStart) {
@@ -74,8 +87,8 @@ class Cursor {
 
     if (!isOnFirstPiece) {
       return copyWith(
-        pieceIndex: pieceIndex - 1,
-        offset: state.getCursorPreviousPiece(this).text!.length - 1,
+        piecePath: piecePath.previous(state.getCursorBlock(this)),
+        offset: state.getCursorPreviousPiece(this).text.length - 1,
       );
     }
     // On the first piece, must jump to the previous block.
@@ -90,8 +103,12 @@ class Cursor {
     EditorBlock previousBlock = state.getBlockFromPath(previousBlockPath)!;
     return copyWith(
       blockPath: previousBlockPath,
-      pieceIndex: previousBlock.pieces.length - 1,
-      offset: previousBlock.pieces.last.text!.length - 1,
+      piecePath: previousBlock.lastPieceLeaf,
+      offset: previousBlock
+              .getPieceFromPath(previousBlock.lastPieceLeaf)!
+              .text
+              .length -
+          1,
     );
   }
 
@@ -102,7 +119,7 @@ class Cursor {
     // At the end of a piece, must jump.
     if (!isOnLastPiece(state)) {
       return copyWith(
-        pieceIndex: pieceIndex + 1,
+        piecePath: piecePath.next(state.getCursorBlock(state.cursor)),
         offset: 0,
       );
     }
@@ -115,7 +132,8 @@ class Cursor {
     // There is another block to jump to.
     return copyWith(
       blockPath: nextBlockPath,
-      pieceIndex: 0,
+      piecePath: PiecePath.fromIterable(const [0])
+          .firstLeaf(state.getBlockFromPath(nextBlockPath)!),
       offset: 0,
     );
   }

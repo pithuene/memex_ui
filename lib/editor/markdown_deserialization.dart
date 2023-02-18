@@ -5,6 +5,7 @@ import 'package:flutter/painting.dart';
 import 'package:memex_ui/editor/block.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/cursor.dart';
+import 'package:memex_ui/editor/piece_path.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/memex_ui.dart';
 
@@ -102,12 +103,13 @@ IList<Piece> _parseContent({
           if (quotePiece != null) pieces.add(quotePiece);
         }
         break;
-      case "Link":
+      /*case "Link":
         {
           // You can not apply styles inside the label of a link.
+          // TODO: Implement using [InlineBlock].
           String pieceContent = TextSpan(
             children: _parseContent(content: jsonPiece["c"][1])
-                .map((element) => element.toSpan())
+                .map((element) => element.toSpan(true))
                 .toList(),
           ).toPlainText();
           pieces.add(
@@ -119,7 +121,7 @@ IList<Piece> _parseContent({
             ),
           );
         }
-        break;
+        break;*/
       default:
         {
           // TODO: Return an error
@@ -208,7 +210,7 @@ Future<EditorState> parseMarkdown(File markdownFile) async {
     blocks: blocks.toIList(),
     selection: const Selection.collapsed(Cursor(
       blockPath: BlockPath(IListConst([0])),
-      pieceIndex: 0,
+      piecePath: PiecePath(IListConst([0])),
       offset: 0,
     )),
   );

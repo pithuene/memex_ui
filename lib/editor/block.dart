@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:memex_ui/editor/block_path.dart';
+import 'package:memex_ui/editor/piece_path.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/editor/text_view.dart';
 import 'package:memex_ui/memex_ui.dart';
@@ -23,13 +24,123 @@ class EditorBlock {
 
   IList<Piece> pieces = <Piece>[].lockUnsafe;
 
-  /// Calculate the offset of the cursor in this block.
-  int getCursorOffset(Cursor cursor) {
-    int offset = 0;
-    for (int i = 0; i < cursor.pieceIndex; i++) {
-      offset += pieces[i].text.length;
+  Piece? getPieceFromPath(PiecePath path) {
+    if (path.isEmpty) return null;
+    Piece? curr = pieces.getOrNull(path[0]);
+    for (int i = 1; i < path.length; i++) {
+      if (curr == null) return null;
+      if (curr is! InlineBlock) return null;
+      curr = curr.children.getOrNull(path[i]);
     }
-    offset += cursor.offset;
+    return curr;
+  }
+
+  /// Transform the piece at a given [piecePath]
+  /// throguh a [pieceChange] function.
+  EditorBlock replacePieceAtPath(
+    PiecePath piecePath,
+    Piece Function(Piece) pieceChange,
+  ) {
+    /// Replace a piece at [piecePath] in a tree of [pieces] with a [newPiece].
+    IList<Piece> replacePieceInPiecesAtPath(
+      IList<Piece> pieces,
+      PiecePath piecePath,
+      Piece newPiece,
+    ) {
+      if (piecePath.isTopLevel) {
+        return pieces.replace(piecePath[0], newPiece);
+      }
+      return pieces.replace(
+        piecePath[0],
+        (pieces[piecePath[0]] as InlineBlock).replaceChildren(
+          (children) => replacePieceInPiecesAtPath(
+            children,
+            piecePath.sublist(1),
+            newPiece,
+          ),
+        ),
+      );
+    }
+
+    if (piecePath.isTopLevel) {
+      return copyWith(
+        pieces: pieces.replace(
+          piecePath.single,
+          pieceChange(getPieceFromPath(piecePath)!),
+        ),
+      );
+    }
+
+    return copyWith(
+      pieces: replacePieceInPiecesAtPath(
+        pieces,
+        piecePath,
+        pieceChange(getPieceFromPath(piecePath)!),
+      ),
+    );
+  }
+
+  PiecePath get lastPieceLeaf =>
+      PiecePath.fromIterable([pieces.length - 1]).lastLeaf(this);
+
+  /// Remove the piece at a given [piecePath]
+  /// **including all its children**.
+  EditorBlock removePiece(PiecePath piecePath) {
+    if (piecePath.isTopLevel) {
+      return copyWith(
+        pieces: pieces.removeAt(piecePath.single),
+      );
+    }
+
+    // TODO: Check if parent becomes empty, if so bubble up the deletion.
+    PiecePath parentPath = piecePath.parent();
+    return replacePieceAtPath(
+      parentPath,
+      (parentPiece) => (parentPiece as InlineBlock)
+          .replaceChildren((children) => children.removeAt(piecePath.last)),
+    );
+  }
+
+  /// Insert a [newPiece] at a given [piecePath].
+  EditorBlock insertPieceAtPath(PiecePath piecePath, Piece newPiece) {
+    if (piecePath.isTopLevel) {
+      return copyWith(pieces: pieces.insert(piecePath.single, newPiece));
+    }
+
+    PiecePath parentPath = piecePath.parent();
+    return replacePieceAtPath(
+      parentPath,
+      (parentPiece) => (parentPiece as InlineBlock).replaceChildren(
+        (children) => children.insert(
+          piecePath.last,
+          newPiece,
+        ),
+      ),
+    );
+  }
+
+  /// Calculate the offset of the [targetCursor] in this block.
+  /// [currentCursor] is the current selection end used to calculate
+  /// which blocks are expanded and which aren't.
+  int getCursorOffset(
+      Cursor targetCursor, bool blockContainsCursor, Cursor currentCursor) {
+    int offset = 0;
+    for (int i = 0; i < targetCursor.piecePath[0]; i++) {
+      offset += pieces[i].getLength(
+        blockContainsCursor && currentCursor.piecePath[0] == i,
+      );
+    }
+    Piece topLevelCursorPiece = pieces[targetCursor.piecePath[0]];
+    if (topLevelCursorPiece is InlineBlock) {
+      for (int i = 0; i < targetCursor.piecePath[1]; i++) {
+        offset += topLevelCursorPiece.children[i].getLength(
+          blockContainsCursor &&
+              currentCursor.piecePath[0] == targetCursor.piecePath[0],
+        );
+      }
+    }
+    offset += targetCursor.offset;
+
     return offset;
   }
 
