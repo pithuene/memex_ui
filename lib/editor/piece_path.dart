@@ -107,6 +107,11 @@ class PiecePath {
     return nextPiecePath == null;
   }
 
+  /// Whether this piece is inside an inline block.
+  bool isInInlineBlock(EditorBlock block) {
+    return !isTopLevel;
+  }
+
   /// Find the piece path to the next leaf piece for a given leaf piece.
   /// Returns null if this is the last piece.
   PiecePath? next(EditorBlock block) {

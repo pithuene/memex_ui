@@ -217,8 +217,7 @@ class EditorState {
   /// Insert a "hard break".
   /// Split the block at the current cursor.
   EditorState newLine() {
-    if (getCursorBlock(cursor).getPieceFromPath(cursor.piecePath)
-        is InlineBlock) {
+    if (cursor.piecePath.isInInlineBlock(getCursorBlock(cursor))) {
       // Splitting an inline block is simply not supported.
       return this;
     }
@@ -880,7 +879,7 @@ class EditorState {
     } else {
       // Cursor is not at the start, piece must be split.
       // Insert first half.
-      PiecePath nextPiecePath = cursor.piecePath.next(getCursorBlock(cursor))!;
+      PiecePath nextPiecePath = cursor.piecePath.nextNeighbor();
       return insertPieceInCursorBlock(
         cursor.piecePath,
         getCursorPiece(cursor).substring(0, cursor.offset).append(newContent),

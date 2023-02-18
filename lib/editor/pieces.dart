@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter/widgets.dart';
 import 'package:memex_ui/editor/piece_path.dart';
 
 @immutable
@@ -110,13 +111,63 @@ class InlineBlock extends Piece {
   }
 }
 
-/*@immutable
-class LinkPiece extends Piece {
+@immutable
+class LinkPiece extends InlineBlock {
   final String target;
   const LinkPiece({
+    required super.children,
     required this.target,
-    required super.text,
-    required super.isBold,
-    required super.isItalic,
   });
-}*/
+
+  @override
+  int getLength(bool containsCursor) {
+    if (containsCursor) {
+      return children.sumBy((child) => child.getLength(containsCursor));
+    } else {
+      return 1;
+    }
+    /*if (containsCursor) {
+    return InlineBlock.getLength(containsCursor);
+    } else {
+      return 1;
+    }*/
+  }
+
+  @override
+  InlineSpan toSpan(bool containsCursor) {
+    if (containsCursor) {
+      return super.toSpan(true);
+    } else {
+      return WidgetSpan(
+        child: RichText(
+          text: TextSpan(
+            style: const TextStyle(
+              fontFamily: "Inter",
+              color: Color(0xFF0000FF),
+              decoration: TextDecoration.underline,
+            ),
+            children: children
+                .map(
+                  (child) => child.toSpan(containsCursor),
+                )
+                .toList(),
+          ),
+        ),
+      );
+    }
+  }
+
+  @override
+  InlineBlock copyWith({
+    String? target,
+    String? text,
+    bool? isBold,
+    bool? isItalic,
+    IList<Piece>? children,
+  }) {
+    return LinkPiece(
+      children: children ?? this.children,
+      target: target ?? this.target,
+    );
+  }
+}

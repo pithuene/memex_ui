@@ -103,25 +103,16 @@ IList<Piece> _parseContent({
           if (quotePiece != null) pieces.add(quotePiece);
         }
         break;
-      /*case "Link":
+      case "Link":
         {
-          // You can not apply styles inside the label of a link.
-          // TODO: Implement using [InlineBlock].
-          String pieceContent = TextSpan(
-            children: _parseContent(content: jsonPiece["c"][1])
-                .map((element) => element.toSpan(true))
-                .toList(),
-          ).toPlainText();
           pieces.add(
             LinkPiece(
-              text: pieceContent,
+              children: _parseContent(content: jsonPiece["c"][1]),
               target: jsonPiece["c"][2][0],
-              isBold: isBold,
-              isItalic: isItalic,
             ),
           );
         }
-        break;*/
+        break;
       default:
         {
           // TODO: Return an error

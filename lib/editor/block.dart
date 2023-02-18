@@ -145,7 +145,8 @@ class EditorBlock {
   }
 
   /// Calculate the sum of the text length of all pieces.
-  int getTotalTextLength() => pieces.sumBy((e) => e.text.length);
+  // TODO: Actually use containsCursor not just true
+  int getTotalTextLength() => pieces.sumBy((piece) => piece.getLength(true));
 
   /// The function called to create the the widget showing a block.
   /// By default, this just shows the text content,
