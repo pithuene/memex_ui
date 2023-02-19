@@ -127,10 +127,13 @@ class _EditorViewState extends State<EditorView> {
           itemCount: widget.editor.state.blocks.length,
           itemBuilder: (context, index) {
             EditorBlock block = widget.editor.state.blocks[index];
-            return block.build(
-              context: context,
-              selection: widget.editor.state.selection,
-              path: BlockPath.fromIterable([index]),
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 15),
+              child: block.build(
+                context: context,
+                selection: widget.editor.state.selection,
+                path: BlockPath.fromIterable([index]),
+              ),
             );
           },
         ),

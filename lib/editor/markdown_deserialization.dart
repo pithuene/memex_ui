@@ -187,6 +187,18 @@ List<EditorBlock> _parseBlock(Map jsonBlock) {
       ];
     //final level = jsonBlock["c"][0];
     case "Para":
+      if (jsonBlock["c"][0]["t"] == "Math" &&
+          jsonBlock["c"][0]["c"][0]["t"] == "DisplayMath") {
+        return [
+          MathBlock([
+            Piece(
+              text: jsonBlock["c"][0]["c"][1],
+            ),
+            Piece.sentinel,
+          ].lockUnsafe)
+        ];
+      }
+
       return [
         ParagraphBlock(
           _parseContent(
@@ -231,7 +243,8 @@ Future<Map> pandocMarkdownToJson(File markdownFile) async {
     "pandoc",
     [
       "-f",
-      "markdown+lists_without_preceding_blankline",
+      "markdown"
+          "+lists_without_preceding_blankline",
       "-t",
       "json",
       markdownFile.path,

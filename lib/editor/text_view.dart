@@ -20,6 +20,7 @@ class EditorTextView extends StatelessWidget {
     this.style = const TextStyle(
       color: Colors.black,
       fontFamily: "Inter",
+      fontSize: 16,
     ),
     super.key,
   });
