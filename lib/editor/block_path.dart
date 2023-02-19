@@ -1,6 +1,7 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
-import 'package:memex_ui/editor/block.dart';
+import 'package:memex_ui/editor/blocks/editor_block.dart';
+import 'package:memex_ui/editor/blocks/editor_block_with_children.dart';
 import 'package:memex_ui/memex_ui.dart';
 import 'dart:math';
 

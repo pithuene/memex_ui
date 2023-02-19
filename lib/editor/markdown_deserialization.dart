@@ -1,12 +1,16 @@
 import 'dart:io';
 import 'dart:convert';
 
-import 'package:flutter/painting.dart';
-import 'package:memex_ui/editor/block.dart';
 import 'package:memex_ui/editor/block_path.dart';
+import 'package:memex_ui/editor/blocks/bulletpoint_block.dart';
+import 'package:memex_ui/editor/blocks/editor_block.dart';
+import 'package:memex_ui/editor/blocks/math_block.dart';
+import 'package:memex_ui/editor/blocks/paragraph_block.dart';
+import 'package:memex_ui/editor/blocks/section_block.dart';
 import 'package:memex_ui/editor/cursor.dart';
 import 'package:memex_ui/editor/piece_path.dart';
 import 'package:memex_ui/editor/pieces.dart';
+import 'package:memex_ui/editor/selection.dart';
 import 'package:memex_ui/memex_ui.dart';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';

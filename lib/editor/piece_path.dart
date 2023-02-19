@@ -1,6 +1,6 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
-import 'package:memex_ui/editor/block.dart';
+import 'package:memex_ui/editor/blocks/editor_block.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'dart:math';
 
@@ -117,17 +117,6 @@ class PiecePath {
   PiecePath? next(EditorBlock block) {
     Piece currentPiece = block.getPieceFromPath(this)!;
     assert(currentPiece is! InlineBlock);
-    /*
-    TODO: Can this be removed?
-    if (isTopLevel) {
-      if (single == block.pieces.length - 1) {
-        // Last piece
-        return null;
-      } else {
-        return nextNeighbor().firstLeaf();
-      }
-    }
-    */
 
     PiecePath curr = this;
     while (curr.isNotEmpty &&

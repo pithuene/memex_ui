@@ -1,13 +1,10 @@
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:memex_ui/editor/block_path.dart';
-import 'package:memex_ui/memex_ui.dart';
-
-import './block.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:memex_ui/editor/blocks/editor_block.dart';
+import 'package:memex_ui/editor/selection.dart';
 
 /// Outline text boxes for debugging purposes.
 const showDebugFrames = false;

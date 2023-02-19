@@ -1,66 +1,13 @@
-import 'dart:async';
-
 import 'package:memex_ui/editor/block_path.dart';
+import 'package:memex_ui/editor/blocks/bulletpoint_block.dart';
+import 'package:memex_ui/editor/blocks/editor_block.dart';
+import 'package:memex_ui/editor/blocks/editor_block_with_children.dart';
+import 'package:memex_ui/editor/blocks/paragraph_block.dart';
 import 'package:memex_ui/editor/piece_path.dart';
 import 'package:memex_ui/editor/pieces.dart';
-import 'package:memex_ui/memex_ui.dart';
-
+import 'package:memex_ui/editor/selection.dart';
 import './cursor.dart';
-import './block.dart';
-
-import 'package:flutter/material.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-
-@immutable
-class Selection {
-  final Cursor? start;
-  final Cursor end;
-  const Selection({
-    this.start,
-    required this.end,
-  });
-
-  const Selection.collapsed(this.end) : start = null;
-
-  bool get isEmpty => start == null;
-
-  /// Whether there is a selection which does not cross block boundaries.
-  bool get isInSingleBlock => !isEmpty && start!.blockPath == end.blockPath;
-
-  /// Either [start] or [end], whichever comes first in the document.
-  Cursor get first => (end.isBefore(start!)) ? end : start!;
-
-  /// Either [start] or [end], whichever comes later in the document.
-  Cursor get last => (end.isBefore(start!)) ? start! : end;
-
-  /// Whether the selection crosses a given [block].
-  bool containsBlock(BlockPath block) {
-    if (isEmpty) return false;
-    if (last.blockPath.compareTo(block) >= 0 &&
-        first.blockPath.compareTo(block) <= 0) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  /// Collapse the selection to its end.
-  Selection collapse() => copyWithStart(null);
-
-  Selection copyWithEnd(Cursor end) {
-    return Selection(
-      start: start,
-      end: end,
-    );
-  }
-
-  Selection copyWithStart(Cursor? start) {
-    return Selection(
-      start: start,
-      end: end,
-    );
-  }
-}
 
 /// A persistent datastructure representing the entire state
 /// of a rich text editor including content
@@ -73,13 +20,14 @@ class EditorState {
 
   Cursor get cursor => selection.end;
 
-  EditorState.withInitialContent(String? initialContent) {
+  EditorState({
+    required this.blocks,
+    required this.selection,
+  });
+
+  EditorState.empty() {
     blocks = <EditorBlock>[
-      SectionBlock.withInitialContent(initialContent),
-      ParagraphBlock.withInitialContent(
-        initialContent: "Ein neuer Absatz.",
-      ),
-      BulletpointBlock.withInitialContent("Eins"),
+      ParagraphBlock.withInitialContent(),
     ].lockUnsafe;
     selection = Selection.collapsed(
       Cursor(
@@ -89,11 +37,6 @@ class EditorState {
       ),
     );
   }
-
-  EditorState({
-    required this.blocks,
-    required this.selection,
-  });
 
   EditorState collapseSelection() => EditorState(
         blocks: blocks,

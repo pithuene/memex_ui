@@ -2,7 +2,10 @@ import 'dart:io';
 import 'dart:convert';
 
 import 'package:flutter/painting.dart';
-import 'package:memex_ui/editor/block.dart';
+import 'package:memex_ui/editor/blocks/bulletpoint_block.dart';
+import 'package:memex_ui/editor/blocks/editor_block.dart';
+import 'package:memex_ui/editor/blocks/paragraph_block.dart';
+import 'package:memex_ui/editor/blocks/section_block.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/memex_ui.dart';
 

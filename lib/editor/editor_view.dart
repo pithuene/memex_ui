@@ -1,14 +1,7 @@
 import 'dart:io';
-
-import 'package:memex_ui/editor/block.dart';
 import 'package:memex_ui/editor/block_path.dart';
-import 'package:memex_ui/editor/cursor.dart';
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-
+import 'package:memex_ui/editor/blocks/editor_block.dart';
 import 'package:memex_ui/memex_ui.dart';
-
-import './editor.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

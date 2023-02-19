@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
-import 'package:memex_ui/editor/block.dart';
 import 'package:memex_ui/editor/block_path.dart';
+import 'package:memex_ui/editor/blocks/editor_block.dart';
 import 'package:memex_ui/editor/editor_state.dart';
 import 'package:memex_ui/editor/piece_path.dart';
 import 'package:memex_ui/memex_ui.dart';
