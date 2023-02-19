@@ -503,7 +503,7 @@ class EditorState {
       ).copyWithCursor(offset: 0);
     } else {
       // Cursor in the middle of a piece, split required.
-      PiecePath nextPiecePath = cursor.piecePath.next(cursorBlock)!;
+      PiecePath nextPiecePath = cursor.piecePath.nextNeighbor();
       return insertPieceInCursorBlock(
         cursor.piecePath,
         getCursorPiece(cursor).substring(0, cursor.offset - 1),
