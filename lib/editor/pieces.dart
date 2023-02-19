@@ -125,7 +125,9 @@ class LinkPiece extends InlineBlock {
   @override
   int getLength(bool containsCursor) {
     if (containsCursor) {
-      return children.sumBy((child) => child.getLength(containsCursor));
+      return children.sumBy((child) => child.getLength(containsCursor)) +
+          4 +
+          target.length;
     } else {
       return 1;
     }
@@ -134,7 +136,13 @@ class LinkPiece extends InlineBlock {
   @override
   InlineSpan toSpan(bool containsCursor) {
     if (containsCursor) {
-      return super.toSpan(true);
+      return TextSpan(children: [
+        const TextSpan(text: "["),
+        super.toSpan(true),
+        const TextSpan(text: "]("),
+        TextSpan(text: target),
+        const TextSpan(text: ")"),
+      ]);
     } else {
       return WidgetSpan(
         child: RichText(

@@ -92,8 +92,12 @@ class EditorBlock {
       );
     }
 
-    // TODO: Check if parent becomes empty, if so bubble up the deletion.
     PiecePath parentPath = piecePath.parent();
+    if ((getPieceFromPath(parentPath) as InlineBlock).children.length == 1) {
+      // Parent is empty afterwards, delete it.
+      return removePiece(parentPath);
+    }
+
     return replacePieceAtPath(
       parentPath,
       (parentPiece) => (parentPiece as InlineBlock)
