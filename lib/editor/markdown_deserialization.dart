@@ -122,6 +122,16 @@ IList<Piece> _parseContent({
           );
         }
         break;
+      case "Note":
+        {
+          assert(jsonPiece["c"][0]["t"] == "Para");
+          pieces.add(
+            FootnotePiece(
+              children: _parseContent(content: jsonPiece["c"][0]["c"]),
+            ),
+          );
+        }
+        break;
       default:
         {
           // TODO: Return an error

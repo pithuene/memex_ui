@@ -129,7 +129,7 @@ class LinkPiece extends InlineBlock {
           4 +
           target.length;
     } else {
-      return 1;
+      return super.getLength(containsCursor);
     }
   }
 
@@ -144,21 +144,17 @@ class LinkPiece extends InlineBlock {
         const TextSpan(text: ")"),
       ]);
     } else {
-      return WidgetSpan(
-        child: RichText(
-          text: TextSpan(
-            style: const TextStyle(
-              fontFamily: "Inter",
-              color: Color(0xFF0000FF),
-              decoration: TextDecoration.underline,
-            ),
-            children: children
-                .map(
-                  (child) => child.toSpan(containsCursor),
-                )
-                .toList(),
-          ),
+      return TextSpan(
+        style: const TextStyle(
+          fontFamily: "Inter",
+          color: Color(0xFF0000FF),
+          decoration: TextDecoration.underline,
         ),
+        children: children
+            .map(
+              (child) => child.toSpan(containsCursor),
+            )
+            .toList(),
       );
     }
   }
@@ -174,6 +170,48 @@ class LinkPiece extends InlineBlock {
     return LinkPiece(
       children: children ?? this.children,
       target: target ?? this.target,
+    );
+  }
+}
+
+@immutable
+class FootnotePiece extends InlineBlock {
+  const FootnotePiece({
+    required super.children,
+  });
+
+  @override
+  int getLength(bool containsCursor) {
+    if (containsCursor) {
+      return super.getLength(containsCursor);
+    } else {
+      return 1;
+    }
+  }
+
+  @override
+  InlineSpan toSpan(bool containsCursor) {
+    if (containsCursor) {
+      return TextSpan(
+        children: [super.toSpan(containsCursor)],
+        style: const TextStyle(
+          backgroundColor: Color(0x20000000),
+        ),
+      );
+    } else {
+      return const TextSpan(text: "¹");
+    }
+  }
+
+  @override
+  InlineBlock copyWith({
+    String? text,
+    bool? isBold,
+    bool? isItalic,
+    IList<Piece>? children,
+  }) {
+    return FootnotePiece(
+      children: children ?? this.children,
     );
   }
 }

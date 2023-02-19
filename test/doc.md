@@ -1,7 +1,7 @@
 Test
 ====
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc in urna in purus pharetra semper. Donec accumsan ante eget neque aliquam, at dictum leo fermentum. Nullam leo purus, molestie in risus sed, accumsan tincidunt ligula.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc in urna in purus pharetra semper. Donec accumsan ante eget neque aliquam, at dictum leo fermentum. Nullam leo purus, molestie in risus sed, accumsan tincidunt ligula.[^1]
 
 Curabitur turpis nulla, molestie nec aliquam sit amet, venenatis eget diam. In rutrum feugiat purus, porttitor commodo enim. Aenean ornare orci ac hendrerit viverra.
 
@@ -21,3 +21,5 @@ Something **bold** and something *italic*.
 Something both **bold and *italic* nested** and **how *about****interleaved*.
 
 Some inline math: $a \cdot b + c$.
+
+[^1]: My footnote.

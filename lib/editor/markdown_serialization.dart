@@ -87,6 +87,16 @@ Map _serializePiece(Piece piece) {
           ).toPlainText(),
         ],
       };
+    case FootnotePiece:
+      return {
+        "t": "Note",
+        "c": [
+          {
+            "t": "Para",
+            "c": _serializeTextContent((piece as FootnotePiece).children),
+          },
+        ],
+      };
     default:
       {
         print("Failed to serialize piece of type ${piece.runtimeType}!");
