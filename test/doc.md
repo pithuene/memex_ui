@@ -19,3 +19,5 @@ Aliquam accumsan iaculis nunc, at efficitur nisl vestibulum quis. Cras vel urna 
 A [link](target) to somewhere else.
 Something **bold** and something *italic*.
 Something both **bold and *italic* nested** and **how *about****interleaved*.
+
+Some inline math: $a \cdot b + c$.

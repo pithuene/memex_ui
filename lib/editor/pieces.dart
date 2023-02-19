@@ -3,6 +3,9 @@ import 'package:flutter/painting.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/widgets.dart';
 import 'package:memex_ui/editor/piece_path.dart';
+import 'package:flutter_math_fork/ast.dart';
+import 'package:flutter_math_fork/flutter_math.dart';
+import 'package:flutter_math_fork/tex.dart';
 
 @immutable
 class Piece {
@@ -126,11 +129,6 @@ class LinkPiece extends InlineBlock {
     } else {
       return 1;
     }
-    /*if (containsCursor) {
-    return InlineBlock.getLength(containsCursor);
-    } else {
-      return 1;
-    }*/
   }
 
   @override
@@ -168,6 +166,67 @@ class LinkPiece extends InlineBlock {
     return LinkPiece(
       children: children ?? this.children,
       target: target ?? this.target,
+    );
+  }
+}
+
+@immutable
+class InlineMathPiece extends InlineBlock {
+  const InlineMathPiece({
+    required super.children,
+  });
+
+  @override
+  int getLength(bool containsCursor) {
+    if (containsCursor) {
+      return children.sumBy((child) => child.getLength(containsCursor));
+    } else {
+      return 1;
+    }
+  }
+
+  @override
+  InlineSpan toSpan(bool containsCursor) {
+    if (containsCursor) {
+      return TextSpan(
+        children: [super.toSpan(containsCursor)],
+        style: const TextStyle(
+          decoration: TextDecoration.underline,
+          backgroundColor: Color(0x20000000),
+        ),
+      );
+    } else {
+      String tex = TextSpan(
+        children: children
+            .map(
+              (child) => child.toSpan(containsCursor),
+            )
+            .toList(),
+      ).toPlainText();
+      return WidgetSpan(
+        baseline: TextBaseline.alphabetic,
+        alignment: PlaceholderAlignment.baseline,
+        child: Math.tex(
+          tex,
+          textStyle: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.normal,
+          ),
+          mathStyle: MathStyle.text,
+        ),
+      );
+    }
+  }
+
+  @override
+  InlineBlock copyWith({
+    String? text,
+    bool? isBold,
+    bool? isItalic,
+    IList<Piece>? children,
+  }) {
+    return InlineMathPiece(
+      children: children ?? this.children,
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 
+import 'package:flutter/painting.dart';
 import 'package:memex_ui/editor/block.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/memex_ui.dart';
@@ -64,20 +65,28 @@ Map _serializePiece(Piece piece) {
         "t": "Str",
         "c": piece.text,
       };
-    /*case LinkPiece:
+    case LinkPiece:
       return {
         "t": "Link",
         "c": [
           ["", [], []],
-          [
-            {
-              "t": "Str",
-              "c": piece.text,
-            },
-          ],
-          [(piece as LinkPiece).target, ""],
+          _serializeTextContent((piece as LinkPiece).children),
+          [piece.target, ""],
         ],
-      };*/
+      };
+    case InlineMathPiece:
+      return {
+        "t": "Math",
+        "c": [
+          {"t": "InlineMath"},
+          TextSpan(
+            children: (piece as InlineMathPiece)
+                .children
+                .map((child) => child.toSpan(true))
+                .toList(),
+          ).toPlainText(),
+        ],
+      };
     default:
       {
         print("Failed to serialize piece of type ${piece.runtimeType}!");
@@ -136,7 +145,7 @@ List _serializeTextContent(IList<Piece> pieces) {
   }
 
   return recursiveSerializeTextContent(
-    pieces.removeLast(),
+    (pieces.last == Piece.sentinel) ? pieces.removeLast() : pieces,
     {
       "isBold": false,
       "isItalic": false,

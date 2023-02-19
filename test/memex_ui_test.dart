@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/painting.dart';
+import 'package:memex_ui/editor/piece_path.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:test/test.dart';
 
@@ -24,7 +25,7 @@ void main() {
       selection: Selection(
         end: Cursor(
           blockPath: BlockPath([0].lockUnsafe),
-          pieceIndex: 0,
+          piecePath: PiecePath.fromIterable(const [0]),
           offset: 0,
         ),
       ),
@@ -36,7 +37,7 @@ void main() {
       state.selection.start,
       Cursor(
         blockPath: BlockPath([0].lockUnsafe),
-        pieceIndex: 0,
+        piecePath: PiecePath.fromIterable(const [0]),
         offset: 1,
       ),
     );
@@ -44,7 +45,7 @@ void main() {
       state.selection.end,
       Cursor(
         blockPath: BlockPath([0].lockUnsafe),
-        pieceIndex: 1,
+        piecePath: PiecePath.fromIterable(const [1]),
         offset: 2,
       ),
     );
@@ -63,7 +64,7 @@ void main() {
       state.cursor,
       Cursor(
         blockPath: BlockPath([0].lockUnsafe),
-        pieceIndex: 1,
+        piecePath: PiecePath.fromIterable(const [1]),
         offset: 0,
       ),
     );
@@ -74,7 +75,7 @@ void main() {
       state.selection.start,
       Cursor(
         blockPath: BlockPath([0].lockUnsafe),
-        pieceIndex: 1,
+        piecePath: PiecePath.fromIterable(const [1]),
         offset: 0,
       ),
     );
@@ -82,7 +83,7 @@ void main() {
       state.selection.end,
       Cursor(
         blockPath: BlockPath([0].lockUnsafe),
-        pieceIndex: 2,
+        piecePath: PiecePath.fromIterable(const [2]),
         offset: 0,
       ),
     );
@@ -98,7 +99,7 @@ void main() {
       state.cursor,
       Cursor(
         blockPath: BlockPath([0].lockUnsafe),
-        pieceIndex: 1,
+        piecePath: PiecePath.fromIterable(const [1]),
         offset: 0,
       ),
     );
@@ -109,7 +110,7 @@ void main() {
       state.cursor,
       Cursor(
         blockPath: BlockPath([0].lockUnsafe),
-        pieceIndex: 0,
+        piecePath: PiecePath.fromIterable(const [0]),
         offset: 0,
       ),
     );
@@ -130,7 +131,7 @@ void main() {
       state.cursor,
       Cursor(
         blockPath: BlockPath([0].lockUnsafe),
-        pieceIndex: 0,
+        piecePath: PiecePath.fromIterable(const [0]),
         offset: 0,
       ),
     );
@@ -140,7 +141,7 @@ void main() {
       state.selection.start,
       Cursor(
         blockPath: BlockPath([0].lockUnsafe),
-        pieceIndex: 0,
+        piecePath: PiecePath.fromIterable(const [0]),
         offset: 0,
       ),
     );
@@ -148,7 +149,7 @@ void main() {
       state.selection.end,
       Cursor(
         blockPath: BlockPath([0].lockUnsafe),
-        pieceIndex: 2,
+        piecePath: PiecePath.fromIterable(const [2]),
         offset: 0,
       ),
     );
@@ -163,7 +164,7 @@ void main() {
       state.cursor,
       Cursor(
         blockPath: BlockPath([0].lockUnsafe),
-        pieceIndex: 0,
+        piecePath: PiecePath.fromIterable(const [0]),
         offset: 0,
       ),
     );

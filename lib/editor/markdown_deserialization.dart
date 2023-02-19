@@ -113,6 +113,15 @@ IList<Piece> _parseContent({
           );
         }
         break;
+      case "Math":
+        {
+          pieces.add(
+            InlineMathPiece(
+              children: <Piece>[Piece(text: jsonPiece["c"][1])].lockUnsafe,
+            ),
+          );
+        }
+        break;
       default:
         {
           // TODO: Return an error
