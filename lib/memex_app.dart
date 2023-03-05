@@ -4,15 +4,18 @@ import 'package:flutter/widgets.dart';
 class App extends StatelessWidget {
   const App({
     super.key,
-    required this.child,
+    required this.builder,
+    this.sidebar,
   });
 
-  final Widget child;
+  final ScrollableWidgetBuilder builder;
+  final Sidebar? sidebar;
 
   @override
   Widget build(BuildContext context) => MacosApp(
         home: MacosWindow(
-          child: child,
+          sidebar: sidebar,
+          child: MacosScaffold(children: [ContentArea(builder: builder)]),
         ),
       );
 }
