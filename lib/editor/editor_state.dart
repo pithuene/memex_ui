@@ -102,7 +102,7 @@ class EditorState {
     }
   }
 
-  /// Return a new cursor one character to the right from a given one.
+  /// Move the cursor right by one character.
   EditorState moveCursorRightOnce(bool isSelecting) =>
       beginCursorMove(isSelecting).replaceCursor(
         cursor.moveRightOnce(this),
@@ -112,6 +112,18 @@ class EditorState {
   EditorState moveCursorLeftOnce(bool isSelecting) =>
       beginCursorMove(isSelecting).replaceCursor(
         cursor.moveLeftOnce(this),
+      );
+
+  /// Move the cursor right by one word.
+  EditorState moveCursorRightOneWord(bool isSelecting) =>
+      beginCursorMove(isSelecting).replaceCursor(
+        cursor.nextWordStart(this),
+      );
+
+  /// Move the cursor left by one word.
+  EditorState moveCursorLeftOneWord(bool isSelecting) =>
+      beginCursorMove(isSelecting).replaceCursor(
+        cursor.previousWordStart(this),
       );
 
   /// Move the cursor left by a given distance.

@@ -17,6 +17,10 @@ class Editor {
       state = state.moveCursorRightOnce(isSelecting);
   void moveCursorLeftOnce(bool isSelecting) =>
       state = state.moveCursorLeftOnce(isSelecting);
+  void moveCursorRightOneWord(bool isSelecting) =>
+      state = state.moveCursorRightOneWord(isSelecting);
+  void moveCursorLeftOneWord(bool isSelecting) =>
+      state = state.moveCursorLeftOneWord(isSelecting);
 
   void _performReversableAction(EditorState newState) {
     undoStack.add(state);

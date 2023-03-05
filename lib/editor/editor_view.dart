@@ -30,16 +30,30 @@ class _EditorViewState extends State<EditorView> {
       onKey: (event) {
         if (event.runtimeType == RawKeyDownEvent) {
           if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-            setState(() {
-              widget.editor.moveCursorRightOnce(event.isShiftPressed);
-            });
-            return;
+            if (event.isControlPressed) {
+              setState(() {
+                widget.editor.moveCursorRightOneWord(event.isShiftPressed);
+              });
+              return;
+            } else {
+              setState(() {
+                widget.editor.moveCursorRightOnce(event.isShiftPressed);
+              });
+              return;
+            }
           }
           if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-            setState(() {
-              widget.editor.moveCursorLeftOnce(event.isShiftPressed);
-            });
-            return;
+            if (event.isControlPressed) {
+              setState(() {
+                widget.editor.moveCursorLeftOneWord(event.isShiftPressed);
+              });
+              return;
+            } else {
+              setState(() {
+                widget.editor.moveCursorLeftOnce(event.isShiftPressed);
+              });
+              return;
+            }
           }
           if (event.logicalKey == LogicalKeyboardKey.tab) {
             if (event.isShiftPressed) {

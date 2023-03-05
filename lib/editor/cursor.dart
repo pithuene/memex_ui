@@ -137,4 +137,34 @@ class Cursor {
       offset: 0,
     );
   }
+
+  /// Get the character under the cursor.
+  String getCharacter(EditorState state) => state
+      .getCursorBlock(this)
+      .getPieceFromPath(piecePath)!
+      .text
+      .characters
+      .elementAt(offset);
+
+  /// Move cursor onto the first character of the next word.
+  Cursor nextWordStart(EditorState state) {
+    Cursor curr = this;
+    Cursor next = curr.moveRightOnce(state);
+    while (curr != next && curr.getCharacter(state).trim().isNotEmpty) {
+      curr = next;
+      next = curr.moveRightOnce(state);
+    }
+    return next;
+  }
+
+  /// Move cursor onto the first character of the previous word.
+  Cursor previousWordStart(EditorState state) {
+    Cursor next = moveLeftOnce(state);
+    Cursor curr = next.moveLeftOnce(state);
+    while (curr != next && curr.getCharacter(state).trim().isNotEmpty) {
+      next = curr;
+      curr = next.moveLeftOnce(state);
+    }
+    return next;
+  }
 }
