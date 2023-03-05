@@ -1,12 +1,14 @@
 import 'dart:async';
+import 'package:memex_ui/editor/state_stack.dart';
+
 import './editor_state.dart';
 
 class Editor {
   EditorState state;
   Editor(this.state);
 
-  List<EditorState> undoStack = [];
-  List<EditorState> redoStack = [];
+  EditorStateStack undoStack = EditorStateStack(100);
+  EditorStateStack redoStack = EditorStateStack(100);
 
   /// Emits every time the cursor or selection changes.
   /// Used for rebuilding.
@@ -23,7 +25,7 @@ class Editor {
       state = state.moveCursorLeftOneWord(isSelecting);
 
   void _performReversableAction(EditorState newState) {
-    undoStack.add(state);
+    undoStack.push(state);
     redoStack.clear();
     state = newState;
   }
@@ -44,13 +46,13 @@ class Editor {
   // Undo / Redo
   void undo() {
     if (undoStack.isEmpty) return;
-    redoStack.add(state);
-    state = undoStack.removeLast();
+    redoStack.push(state);
+    state = undoStack.pop()!;
   }
 
   void redo() {
     if (redoStack.isEmpty) return;
-    undoStack.add(state);
-    state = redoStack.removeLast();
+    undoStack.push(state);
+    state = redoStack.pop()!;
   }
 }
