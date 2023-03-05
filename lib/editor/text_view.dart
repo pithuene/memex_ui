@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:macos_ui/macos_ui.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -14,17 +15,13 @@ class EditorTextView extends StatelessWidget {
     required this.block,
     required this.blockPath,
     required this.selection,
-    this.style = const TextStyle(
-      color: Colors.black,
-      fontFamily: "Inter",
-      fontSize: 16,
-    ),
+    this.style,
     super.key,
   });
   final EditorBlock block;
   final BlockPath blockPath;
   final Selection selection;
-  final TextStyle style;
+  final TextStyle? style;
 
   final GlobalKey textKey = GlobalKey();
 
@@ -142,7 +139,7 @@ class EditorTextView extends StatelessWidget {
             key: textKey,
             text: TextSpan(
               children: childSpans,
-              style: style,
+              style: style ?? MacosTheme.of(context).typography.body,
             ),
           ),
           StreamBuilder(

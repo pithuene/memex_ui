@@ -48,7 +48,7 @@ class Piece {
   InlineSpan toSpan(bool containsCursor) => TextSpan(
         text: text,
         style: TextStyle(
-          fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+          fontWeight: isBold ? FontWeight.bold : null,
           fontStyle: isItalic ? FontStyle.italic : FontStyle.normal,
         ),
       );

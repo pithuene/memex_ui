@@ -8,6 +8,7 @@ import './state.dart';
 export './state.dart';
 
 export './memex_app.dart';
+export 'package:macos_ui/src/layout/toolbar/toolbar.dart';
 export './table/table.dart';
 export './editor/editor.dart';
 export './editor/editor_state.dart';

@@ -27,11 +27,6 @@ class SectionBlock extends EditorBlock {
         block: this,
         blockPath: path,
         selection: selection,
-        style: const TextStyle(
-          color: Color(0xFF000000),
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          fontFamily: "Inter",
-        ),
+        style: MacosTheme.of(context).typography.title1,
       );
 }
