@@ -11,10 +11,12 @@ class EditorView extends StatefulWidget {
     required this.editor,
     required this.openFile,
     required this.saveFile,
+    this.scrollController,
   });
   final Editor editor;
   final Future<File> Function() openFile;
   final Future<void> Function(String content) saveFile;
+  final ScrollController? scrollController;
 
   @override
   State<StatefulWidget> createState() => _EditorViewState();
@@ -140,22 +142,31 @@ class _EditorViewState extends State<EditorView> {
           }
         }
       },
-      child: Padding(
+      child: ListView.builder(
         padding: const EdgeInsets.all(20),
-        child: ListView.builder(
-          itemCount: widget.editor.state.blocks.length,
-          itemBuilder: (context, index) {
-            EditorBlock block = widget.editor.state.blocks[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 15),
-              child: block.build(
-                context: context,
-                selection: widget.editor.state.selection,
-                path: BlockPath.fromIterable([index]),
+        controller: widget.scrollController,
+        itemCount: widget.editor.state.blocks.length,
+        itemBuilder: (context, index) {
+          EditorBlock block = widget.editor.state.blocks[index];
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 600,
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: 15,
+                  ),
+                  child: block.build(
+                    context: context,
+                    selection: widget.editor.state.selection,
+                    path: BlockPath.fromIterable([index]),
+                  ),
+                ),
               ),
-            );
-          },
-        ),
+            ],
+          );
+        },
       ),
     );
   }

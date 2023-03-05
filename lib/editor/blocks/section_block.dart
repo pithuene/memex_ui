@@ -1,10 +1,9 @@
-import 'package:flutter/foundation.dart';
+import 'package:macos_ui/macos_ui.dart';
 import 'package:memex_ui/editor/selection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/editor/text_view.dart';
-import 'package:memex_ui/memex_ui.dart';
 import './editor_block.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 

@@ -15,7 +15,18 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) => MacosApp(
         home: MacosWindow(
           sidebar: sidebar,
-          child: MacosScaffold(children: [ContentArea(builder: builder)]),
+          child: MacosScaffold(
+            toolBar: ToolBar(
+              title: Text(
+                "Test",
+                style: const TextStyle(
+                  fontFamily: "Inter",
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            children: [ContentArea(builder: builder)],
+          ),
         ),
       );
 }

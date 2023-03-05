@@ -149,7 +149,7 @@ class EditorTextView extends StatelessWidget {
             stream: caretChanged.stream,
             builder: (context, snapshot) => CustomPaint(
               painter: Textmarker(
-                caretColor: Colors.black38,
+                caretColor: Colors.black,
                 caretRect: caretRect,
                 selectionColor: Colors.lightBlue.withOpacity(0.5),
                 selectionBoxes: selectionBoxes,
@@ -182,13 +182,15 @@ class Textmarker extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    caretPaintStyle.style = PaintingStyle.fill;
-    canvas.drawRect(caretRect, caretPaintStyle);
-
     selectionPaintStyle.style = PaintingStyle.fill;
+    selectionPaintStyle.isAntiAlias = false;
     for (TextBox selectionBox in selectionBoxes) {
       canvas.drawRect(selectionBox.toRect(), selectionPaintStyle);
     }
+
+    caretPaintStyle.style = PaintingStyle.fill;
+    caretPaintStyle.isAntiAlias = false;
+    canvas.drawRect(caretRect, caretPaintStyle);
   }
 
   @override
