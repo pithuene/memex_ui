@@ -146,6 +146,16 @@ class EditorState {
     return curr;
   }
 
+  EditorState moveCursorDown(bool isSelecting) =>
+      beginCursorMove(isSelecting).replaceCursor(
+        cursor.moveDown(this),
+      );
+
+  EditorState moveCursorUp(bool isSelecting) =>
+      beginCursorMove(isSelecting).replaceCursor(
+        cursor.moveUp(this),
+      );
+
   /// Splits the piece which contains the cursor,
   /// so the cursor is at offset zero afterwards.
   EditorState splitBeforeCursor() {

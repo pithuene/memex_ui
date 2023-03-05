@@ -167,4 +167,30 @@ class Cursor {
     }
     return next;
   }
+
+  // TODO: Keep offset in line
+  Cursor moveDown(EditorState state) {
+    BlockPath newBlockPath = blockPath.next(state) ?? blockPath;
+    PiecePath newPiecePath = PiecePath.fromIterable(const [0])
+        .firstLeaf(state.getBlockFromPath(newBlockPath)!);
+
+    return Cursor(
+      blockPath: newBlockPath,
+      piecePath: newPiecePath,
+      offset: 0,
+    );
+  }
+
+  // TODO: Keep offset in line
+  Cursor moveUp(EditorState state) {
+    BlockPath newBlockPath = blockPath.previous(state) ?? blockPath;
+    PiecePath newPiecePath = PiecePath.fromIterable(const [0])
+        .firstLeaf(state.getBlockFromPath(newBlockPath)!);
+
+    return Cursor(
+      blockPath: newBlockPath,
+      piecePath: newPiecePath,
+      offset: 0,
+    );
+  }
 }

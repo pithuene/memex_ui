@@ -55,6 +55,18 @@ class _EditorViewState extends State<EditorView> {
               return;
             }
           }
+          if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+            setState(() {
+              widget.editor.moveCursorDown(event.isShiftPressed);
+            });
+            return;
+          }
+          if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+            setState(() {
+              widget.editor.moveCursorUp(event.isShiftPressed);
+            });
+            return;
+          }
           if (event.logicalKey == LogicalKeyboardKey.tab) {
             if (event.isShiftPressed) {
               setState(() {
