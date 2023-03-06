@@ -8,7 +8,7 @@ class App extends StatelessWidget {
     this.sidebar,
     this.toolBar,
     this.fontFamily = "Inter",
-    this.baseFontSize = 14,
+    this.baseFontSize = 16,
     this.textColor = Colors.black,
   });
 

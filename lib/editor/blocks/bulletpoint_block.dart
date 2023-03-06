@@ -63,7 +63,13 @@ class BulletpointBlock extends EditorBlockWithChildren {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("• "),
+          Text(
+            "• ",
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
