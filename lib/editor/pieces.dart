@@ -1,4 +1,5 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 
@@ -7,10 +8,12 @@ class Piece {
   final String text;
   final bool isBold;
   final bool isItalic;
+  final bool isMonospace;
   const Piece({
     required this.text,
     this.isBold = false,
     this.isItalic = false,
+    this.isMonospace = false,
   });
 
   /// An empty piece which is placed at the end of every block.
@@ -21,11 +24,13 @@ class Piece {
     String? text,
     bool? isBold,
     bool? isItalic,
+    bool? isMonospace,
   }) {
     return Piece(
       text: text ?? this.text,
       isBold: isBold ?? this.isBold,
       isItalic: isItalic ?? this.isItalic,
+      isMonospace: isMonospace ?? this.isMonospace,
     );
   }
 
@@ -33,7 +38,8 @@ class Piece {
   bool operator ==(Object other) => (other is Piece)
       ? (other.text == text &&
           other.isBold == isBold &&
-          other.isItalic == isItalic)
+          other.isItalic == isItalic &&
+          other.isMonospace == isMonospace)
       : false;
 
   /// The number of editable characters in the [InlineSpan]s
@@ -45,6 +51,8 @@ class Piece {
         style: TextStyle(
           fontWeight: isBold ? FontWeight.bold : null,
           fontStyle: isItalic ? FontStyle.italic : FontStyle.normal,
+          fontFamily: isMonospace ? "JetBrainsMono Nerd Font" : null,
+          backgroundColor: isMonospace ? Colors.black.withAlpha(16) : null,
         ),
       );
 
@@ -84,11 +92,13 @@ class InlineBlock extends Piece {
     String? text,
     bool? isBold,
     bool? isItalic,
+    bool? isMonospace,
     IList<Piece>? children,
   }) {
     assert(text == null);
     assert(isBold == null);
     assert(isItalic == null);
+    assert(isMonospace == null);
     return InlineBlock(
       children: children ?? this.children,
     );
@@ -160,6 +170,7 @@ class LinkPiece extends InlineBlock {
     String? text,
     bool? isBold,
     bool? isItalic,
+    bool? isMonospace,
     IList<Piece>? children,
   }) {
     return LinkPiece(
@@ -203,6 +214,7 @@ class FootnotePiece extends InlineBlock {
     String? text,
     bool? isBold,
     bool? isItalic,
+    bool? isMonospace,
     IList<Piece>? children,
   }) {
     return FootnotePiece(
@@ -264,6 +276,7 @@ class InlineMathPiece extends InlineBlock {
     String? text,
     bool? isBold,
     bool? isItalic,
+    bool? isMonospace,
     IList<Piece>? children,
   }) {
     return InlineMathPiece(

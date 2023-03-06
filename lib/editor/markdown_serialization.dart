@@ -11,6 +11,13 @@ import 'package:memex_ui/memex_ui.dart';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
+/// Serialize a list of pieces to their plaintext content.
+String _piecesToPlaintext(IList<Piece> pieces) {
+  return TextSpan(
+    children: pieces.map((child) => child.toSpan(true)).toList(),
+  ).toPlainText();
+}
+
 Future<String> serializeEditorState(EditorState state) async {
   Process pandocProcess = await Process.start(
     "pandoc",
@@ -82,12 +89,7 @@ Map _serializePiece(Piece piece) {
         "t": "Math",
         "c": [
           {"t": "InlineMath"},
-          TextSpan(
-            children: (piece as InlineMathPiece)
-                .children
-                .map((child) => child.toSpan(true))
-                .toList(),
-          ).toPlainText(),
+          _piecesToPlaintext((piece as InlineMathPiece).children),
         ],
       };
     case FootnotePiece:
@@ -149,6 +151,21 @@ List _serializeTextContent(IList<Piece> pieces) {
           ),
         });
         remainingPieces = remainingPieces.removeRange(0, firstNonItalic);
+      } else if (nextPiece.isMonospace && !state["isMonospace"]!) {
+        // Starting monospace
+        int firstNonMonospace =
+            remainingPieces.indexWhere((piece) => !piece.isMonospace);
+        if (firstNonMonospace < 0) {
+          firstNonMonospace = remainingPieces.length;
+        }
+        serializedPieces.add({
+          "t": "Code",
+          "c": [
+            ["", [], []],
+            _piecesToPlaintext(remainingPieces.sublist(0, firstNonMonospace)),
+          ],
+        });
+        remainingPieces = remainingPieces.removeRange(0, firstNonMonospace);
       } else {
         serializedPieces.add(_serializePiece(nextPiece));
         remainingPieces = remainingPieces.removeAt(0);
@@ -162,6 +179,7 @@ List _serializeTextContent(IList<Piece> pieces) {
     {
       "isBold": false,
       "isItalic": false,
+      "isMonospace": false,
     }.toIMap(),
   );
 }

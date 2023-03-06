@@ -21,6 +21,7 @@ IList<Piece> _parseContent({
   bool appendSentinel = false,
   bool isBold = false,
   bool isItalic = false,
+  bool isMonospace = false,
 }) {
   List<Piece> pieces = [];
   for (Map jsonPiece in content) {
@@ -32,6 +33,7 @@ IList<Piece> _parseContent({
               text: jsonPiece["c"],
               isBold: isBold,
               isItalic: isItalic,
+              isMonospace: isMonospace,
             ),
           );
         }
@@ -43,6 +45,7 @@ IList<Piece> _parseContent({
               text: " ",
               isBold: isBold,
               isItalic: isItalic,
+              isMonospace: isMonospace,
             ),
           );
         }
@@ -54,6 +57,7 @@ IList<Piece> _parseContent({
               text: "\n",
               isBold: isBold,
               isItalic: isItalic,
+              isMonospace: isMonospace,
             ),
           );
         }
@@ -65,6 +69,7 @@ IList<Piece> _parseContent({
               content: jsonPiece["c"],
               isBold: true,
               isItalic: isItalic,
+              isMonospace: isMonospace,
             ),
           );
         }
@@ -76,6 +81,19 @@ IList<Piece> _parseContent({
               content: jsonPiece["c"],
               isBold: isBold,
               isItalic: true,
+              isMonospace: isMonospace,
+            ),
+          );
+        }
+        break;
+      case "Code":
+        {
+          pieces.add(
+            Piece(
+              text: jsonPiece["c"][1],
+              isBold: isBold,
+              isItalic: isItalic,
+              isMonospace: true,
             ),
           );
         }
@@ -89,12 +107,14 @@ IList<Piece> _parseContent({
               text: "'",
               isBold: isBold,
               isItalic: isItalic,
+              isMonospace: isMonospace,
             );
           } else if (quoteType == "DoubleQuote") {
             quotePiece = Piece(
               text: "\"",
               isBold: isBold,
               isItalic: isItalic,
+              isMonospace: isMonospace,
             );
           } else {
             print("Unknown quote type $quoteType");

@@ -21,5 +21,6 @@ Something **bold** and something *italic*.
 Something both **bold and *italic* nested** and **how *about****interleaved*.
 
 Some inline math: $a \cdot b + c$.
+Some inline `code` and **bold `code` too**.
 
 [^1]: My footnote.
