@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:macos_ui/macos_ui.dart';
 import 'package:memex_ui/editor/blocks/bulletpoint_block.dart';
 import 'package:memex_ui/editor/blocks/section_block.dart';
 import 'package:memex_ui/editor/selection.dart';
@@ -26,14 +26,28 @@ class ParagraphBlock extends EditorBlock {
       BulletpointBlock(pieces, <EditorBlock>[].lockUnsafe);
 
   @override
+  EdgeInsetsGeometry padding(
+    BuildContext context,
+    EditorBlock? previousNeighbor,
+    EditorBlock? nextNeighbor,
+  ) {
+    if (nextNeighbor == null) return const EdgeInsets.only(bottom: 0.0);
+    double fontSize = MacosTheme.of(context).typography.body.fontSize!;
+    if (nextNeighbor is BulletpointBlock) {
+      return EdgeInsets.only(bottom: fontSize * 0.75);
+    }
+    return EdgeInsets.only(bottom: fontSize * 1.5);
+  }
+
+  @override
   Widget build({
     required BuildContext context,
     required BlockPath path,
-    required Selection selection,
+    required EditorState state,
   }) =>
       EditorTextView(
         block: this,
         blockPath: path,
-        selection: selection,
+        selection: state.selection,
       );
 }

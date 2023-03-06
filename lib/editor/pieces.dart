@@ -1,11 +1,6 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter/painting.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/widgets.dart';
-import 'package:memex_ui/editor/piece_path.dart';
-import 'package:flutter_math_fork/ast.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
-import 'package:flutter_math_fork/tex.dart';
 
 @immutable
 class Piece {

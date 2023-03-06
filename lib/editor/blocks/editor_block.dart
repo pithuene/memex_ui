@@ -5,6 +5,7 @@ import 'package:memex_ui/editor/selection.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/editor/text_view.dart';
 import 'package:memex_ui/memex_ui.dart';
+import 'package:macos_ui/macos_ui.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import '../cursor.dart';
 import './paragraph_block.dart';
@@ -33,6 +34,16 @@ class EditorBlock {
     }
     return curr;
   }
+
+  /// Calculate this blocks padding based on what blocks border it.
+  EdgeInsetsGeometry padding(
+    BuildContext context,
+    EditorBlock? previousNeighbor,
+    EditorBlock? nextNeighbor,
+  ) =>
+      EdgeInsets.only(
+        bottom: MacosTheme.of(context).typography.body.fontSize! * 1.5,
+      );
 
   /// Transform the piece at a given [piecePath]
   /// throguh a [pieceChange] function.
@@ -157,12 +168,12 @@ class EditorBlock {
   Widget build({
     required BuildContext context,
     required BlockPath path,
-    required Selection selection,
+    required EditorState state,
   }) =>
       EditorTextView(
         block: this,
         blockPath: path,
-        selection: selection,
+        selection: state.selection,
       );
 
   EditorBlock copyWith({IList<Piece>? pieces}) =>

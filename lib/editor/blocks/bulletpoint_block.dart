@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:macos_ui/macos_ui.dart';
 import 'package:memex_ui/editor/block_path.dart';
+import 'package:memex_ui/editor/blocks/paragraph_block.dart';
 import 'package:memex_ui/editor/pieces.dart';
-import 'package:memex_ui/editor/selection.dart';
 import 'package:memex_ui/editor/text_view.dart';
 import 'package:memex_ui/memex_ui.dart';
 import './editor_block.dart';
@@ -29,19 +30,36 @@ class BulletpointBlock extends EditorBlockWithChildren {
       );
 
   @override
+  EdgeInsetsGeometry padding(
+    BuildContext context,
+    EditorBlock? previousNeighbor,
+    EditorBlock? nextNeighbor,
+  ) {
+    if (nextNeighbor == null) return const EdgeInsets.only(bottom: 0);
+    double fontSize = MacosTheme.of(context).typography.body.fontSize!;
+    if (nextNeighbor is BulletpointBlock) {
+      return EdgeInsets.only(bottom: fontSize * 0.5);
+    }
+    if (nextNeighbor is ParagraphBlock) {
+      return EdgeInsets.only(bottom: fontSize * 0.5);
+    }
+    return EdgeInsets.only(bottom: fontSize * 1.5);
+  }
+
+  @override
   Widget build({
     required BuildContext context,
     required BlockPath path,
-    required Selection selection,
+    required EditorState state,
   }) {
     BoxDecoration? debugBorders;
     if (showDebugFrames && kDebugMode) {
       debugBorders = BoxDecoration(border: Border.all());
     }
 
+    double fontSize = MacosTheme.of(context).typography.body.fontSize!;
     return Container(
       decoration: debugBorders,
-      padding: const EdgeInsets.all(5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -53,11 +71,12 @@ class BulletpointBlock extends EditorBlockWithChildren {
                 EditorTextView(
                   block: this,
                   blockPath: path,
-                  selection: selection,
+                  selection: state.selection,
                 ),
+                Container(height: (children.isEmpty) ? 0.0 : fontSize * 0.5),
                 RenderBlockChildren(
                   children: children,
-                  selection: selection,
+                  state: state,
                   parentPath: path,
                 ),
               ],

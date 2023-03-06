@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:memex_ui/editor/blocks/paragraph_block.dart';
-import 'package:memex_ui/editor/selection.dart';
+import 'package:macos_ui/macos_ui.dart';
 import 'package:flutter/widgets.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/pieces.dart';
@@ -47,13 +47,14 @@ class EditorBlockWithChildren extends EditorBlock {
   Widget build({
     required BuildContext context,
     required BlockPath path,
-    required Selection selection,
+    required EditorState state,
   }) {
     BoxDecoration? debugBorders;
     if (showDebugFrames && kDebugMode) {
       debugBorders = BoxDecoration(border: Border.all());
     }
 
+    double fontSize = MacosTheme.of(context).typography.body.fontSize!;
     return Container(
       decoration: debugBorders,
       padding: const EdgeInsets.all(5),
@@ -63,12 +64,12 @@ class EditorBlockWithChildren extends EditorBlock {
           super.build(
             context: context,
             path: path,
-            selection: selection,
+            state: state,
           ),
-          Container(height: 5),
+          Container(height: fontSize),
           RenderBlockChildren(
             children: children,
-            selection: selection,
+            state: state,
             parentPath: path,
           ),
         ],
@@ -77,14 +78,47 @@ class EditorBlockWithChildren extends EditorBlock {
   }
 }
 
+class PaddedBlock extends StatelessWidget {
+  /// This block.
+  final EditorBlock block;
+
+  /// Path to this block.
+  final BlockPath path;
+
+  /// The current [EditorState].
+  final EditorState state;
+
+  const PaddedBlock({
+    super.key,
+    required this.block,
+    required this.state,
+    required this.path,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    EditorBlock? previousBlock =
+        state.getBlockFromPath(path.previousNeighbor());
+    EditorBlock? nextBlock = state.getBlockFromPath(path.nextNeighbor());
+    return Padding(
+      padding: block.padding(context, previousBlock, nextBlock),
+      child: block.build(
+        context: context,
+        state: state,
+        path: path,
+      ),
+    );
+  }
+}
+
 class RenderBlockChildren extends StatelessWidget {
   final IList<EditorBlock> children;
-  final Selection selection;
+  final EditorState state;
   final BlockPath parentPath;
 
   const RenderBlockChildren({
     required this.children,
-    required this.selection,
+    required this.state,
     required this.parentPath,
     super.key,
   });
@@ -94,9 +128,9 @@ class RenderBlockChildren extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: children.mapIndexedAndLast((index, child, last) {
           BlockPath childBlockPath = parentPath.add(index);
-          return child.build(
-            context: context,
-            selection: selection,
+          return PaddedBlock(
+            block: child,
+            state: state,
             path: childBlockPath,
           );
         }).toList(),

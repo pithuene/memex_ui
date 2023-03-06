@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/blocks/editor_block.dart';
+import 'package:memex_ui/editor/blocks/editor_block_with_children.dart';
 import 'package:memex_ui/memex_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -147,21 +148,15 @@ class _EditorViewState extends State<EditorView> {
         controller: widget.scrollController,
         itemCount: widget.editor.state.blocks.length,
         itemBuilder: (context, index) {
-          EditorBlock block = widget.editor.state.blocks[index];
           return Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(
                 width: 600,
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    bottom: 15,
-                  ),
-                  child: block.build(
-                    context: context,
-                    selection: widget.editor.state.selection,
-                    path: BlockPath.fromIterable([index]),
-                  ),
+                child: PaddedBlock(
+                  path: BlockPath.fromIterable([index]),
+                  block: widget.editor.state.blocks[index],
+                  state: widget.editor.state,
                 ),
               ),
             ],
