@@ -2,6 +2,7 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
+import 'package:memex_ui/typography.dart';
 
 @immutable
 class Piece {
@@ -51,7 +52,7 @@ class Piece {
         style: TextStyle(
           fontWeight: isBold ? FontWeight.bold : null,
           fontStyle: isItalic ? FontStyle.italic : FontStyle.normal,
-          fontFamily: isMonospace ? "JetBrainsMono Nerd Font" : null,
+          fontFamily: isMonospace ? MemexTypography.fontFamilyMonospace : null,
           backgroundColor: isMonospace ? Colors.black.withAlpha(16) : null,
         ),
       );
@@ -243,7 +244,7 @@ class InlineMathPiece extends InlineBlock {
       return TextSpan(
         children: [super.toSpan(containsCursor)],
         style: TextStyle(
-          fontFamily: "JetBrainsMono Nerd Font",
+          fontFamily: MemexTypography.fontFamilyMonospace,
           backgroundColor: Colors.black.withAlpha(16),
         ),
       );

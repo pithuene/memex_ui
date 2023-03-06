@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:macos_ui/macos_ui.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:memex_ui/editor/blocks/editor_block.dart';
 import 'package:memex_ui/editor/selection.dart';
+import 'package:memex_ui/typography.dart';
 
 /// Outline text boxes for debugging purposes.
 const showDebugFrames = false;
@@ -139,7 +139,7 @@ class EditorTextView extends StatelessWidget {
             key: textKey,
             text: TextSpan(
               children: childSpans,
-              style: style ?? MacosTheme.of(context).typography.body,
+              style: style ?? MemexTypography.body,
             ),
           ),
           StreamBuilder(

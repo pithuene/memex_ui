@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:macos_ui/macos_ui.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/blocks/paragraph_block.dart';
 import 'package:memex_ui/editor/pieces.dart';
@@ -36,7 +35,7 @@ class BulletpointBlock extends EditorBlockWithChildren {
     EditorBlock? nextNeighbor,
   ) {
     if (nextNeighbor == null) return const EdgeInsets.only(bottom: 0);
-    double fontSize = MacosTheme.of(context).typography.body.fontSize!;
+    double fontSize = MemexTypography.baseFontSize;
     if (nextNeighbor is BulletpointBlock) {
       return EdgeInsets.only(bottom: fontSize * 0.5);
     }
@@ -57,7 +56,7 @@ class BulletpointBlock extends EditorBlockWithChildren {
       debugBorders = BoxDecoration(border: Border.all());
     }
 
-    double fontSize = MacosTheme.of(context).typography.body.fontSize!;
+    double fontSize = MemexTypography.baseFontSize;
     return Container(
       decoration: debugBorders,
       child: Row(

@@ -54,7 +54,7 @@ class EditorBlockWithChildren extends EditorBlock {
       debugBorders = BoxDecoration(border: Border.all());
     }
 
-    double fontSize = MacosTheme.of(context).typography.body.fontSize!;
+    double fontSize = MemexTypography.baseFontSize;
     return Container(
       decoration: debugBorders,
       padding: const EdgeInsets.all(5),

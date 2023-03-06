@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/piece_path.dart';
-import 'package:memex_ui/editor/selection.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/editor/text_view.dart';
 import 'package:memex_ui/memex_ui.dart';
@@ -42,7 +41,7 @@ class EditorBlock {
     EditorBlock? nextNeighbor,
   ) =>
       EdgeInsets.only(
-        bottom: MacosTheme.of(context).typography.body.fontSize! * 1.5,
+        bottom: MemexTypography.baseFontSize * 1.5,
       );
 
   /// Transform the piece at a given [piecePath]

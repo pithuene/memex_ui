@@ -1,5 +1,3 @@
-import 'package:macos_ui/macos_ui.dart';
-import 'package:memex_ui/editor/selection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/pieces.dart';
@@ -24,7 +22,7 @@ class SectionBlock extends EditorBlock {
     EditorBlock? previousNeighbor,
     EditorBlock? nextNeighbor,
   ) {
-    double fontSize = MacosTheme.of(context).typography.body.fontSize!;
+    double fontSize = MemexTypography.baseFontSize;
     double topPadding = 0.0;
     if (previousNeighbor is SectionBlock) {
       topPadding = fontSize * 1.5;
@@ -45,6 +43,6 @@ class SectionBlock extends EditorBlock {
         block: this,
         blockPath: path,
         selection: state.selection,
-        style: MacosTheme.of(context).typography.title1,
+        style: MemexTypography.heading2,
       );
 }

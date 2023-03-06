@@ -27,7 +27,7 @@ class CodeBlock extends EditorBlock {
     EditorBlock? nextNeighbor,
   ) {
     if (nextNeighbor == null) return const EdgeInsets.only(bottom: 0.0);
-    double fontSize = MacosTheme.of(context).typography.body.fontSize!;
+    double fontSize = MemexTypography.baseFontSize;
     return EdgeInsets.only(bottom: fontSize * 0.75);
   }
 
@@ -44,8 +44,8 @@ class CodeBlock extends EditorBlock {
           block: this,
           blockPath: path,
           selection: state.selection,
-          style: const TextStyle(
-            fontFamily: "JetBrainsMono Nerd Font",
+          style: TextStyle(
+            fontFamily: MemexTypography.fontFamilyMonospace,
             color: Colors.black,
           ),
         ),

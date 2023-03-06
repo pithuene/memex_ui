@@ -1,8 +1,6 @@
-import 'package:macos_ui/macos_ui.dart';
 import 'package:memex_ui/editor/blocks/bulletpoint_block.dart';
 import 'package:memex_ui/editor/blocks/code_block.dart';
 import 'package:memex_ui/editor/blocks/section_block.dart';
-import 'package:memex_ui/editor/selection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/pieces.dart';
@@ -33,7 +31,7 @@ class ParagraphBlock extends EditorBlock {
     EditorBlock? nextNeighbor,
   ) {
     if (nextNeighbor == null) return const EdgeInsets.only(bottom: 0.0);
-    double fontSize = MacosTheme.of(context).typography.body.fontSize!;
+    double fontSize = MemexTypography.baseFontSize;
     if (nextNeighbor is BulletpointBlock || nextNeighbor is CodeBlock) {
       return EdgeInsets.only(bottom: fontSize * 0.75);
     }

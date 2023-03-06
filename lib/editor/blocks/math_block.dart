@@ -44,8 +44,8 @@ class MathBlock extends EditorBlock {
                   block: this,
                   blockPath: path,
                   selection: state.selection,
-                  style: const TextStyle(
-                    fontFamily: "JetBrainsMono Nerd Font",
+                  style: TextStyle(
+                    fontFamily: MemexTypography.fontFamilyMonospace,
                     color: Colors.black,
                   ),
                 ),
