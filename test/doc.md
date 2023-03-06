@@ -20,7 +20,13 @@ A [link](target) to somewhere else.
 Something **bold** and something *italic*.
 Something both **bold and *italic* nested** and **how *about****interleaved*.
 
+$$\sum_{i = 0}^n n^2$$
+
 Some inline math: $a \cdot b + c$.
 Some inline `code` and **bold `code` too**.
+
+``` c
+Codeblock
+```
 
 [^1]: My footnote.

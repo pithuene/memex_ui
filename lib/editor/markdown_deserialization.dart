@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/blocks/bulletpoint_block.dart';
+import 'package:memex_ui/editor/blocks/code_block.dart';
 import 'package:memex_ui/editor/blocks/editor_block.dart';
 import 'package:memex_ui/editor/blocks/math_block.dart';
 import 'package:memex_ui/editor/blocks/paragraph_block.dart';
@@ -229,6 +230,15 @@ List<EditorBlock> _parseBlock(Map jsonBlock) {
             content: jsonBlock["c"],
             appendSentinel: true,
           ),
+        )
+      ];
+    case "CodeBlock":
+      return [
+        CodeBlock(
+          [
+            Piece(text: jsonBlock["c"][1]),
+            Piece.sentinel,
+          ].lockUnsafe,
         )
       ];
     case "BulletList":

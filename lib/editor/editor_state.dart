@@ -1,5 +1,6 @@
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/blocks/bulletpoint_block.dart';
+import 'package:memex_ui/editor/blocks/code_block.dart';
 import 'package:memex_ui/editor/blocks/editor_block.dart';
 import 'package:memex_ui/editor/blocks/editor_block_with_children.dart';
 import 'package:memex_ui/editor/blocks/paragraph_block.dart';
@@ -179,9 +180,35 @@ class EditorState {
         );
   }
 
+  /// Insert a soft break.
+  /// Usually inserts a newline character.
+  EditorState lineBreakSoft() {
+    if (getCursorBlock(cursor) is CodeBlock) {
+      // In a [CodeBlock] hard and soft line breaks are switched.
+      if (!selection.isEmpty) {
+        return deleteSelection().lineBreakSoft();
+      }
+      BlockPath newBlockPath = cursor.blockPath.nextNeighbor();
+      return insertBlockAtPath(
+        newBlockPath,
+        ParagraphBlock([Piece.sentinel].lockUnsafe),
+      ).copyWithCursor(
+        blockPath: newBlockPath,
+        piecePath: PiecePath.fromIterable(const [0]),
+        offset: 0,
+      );
+    }
+    return append("\n");
+  }
+
   /// Insert a "hard break".
   /// Split the block at the current cursor.
-  EditorState newLine() {
+  EditorState lineBreakHard() {
+    if (getCursorBlock(cursor) is CodeBlock) {
+      // In a [CodeBlock] hard and soft line breaks are switched.
+      return append("\n");
+    }
+
     if (cursor.piecePath.isInInlineBlock(getCursorBlock(cursor))) {
       // Splitting an inline block is simply not supported.
       return this;

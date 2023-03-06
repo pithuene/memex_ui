@@ -45,8 +45,8 @@ class Editor {
 
   void deleteBackwards() => _performReversableAction(state.deleteBackwards());
 
-  // TODO: Name newBlock?
-  void newLine() => _performReversableAction(state.newLine());
+  void lineBreakHard() => _performReversableAction(state.lineBreakHard());
+  void lineBreakSoft() => _performReversableAction(state.lineBreakSoft());
 
   // Undo / Redo
   void undo() {

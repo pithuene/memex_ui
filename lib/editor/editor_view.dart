@@ -85,12 +85,12 @@ class _EditorViewState extends State<EditorView> {
           if (event.logicalKey == LogicalKeyboardKey.enter) {
             if (event.isShiftPressed) {
               setState(() {
-                widget.editor.append("\n");
+                widget.editor.lineBreakSoft();
               });
               return;
             } else {
               setState(() {
-                widget.editor.newLine();
+                widget.editor.lineBreakHard();
               });
               return;
             }

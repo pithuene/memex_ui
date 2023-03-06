@@ -8,6 +8,7 @@ class App extends StatelessWidget {
     this.sidebar,
     this.toolBar,
     this.fontFamily = "Inter",
+    this.fontFamilyMonospace = "JetBrainsMono Nerd Font",
     this.baseFontSize = 16,
     this.textColor = Colors.black,
   });
@@ -17,6 +18,7 @@ class App extends StatelessWidget {
   final ToolBar? toolBar;
 
   final String fontFamily;
+  final String fontFamilyMonospace;
   final double baseFontSize;
   final Color textColor;
 
