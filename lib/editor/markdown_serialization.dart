@@ -3,7 +3,9 @@ import 'dart:convert';
 
 import 'package:flutter/painting.dart';
 import 'package:memex_ui/editor/blocks/bulletpoint_block.dart';
+import 'package:memex_ui/editor/blocks/code_block.dart';
 import 'package:memex_ui/editor/blocks/editor_block.dart';
+import 'package:memex_ui/editor/blocks/math_block.dart';
 import 'package:memex_ui/editor/blocks/paragraph_block.dart';
 import 'package:memex_ui/editor/blocks/section_block.dart';
 import 'package:memex_ui/editor/pieces.dart';
@@ -248,6 +250,31 @@ dynamic _serializeEditorBlock(EditorBlock block) {
           1,
           ["", [], []],
           _serializeTextContent(block.pieces)
+        ]
+      };
+    case MathBlock:
+      return {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Math",
+            "c": [
+              {"t": "DisplayMath"},
+              _piecesToPlaintext(block.pieces.removeLast())
+            ]
+          }
+        ]
+      };
+    case CodeBlock:
+      return {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [(block as CodeBlock).language],
+            []
+          ],
+          _piecesToPlaintext(block.pieces)
         ]
       };
     default:
