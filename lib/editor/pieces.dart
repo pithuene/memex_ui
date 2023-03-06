@@ -151,7 +151,6 @@ class LinkPiece extends InlineBlock {
     } else {
       return TextSpan(
         style: const TextStyle(
-          fontFamily: "Inter",
           color: Color(0xFF0000FF),
           decoration: TextDecoration.underline,
         ),
@@ -243,9 +242,9 @@ class InlineMathPiece extends InlineBlock {
     if (containsCursor) {
       return TextSpan(
         children: [super.toSpan(containsCursor)],
-        style: const TextStyle(
-          decoration: TextDecoration.underline,
-          backgroundColor: Color(0x20000000),
+        style: TextStyle(
+          fontFamily: "JetBrainsMono Nerd Font",
+          backgroundColor: Colors.black.withAlpha(16),
         ),
       );
     } else {

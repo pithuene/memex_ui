@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:memex_ui/editor/selection.dart';
 import 'package:flutter/widgets.dart';
@@ -30,30 +31,41 @@ class MathBlock extends EditorBlock {
           .toList(),
     ).toPlainText();
     if (isCursorInThisBlock) {
-      return Row(
-        children: [
-          ColoredBox(
-            color: const Color(0x20000000),
-            child: EditorTextView(
-              block: this,
-              blockPath: path,
-              selection: state.selection,
-              style: const TextStyle(
-                color: Color(0xFF000000),
-                fontFamily: "monospace",
+      return IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: Container(
+                alignment: Alignment.centerLeft,
+                color: Colors.black.withAlpha(16),
+                padding: const EdgeInsets.all(5),
+                child: EditorTextView(
+                  block: this,
+                  blockPath: path,
+                  selection: state.selection,
+                  style: const TextStyle(
+                    fontFamily: "JetBrainsMono Nerd Font",
+                    color: Colors.black,
+                  ),
+                ),
               ),
             ),
-          ),
-          Container(width: 30),
-          Math.tex(
-            tex,
-            textStyle: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.normal,
+            Container(width: 30),
+            Expanded(
+              child: Center(
+                child: Math.tex(
+                  tex,
+                  textStyle: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.normal,
+                  ),
+                  mathStyle: MathStyle.display,
+                ),
+              ),
             ),
-            mathStyle: MathStyle.display,
-          ),
-        ],
+          ],
+        ),
       );
     } else {
       return Center(
