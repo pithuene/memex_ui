@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
-import 'package:memex_ui/editor/selection.dart';
-import 'package:flutter/widgets.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/editor/text_view.dart';
@@ -20,9 +18,10 @@ class MathBlock extends EditorBlock {
   Widget build({
     required BuildContext context,
     required BlockPath path,
-    required EditorState state,
+    required Editor editor,
   }) {
-    final bool isCursorInThisBlock = state.selection.end.blockPath == path;
+    final bool isCursorInThisBlock =
+        editor.state.selection.end.blockPath == path;
     String tex = TextSpan(
       children: pieces
           .map(
@@ -43,7 +42,7 @@ class MathBlock extends EditorBlock {
                 child: EditorTextView(
                   block: this,
                   blockPath: path,
-                  selection: state.selection,
+                  selection: editor.state.selection,
                   style: TextStyle(
                     fontFamily: MemexTypography.fontFamilyMonospace,
                     color: Colors.black,

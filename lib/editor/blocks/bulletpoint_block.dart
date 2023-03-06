@@ -49,7 +49,7 @@ class BulletpointBlock extends EditorBlockWithChildren {
   Widget build({
     required BuildContext context,
     required BlockPath path,
-    required EditorState state,
+    required Editor editor,
   }) {
     BoxDecoration? debugBorders;
     if (showDebugFrames && kDebugMode) {
@@ -76,12 +76,12 @@ class BulletpointBlock extends EditorBlockWithChildren {
                 EditorTextView(
                   block: this,
                   blockPath: path,
-                  selection: state.selection,
+                  selection: editor.state.selection,
                 ),
                 Container(height: (children.isEmpty) ? 0.0 : fontSize * 0.5),
                 RenderBlockChildren(
                   children: children,
-                  state: state,
+                  editor: editor,
                   parentPath: path,
                 ),
               ],

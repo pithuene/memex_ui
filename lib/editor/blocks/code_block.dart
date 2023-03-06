@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:macos_ui/macos_ui.dart';
-import 'package:memex_ui/editor/blocks/bulletpoint_block.dart';
-import 'package:memex_ui/editor/blocks/section_block.dart';
-import 'package:flutter/widgets.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/editor/text_view.dart';

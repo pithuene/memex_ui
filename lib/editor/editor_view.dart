@@ -156,7 +156,7 @@ class _EditorViewState extends State<EditorView> {
                 child: PaddedBlock(
                   path: BlockPath.fromIterable([index]),
                   block: widget.editor.state.blocks[index],
-                  state: widget.editor.state,
+                  editor: widget.editor,
                 ),
               ),
             ],

@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:memex_ui/editor/blocks/paragraph_block.dart';
-import 'package:macos_ui/macos_ui.dart';
 import 'package:flutter/widgets.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/pieces.dart';
@@ -47,7 +46,7 @@ class EditorBlockWithChildren extends EditorBlock {
   Widget build({
     required BuildContext context,
     required BlockPath path,
-    required EditorState state,
+    required Editor editor,
   }) {
     BoxDecoration? debugBorders;
     if (showDebugFrames && kDebugMode) {
@@ -64,12 +63,12 @@ class EditorBlockWithChildren extends EditorBlock {
           super.build(
             context: context,
             path: path,
-            state: state,
+            editor: editor,
           ),
           Container(height: fontSize),
           RenderBlockChildren(
             children: children,
-            state: state,
+            editor: editor,
             parentPath: path,
           ),
         ],
@@ -85,27 +84,26 @@ class PaddedBlock extends StatelessWidget {
   /// Path to this block.
   final BlockPath path;
 
-  /// The current [EditorState].
-  final EditorState state;
+  final Editor editor;
 
   const PaddedBlock({
     super.key,
     required this.block,
-    required this.state,
+    required this.editor,
     required this.path,
   });
 
   @override
   Widget build(BuildContext context) {
     EditorBlock? previousBlock =
-        state.getBlockFromPath(path.previousNeighbor());
-    EditorBlock? nextBlock = state.getBlockFromPath(path.nextNeighbor());
+        editor.state.getBlockFromPath(path.previousNeighbor());
+    EditorBlock? nextBlock = editor.state.getBlockFromPath(path.nextNeighbor());
     return Padding(
       padding: block.padding(context, previousBlock, nextBlock),
       child: block.build(
         context: context,
-        state: state,
         path: path,
+        editor: editor,
       ),
     );
   }
@@ -113,12 +111,12 @@ class PaddedBlock extends StatelessWidget {
 
 class RenderBlockChildren extends StatelessWidget {
   final IList<EditorBlock> children;
-  final EditorState state;
+  final Editor editor;
   final BlockPath parentPath;
 
   const RenderBlockChildren({
     required this.children,
-    required this.state,
+    required this.editor,
     required this.parentPath,
     super.key,
   });
@@ -130,7 +128,7 @@ class RenderBlockChildren extends StatelessWidget {
           BlockPath childBlockPath = parentPath.add(index);
           return PaddedBlock(
             block: child,
-            state: state,
+            editor: editor,
             path: childBlockPath,
           );
         }).toList(),

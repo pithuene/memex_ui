@@ -42,11 +42,11 @@ class ParagraphBlock extends EditorBlock {
   Widget build({
     required BuildContext context,
     required BlockPath path,
-    required EditorState state,
+    required Editor editor,
   }) =>
       EditorTextView(
         block: this,
         blockPath: path,
-        selection: state.selection,
+        selection: editor.state.selection,
       );
 }
