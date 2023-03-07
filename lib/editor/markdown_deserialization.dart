@@ -7,6 +7,7 @@ import 'package:memex_ui/editor/blocks/code_block.dart';
 import 'package:memex_ui/editor/blocks/editor_block.dart';
 import 'package:memex_ui/editor/blocks/math_block.dart';
 import 'package:memex_ui/editor/blocks/paragraph_block.dart';
+import 'package:memex_ui/editor/blocks/quote_block.dart';
 import 'package:memex_ui/editor/blocks/section_block.dart';
 import 'package:memex_ui/editor/cursor.dart';
 import 'package:memex_ui/editor/piece_path.dart';
@@ -242,6 +243,27 @@ List<EditorBlock> _parseBlock(Map jsonBlock) {
           ].lockUnsafe,
         )
       ];
+    case "BlockQuote":
+      {
+        List<Piece> pieces = [];
+        for (int i = 0; i < (jsonBlock["c"] as List).length; i++) {
+          var block = (jsonBlock["c"] as List)[i];
+          // Block content in a [QuoteBlock] is not supported yet.
+          assert(block["t"] == "Para");
+          EditorBlock editorBlock = _parseBlock(block)[0];
+          pieces.add(
+            Piece(text: piecesToPlaintext(editorBlock.pieces.removeLast())),
+          );
+          if (i < (jsonBlock["c"] as List).length - 1) {
+            // Not last
+            pieces.add(Piece(text: "\n\n"));
+          }
+        }
+        pieces.add(Piece.sentinel);
+        return [
+          QuoteBlock(pieces.lockUnsafe),
+        ];
+      }
     case "BulletList":
       return _parseBulletList(jsonBlock["c"]);
     default:

@@ -7,6 +7,7 @@ import 'package:memex_ui/editor/blocks/code_block.dart';
 import 'package:memex_ui/editor/blocks/editor_block.dart';
 import 'package:memex_ui/editor/blocks/math_block.dart';
 import 'package:memex_ui/editor/blocks/paragraph_block.dart';
+import 'package:memex_ui/editor/blocks/quote_block.dart';
 import 'package:memex_ui/editor/blocks/section_block.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/memex_ui.dart';
@@ -14,7 +15,7 @@ import 'package:memex_ui/memex_ui.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 /// Serialize a list of pieces to their plaintext content.
-String _piecesToPlaintext(IList<Piece> pieces) {
+String piecesToPlaintext(IList<Piece> pieces) {
   return TextSpan(
     children: pieces.map((child) => child.toSpan(true)).toList(),
   ).toPlainText();
@@ -91,7 +92,7 @@ Map _serializePiece(Piece piece) {
         "t": "Math",
         "c": [
           {"t": "InlineMath"},
-          _piecesToPlaintext((piece as InlineMathPiece).children),
+          piecesToPlaintext((piece as InlineMathPiece).children),
         ],
       };
     case FootnotePiece:
@@ -164,7 +165,7 @@ List _serializeTextContent(IList<Piece> pieces) {
           "t": "Code",
           "c": [
             ["", [], []],
-            _piecesToPlaintext(remainingPieces.sublist(0, firstNonMonospace)),
+            piecesToPlaintext(remainingPieces.sublist(0, firstNonMonospace)),
           ],
         });
         remainingPieces = remainingPieces.removeRange(0, firstNonMonospace);
@@ -260,7 +261,7 @@ dynamic _serializeEditorBlock(EditorBlock block) {
             "t": "Math",
             "c": [
               {"t": "DisplayMath"},
-              _piecesToPlaintext(block.pieces.removeLast())
+              piecesToPlaintext(block.pieces.removeLast())
             ]
           }
         ]
@@ -274,7 +275,17 @@ dynamic _serializeEditorBlock(EditorBlock block) {
             [(block as CodeBlock).language],
             []
           ],
-          _piecesToPlaintext(block.pieces.removeLast())
+          piecesToPlaintext(block.pieces.removeLast())
+        ]
+      };
+    case QuoteBlock:
+      return {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": _serializeTextContent(block.pieces),
+          }
         ]
       };
     default:

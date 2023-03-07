@@ -3,6 +3,10 @@ Test
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc in urna in purus pharetra semper. Donec accumsan ante eget neque aliquam, at dictum leo fermentum. Nullam leo purus, molestie in risus sed, accumsan tincidunt ligula.[^1]
 
+> An important quote.
+>
+> — Someone
+
 Curabitur turpis nulla, molestie nec aliquam sit amet, venenatis eget diam. In rutrum feugiat purus, porttitor commodo enim. Aenean ornare orci ac hendrerit viverra.
 
 - Praesent non dapibus nulla.

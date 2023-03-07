@@ -24,7 +24,7 @@ class EditorView extends StatefulWidget {
 }
 
 class _EditorViewState extends State<EditorView> {
-  final FocusNode focusNode = FocusNode();
+  final FocusNode focusNode = FocusNode(descendantsAreTraversable: false);
 
   @override
   void initState() {
