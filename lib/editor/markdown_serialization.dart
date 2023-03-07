@@ -274,7 +274,7 @@ dynamic _serializeEditorBlock(EditorBlock block) {
             [(block as CodeBlock).language],
             []
           ],
-          _piecesToPlaintext(block.pieces)
+          _piecesToPlaintext(block.pieces.removeLast())
         ]
       };
     default:

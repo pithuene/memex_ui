@@ -235,6 +235,7 @@ List<EditorBlock> _parseBlock(Map jsonBlock) {
     case "CodeBlock":
       return [
         CodeBlock(
+          jsonBlock["c"][0][1][0],
           [
             Piece(text: jsonBlock["c"][1]),
             Piece.sentinel,
@@ -255,12 +256,7 @@ List<EditorBlock> _parseBlock(Map jsonBlock) {
 
 Future<EditorState> parseMarkdown(File markdownFile) async {
   Map json = await pandocMarkdownToJson(markdownFile);
-  List<EditorBlock> blocks = (json["blocks"] as List)
-      .map((block) => _parseBlock(block))
-      .fold([], (List<EditorBlock> blocks, Iterable<EditorBlock> newBlocks) {
-    blocks.addAll(newBlocks);
-    return blocks;
-  });
+  List<EditorBlock> blocks = _parseBlocks((json["blocks"] as List));
 
   return EditorState(
     blocks: blocks.toIList(),

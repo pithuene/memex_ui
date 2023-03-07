@@ -14,6 +14,18 @@ class Editor {
   /// Used for rebuilding.
   StreamController<void> onCursorChange = StreamController.broadcast();
 
+  /// Emits when an internal action needs to trigger a rebuild.
+  /// The view widget should subscribe to this and rebuild
+  /// the editor on events.
+  StreamController<void> onRebuild = StreamController.broadcast();
+
+  /// Trigger a rebuild of the editor.
+  /// Call this after editing the [EditorState] from outside
+  /// the [Editor] operations to show changes.
+  void rebuild() {
+    onRebuild.sink.add(null);
+  }
+
   // Non reversable actions
   void moveCursorRightOnce(bool isSelecting) =>
       state = state.moveCursorRightOnce(isSelecting);
@@ -28,6 +40,14 @@ class Editor {
       state = state.moveCursorDown(isSelecting);
   void moveCursorUp(bool isSelecting) =>
       state = state.moveCursorUp(isSelecting);
+
+  /// Store the current state as a checkpoint in the undo system.
+  /// Call this before editing the [EditorState] through something
+  /// outside of the operations on [Editor].
+  void commitUndoState() {
+    undoStack.push(state);
+    redoStack.clear();
+  }
 
   void _performReversableAction(EditorState newState) {
     undoStack.push(state);

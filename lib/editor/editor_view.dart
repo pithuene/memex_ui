@@ -27,10 +27,19 @@ class _EditorViewState extends State<EditorView> {
   final FocusNode focusNode = FocusNode();
 
   @override
+  void initState() {
+    super.initState();
+    widget.editor.onRebuild.stream.listen((event) {
+      setState(() {});
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return RawKeyboardListener(
       focusNode: focusNode,
       onKey: (event) {
+        if (!focusNode.hasPrimaryFocus) return;
         if (event.runtimeType == RawKeyDownEvent) {
           if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
             if (event.isControlPressed) {

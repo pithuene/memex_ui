@@ -8,14 +8,20 @@ import './editor_block.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 class CodeBlock extends EditorBlock {
-  CodeBlock.withInitialContent({String? initialContent})
-      : super.withInitialContent(initialContent: initialContent);
+  String language;
+  CodeBlock.withInitialContent({
+    String? initialContent,
+    required this.language,
+  }) : super.withInitialContent(initialContent: initialContent);
 
-  CodeBlock(super.pieces);
+  CodeBlock(this.language, super.pieces);
 
   @override
-  EditorBlock copyWith({IList<Piece>? pieces}) =>
-      CodeBlock(pieces ?? this.pieces);
+  EditorBlock copyWith({
+    IList<Piece>? pieces,
+    String? language,
+  }) =>
+      CodeBlock(language ?? this.language, pieces ?? this.pieces);
 
   @override
   EdgeInsetsGeometry padding(
@@ -32,19 +38,43 @@ class CodeBlock extends EditorBlock {
   Widget build({
     required BuildContext context,
     required BlockPath path,
-    required EditorState state,
+    required Editor editor,
   }) =>
       Container(
         color: Colors.black.withAlpha(16),
         padding: const EdgeInsets.all(5),
-        child: EditorTextView(
-          block: this,
-          blockPath: path,
-          selection: state.selection,
-          style: TextStyle(
-            fontFamily: MemexTypography.fontFamilyMonospace,
-            color: Colors.black,
+        child: Stack(children: [
+          EditorTextView(
+            block: this,
+            blockPath: path,
+            selection: editor.state.selection,
+            style: TextStyle(
+              fontFamily: MemexTypography.fontFamilyMonospace,
+              color: Colors.black,
+            ),
           ),
-        ),
+          Align(
+            alignment: Alignment.topRight,
+            child: MacosTextField.borderless(
+              textAlign: TextAlign.right,
+              maxLength: 10,
+              controller: TextEditingController(text: language),
+              onChanged: (newLanguage) {
+                editor.commitUndoState();
+                editor.state = editor.state.replaceBlockAtPath(
+                  path,
+                  (block) => (block as CodeBlock).copyWith(
+                    language: newLanguage,
+                  ),
+                );
+                editor.rebuild();
+              },
+              style: TextStyle(
+                fontSize: MemexTypography.baseFontSize * 0.8,
+                color: MemexTypography.textColor.withAlpha(100),
+              ),
+            ),
+          ),
+        ]),
       );
 }

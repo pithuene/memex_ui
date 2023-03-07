@@ -25,8 +25,10 @@ $$\sum_{i = 0}^n n^2$$
 Some inline math: $a \cdot b + c$.
 Some inline `code` and **bold `code` too**.
 
-``` c
-Codeblock
+``` java
+public static void main(String args[]) {
+  System.out.println("Hello World");
+}
 ```
 
 [^1]: My footnote.
