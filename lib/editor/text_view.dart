@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
+import 'package:memex_ui/boxed_value.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:memex_ui/editor/blocks/editor_block.dart';
+import 'package:memex_ui/editor/cursor.dart';
 import 'package:memex_ui/editor/piece_path.dart';
 import 'package:memex_ui/editor/selection.dart';
 import 'package:memex_ui/memex_ui.dart';
@@ -125,13 +127,15 @@ class EditorTextView extends StatelessWidget {
     ) {
       for (int i = 0; i < pieces.length; i++) {
         if (identical(pieces[i], piece)) {
+          // Found piece.
           return parentPath.add(i);
         } else if (pieces[i] is TextSpan &&
             (pieces[i] as TextSpan).children != null) {
+          // Is not leaf, search through children.
           PiecePath? childResult = recursiveFindPathOfPiece(
             (pieces[i] as TextSpan).children!,
             target,
-            parentPath,
+            parentPath.add(i),
           );
           if (childResult != null) return childResult;
         }
@@ -144,6 +148,51 @@ class EditorTextView extends StatelessWidget {
       (renderParagraph!.text as TextSpan).children!,
       piece,
       PiecePath(<int>[].lockUnsafe),
+    );
+  }
+
+  /// Find the closest cursor position for a given
+  /// offset in the rendered output.
+  Cursor? findCursorForOffset(Offset targetOffset) {
+    RenderParagraph? renderParagraph = getRenderParagraph();
+    if (renderParagraph == null) return null;
+
+    TextPosition targetPosition =
+        renderParagraph.getPositionForOffset(targetOffset);
+
+    InlineSpan? getLeafForPositionWithOffset(
+      InlineSpan parent,
+      TextPosition position,
+      Boxed<int> offset,
+    ) {
+      final Accumulator accPieceOffset = Accumulator();
+      InlineSpan? result;
+      parent.visitChildren((InlineSpan span) {
+        result = span.getSpanForPositionVisitor(
+          position,
+          accPieceOffset,
+        );
+        return result == null;
+      });
+      offset.value = position.offset - accPieceOffset.value;
+      return result;
+    }
+
+    Boxed<int> offset = Boxed(0);
+    InlineSpan? leafSpan = getLeafForPositionWithOffset(
+      renderParagraph.text,
+      targetPosition,
+      offset,
+    );
+
+    if (leafSpan == null) return null;
+
+    PiecePath leafPath = findPathOfPiece(leafSpan)!;
+
+    return Cursor(
+      blockPath: blockPath,
+      piecePath: leafPath,
+      offset: offset.value,
     );
   }
 
@@ -174,36 +223,10 @@ class EditorTextView extends StatelessWidget {
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTapUp: (event) {
-                RenderParagraph? renderParagraph = getRenderParagraph();
-                if (renderParagraph == null) return;
-                TextPosition newCaretPosition =
-                    renderParagraph.getPositionForOffset(event.localPosition);
-                InlineSpan? getSpanForPositionWithOffset(
-                  InlineSpan parent,
-                  TextPosition position,
-                  Accumulator offset,
-                ) {
-                  InlineSpan? result;
-                  parent.visitChildren((InlineSpan span) {
-                    result = span.getSpanForPositionVisitor(position, offset);
-                    return result == null;
-                  });
-                  return result;
-                }
-
-                final Accumulator offset = Accumulator();
-                InlineSpan? leafSpan = getSpanForPositionWithOffset(
-                  renderParagraph.text,
-                  newCaretPosition,
-                  offset,
-                );
-
-                if (leafSpan == null) return;
-                PiecePath? leafPath = findPathOfPiece(leafSpan);
-                editor.state = editor.state.copyWithCursor(
-                  blockPath: blockPath,
-                  piecePath: leafPath,
-                  offset: newCaretPosition.offset - offset.value,
+                Cursor? newCursor = findCursorForOffset(event.localPosition);
+                if (newCursor == null) return;
+                editor.state = editor.state.copyWith(
+                  selection: Selection.collapsed(newCursor),
                 );
                 editor.rebuild();
               },
