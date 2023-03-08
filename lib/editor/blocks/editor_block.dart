@@ -172,7 +172,7 @@ class EditorBlock {
       EditorTextView(
         block: this,
         blockPath: path,
-        selection: editor.state.selection,
+        editor: editor,
       );
 
   EditorBlock copyWith({IList<Piece>? pieces}) =>

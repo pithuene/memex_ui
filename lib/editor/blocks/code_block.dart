@@ -47,7 +47,7 @@ class CodeBlock extends EditorBlock {
           EditorTextView(
             block: this,
             blockPath: path,
-            selection: editor.state.selection,
+            editor: editor,
             style: TextStyle(
               fontFamily: MemexTypography.fontFamilyMonospace,
               color: Colors.black,

@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:memex_ui/editor/blocks/editor_block.dart';
+import 'package:memex_ui/editor/piece_path.dart';
 import 'package:memex_ui/editor/selection.dart';
+import 'package:memex_ui/memex_ui.dart';
 import 'package:memex_ui/typography.dart';
 
 /// Outline text boxes for debugging purposes.
@@ -14,13 +17,14 @@ class EditorTextView extends StatelessWidget {
   EditorTextView({
     required this.block,
     required this.blockPath,
-    required this.selection,
+    required this.editor,
     this.style,
     super.key,
   });
   final EditorBlock block;
   final BlockPath blockPath;
-  final Selection selection;
+  final Editor editor;
+  Selection get selection => editor.state.selection;
   final TextStyle? style;
 
   final GlobalKey textKey = GlobalKey();
@@ -113,6 +117,36 @@ class EditorTextView extends StatelessWidget {
     );
   }
 
+  PiecePath? findPathOfPiece(InlineSpan piece) {
+    PiecePath? recursiveFindPathOfPiece(
+      List<InlineSpan> pieces,
+      InlineSpan target,
+      PiecePath parentPath,
+    ) {
+      for (int i = 0; i < pieces.length; i++) {
+        if (identical(pieces[i], piece)) {
+          return parentPath.add(i);
+        } else if (pieces[i] is TextSpan &&
+            (pieces[i] as TextSpan).children != null) {
+          PiecePath? childResult = recursiveFindPathOfPiece(
+            (pieces[i] as TextSpan).children!,
+            target,
+            parentPath,
+          );
+          if (childResult != null) return childResult;
+        }
+      }
+      return null;
+    }
+
+    RenderParagraph? renderParagraph = getRenderParagraph();
+    return recursiveFindPathOfPiece(
+      (renderParagraph!.text as TextSpan).children!,
+      piece,
+      PiecePath(<int>[].lockUnsafe),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     scheduleTextLayoutUpdate();
@@ -135,11 +169,51 @@ class EditorTextView extends StatelessWidget {
       decoration: debugBorders,
       child: Stack(
         children: [
-          RichText(
-            key: textKey,
-            text: TextSpan(
-              children: childSpans,
-              style: style ?? MemexTypography.body,
+          MouseRegion(
+            cursor: SystemMouseCursors.text,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTapUp: (event) {
+                RenderParagraph? renderParagraph = getRenderParagraph();
+                if (renderParagraph == null) return;
+                TextPosition newCaretPosition =
+                    renderParagraph.getPositionForOffset(event.localPosition);
+                InlineSpan? getSpanForPositionWithOffset(
+                  InlineSpan parent,
+                  TextPosition position,
+                  Accumulator offset,
+                ) {
+                  InlineSpan? result;
+                  parent.visitChildren((InlineSpan span) {
+                    result = span.getSpanForPositionVisitor(position, offset);
+                    return result == null;
+                  });
+                  return result;
+                }
+
+                final Accumulator offset = Accumulator();
+                InlineSpan? leafSpan = getSpanForPositionWithOffset(
+                  renderParagraph.text,
+                  newCaretPosition,
+                  offset,
+                );
+
+                if (leafSpan == null) return;
+                PiecePath? leafPath = findPathOfPiece(leafSpan);
+                editor.state = editor.state.copyWithCursor(
+                  blockPath: blockPath,
+                  piecePath: leafPath,
+                  offset: newCaretPosition.offset - offset.value,
+                );
+                editor.rebuild();
+              },
+              child: RichText(
+                key: textKey,
+                text: TextSpan(
+                  children: childSpans,
+                  style: style ?? MemexTypography.body,
+                ),
+              ),
             ),
           ),
           StreamBuilder(

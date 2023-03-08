@@ -76,7 +76,7 @@ class BulletpointBlock extends EditorBlockWithChildren {
                 EditorTextView(
                   block: this,
                   blockPath: path,
-                  selection: editor.state.selection,
+                  editor: editor,
                 ),
                 Container(height: (children.isEmpty) ? 0.0 : fontSize * 0.5),
                 RenderBlockChildren(
