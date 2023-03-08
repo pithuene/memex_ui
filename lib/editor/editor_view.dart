@@ -35,6 +35,7 @@ class _EditorViewState extends State<EditorView> {
   @override
   Widget build(BuildContext context) {
     return RawKeyboardListener(
+      autofocus: true,
       focusNode: focusNode,
       onKey: (event) {
         if (!focusNode.hasPrimaryFocus) return;
@@ -50,7 +51,7 @@ class _EditorViewState extends State<EditorView> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(
-                width: 600,
+                width: 750,
                 child: PaddedBlock(
                   path: BlockPath.fromIterable([index]),
                   block: widget.editor.state.blocks[index],

@@ -16,6 +16,7 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MacosApp(
+        shortcuts: const {},
         home: MacosTheme(
           data: MacosThemeData(
             typography: MacosTypography(
