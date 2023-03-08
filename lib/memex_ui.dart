@@ -18,6 +18,7 @@ export './editor/markdown_serialization.dart';
 export './editor/markdown_deserialization.dart';
 
 export './filepicker/filepicker.dart';
+export 'hover_detector.dart';
 
 class MemexFocusNode extends FocusNode {
   @override

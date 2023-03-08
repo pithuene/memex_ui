@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:memex_ui/editor/block_path.dart';
+import 'package:memex_ui/editor/piece_path.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/editor/text_view.dart';
 import 'package:memex_ui/memex_ui.dart';
@@ -14,6 +15,7 @@ class MathBlock extends EditorBlock {
   MathBlock copyWith({IList<Piece>? pieces}) =>
       MathBlock(pieces ?? this.pieces);
 
+  Prop<bool> isHovered = Prop<bool>(false);
   @override
   Widget build({
     required BuildContext context,
@@ -67,14 +69,38 @@ class MathBlock extends EditorBlock {
         ),
       );
     } else {
-      return Center(
-        child: Math.tex(
-          tex,
-          textStyle: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.normal,
+      return HoverDetector(
+        builder: (context, isHovered, child) => Stack(
+          children: [
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () {
+                  editor.state = editor.state.copyWithCursor(
+                    blockPath: path,
+                    piecePath: PiecePath.fromIterable(const [0]),
+                    offset: 0,
+                  );
+                  editor.rebuild();
+                },
+                child: Container(
+                  color: isHovered
+                      ? Colors.black.withAlpha(16)
+                      : Colors.transparent,
+                ),
+              ),
+            ),
+            child!,
+          ],
+        ),
+        child: Center(
+          child: Math.tex(
+            tex,
+            textStyle: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.normal,
+            ),
+            mathStyle: MathStyle.display,
           ),
-          mathStyle: MathStyle.display,
         ),
       );
     }

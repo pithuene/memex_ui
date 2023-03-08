@@ -33,6 +33,14 @@ class _EditorViewState extends State<EditorView> {
   }
 
   @override
+  void didUpdateWidget(covariant EditorView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    widget.editor.onRebuild.stream.listen((event) {
+      setState(() {});
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return RawKeyboardListener(
       autofocus: true,
