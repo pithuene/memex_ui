@@ -26,6 +26,10 @@ class Editor {
     onRebuild.sink.add(null);
   }
 
+  void redrawCaretAndSelection() {
+    onCursorChange.sink.add(null);
+  }
+
   // Non reversable actions
   void moveCursorRightOnce(bool isSelecting) =>
       state = state.moveCursorRightOnce(isSelecting);

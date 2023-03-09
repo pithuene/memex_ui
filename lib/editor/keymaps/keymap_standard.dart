@@ -21,28 +21,34 @@ class KeymapStandard implements Keymap {
       if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
         if (event.isControlPressed) {
           editor.moveCursorRightOneWord(event.isShiftPressed);
-          return true;
+          editor.redrawCaretAndSelection();
+          return false;
         } else {
           editor.moveCursorRightOnce(event.isShiftPressed);
-          return true;
+          editor.redrawCaretAndSelection();
+          return false;
         }
       }
       if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
         if (event.isControlPressed) {
           editor.moveCursorLeftOneWord(event.isShiftPressed);
-          return true;
+          editor.redrawCaretAndSelection();
+          return false;
         } else {
           editor.moveCursorLeftOnce(event.isShiftPressed);
-          return true;
+          editor.redrawCaretAndSelection();
+          return false;
         }
       }
       if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
         editor.moveCursorDown(event.isShiftPressed);
-        return true;
+        editor.redrawCaretAndSelection();
+        return false;
       }
       if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
         editor.moveCursorUp(event.isShiftPressed);
-        return true;
+        editor.redrawCaretAndSelection();
+        return false;
       }
       if (event.logicalKey == LogicalKeyboardKey.tab) {
         if (event.isShiftPressed) {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
 import 'package:memex_ui/boxed_value.dart';
@@ -6,17 +7,17 @@ import 'package:memex_ui/editor/block_path.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:memex_ui/editor/blocks/editor_block.dart';
+import 'package:memex_ui/editor/blocks/section_block.dart';
 import 'package:memex_ui/editor/cursor.dart';
 import 'package:memex_ui/editor/piece_path.dart';
 import 'package:memex_ui/editor/selection.dart';
 import 'package:memex_ui/memex_ui.dart';
-import 'package:memex_ui/typography.dart';
 
 /// Outline text boxes for debugging purposes.
 const showDebugFrames = false;
 
-class EditorTextView extends StatelessWidget {
-  EditorTextView({
+class EditorTextView extends StatefulWidget {
+  const EditorTextView({
     required this.block,
     required this.blockPath,
     required this.editor,
@@ -26,16 +27,56 @@ class EditorTextView extends StatelessWidget {
   final EditorBlock block;
   final BlockPath blockPath;
   final Editor editor;
-  Selection get selection => editor.state.selection;
   final TextStyle? style;
 
-  final GlobalKey textKey = GlobalKey();
+  Selection get selection => editor.state.selection;
+  bool get isCursorInThisBlock => selection.end.blockPath == blockPath;
 
+  @override
+  State<StatefulWidget> createState() => _EditorTextViewState();
+}
+
+class _EditorTextViewState extends State<EditorTextView> {
   Rect caretRect = Rect.zero;
   StreamController<void> caretChanged = StreamController();
   List<TextBox> selectionBoxes = [];
+  final GlobalKey textKey = GlobalKey();
 
-  bool get isCursorInThisBlock => selection.end.blockPath == blockPath;
+  StreamSubscription<void>? onCursorChangeSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    onCursorChangeSubscription = widget.editor.onCursorChange.stream.listen(
+      (event) => updateCursorAndSelection(),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant EditorTextView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    onCursorChangeSubscription?.cancel();
+    onCursorChangeSubscription = widget.editor.onCursorChange.stream.listen(
+      (event) => updateCursorAndSelection(),
+    );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    onCursorChangeSubscription?.cancel();
+  }
+
+  void updateCursorAndSelection() {
+    /*Rect newCaretRect = getCaretRect();
+      if (newCaretRect != caretRect) {
+        caretRect = newCaretRect;
+        caretChanged.sink.add(null);
+      }*/
+    caretRect = getCaretRect();
+    selectionBoxes = getSelectionBoxes();
+    caretChanged.sink.add(null);
+  }
 
   /// To calculate where to paint the caret,
   /// the text must have already been layed out.
@@ -47,14 +88,7 @@ class EditorTextView extends StatelessWidget {
   /// and only the caret painter is rebuilt using a [StreamBuilder].
   void scheduleTextLayoutUpdate() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      /*Rect newCaretRect = getCaretRect();
-      if (newCaretRect != caretRect) {
-        caretRect = newCaretRect;
-        caretChanged.sink.add(null);
-      }*/
-      caretRect = getCaretRect();
-      selectionBoxes = getSelectionBoxes();
-      caretChanged.sink.add(null);
+      updateCursorAndSelection();
     });
   }
 
@@ -65,26 +99,26 @@ class EditorTextView extends StatelessWidget {
   }
 
   List<TextBox> getSelectionBoxes() {
-    if (selection.isEmpty) return [];
-    if (!selection.containsBlock(blockPath)) return [];
+    if (widget.selection.isEmpty) return [];
+    if (!widget.selection.containsBlock(widget.blockPath)) return [];
     RenderParagraph? renderParagraph = getRenderParagraph();
     if (renderParagraph == null) return [];
 
-    int baseOffset = (selection.first.blockPath == blockPath)
-        ? block.getCursorOffset(
-            selection.first,
-            isCursorInThisBlock,
-            selection.end,
+    int baseOffset = (widget.selection.first.blockPath == widget.blockPath)
+        ? widget.block.getCursorOffset(
+            widget.selection.first,
+            widget.isCursorInThisBlock,
+            widget.selection.end,
           ) // Starts in this block
         : 0; // Starts before this block
 
-    int extentOffset = (selection.last.blockPath == blockPath)
-        ? block.getCursorOffset(
-            selection.last,
-            isCursorInThisBlock,
-            selection.end,
+    int extentOffset = (widget.selection.last.blockPath == widget.blockPath)
+        ? widget.block.getCursorOffset(
+            widget.selection.last,
+            widget.isCursorInThisBlock,
+            widget.selection.end,
           ) // Ends in this block
-        : block.getTotalTextLength() - 1; // Ends after this block
+        : widget.block.getTotalTextLength() - 1; // Ends after this block
 
     final boxes = renderParagraph.getBoxesForSelection(
       TextSelection(
@@ -96,13 +130,13 @@ class EditorTextView extends StatelessWidget {
   }
 
   Rect getCaretRect() {
-    if (!isCursorInThisBlock) return Rect.zero;
+    if (!widget.isCursorInThisBlock) return Rect.zero;
     RenderParagraph? renderParagraph = getRenderParagraph();
     if (renderParagraph == null) return Rect.zero;
-    int offsetIndex = block.getCursorOffset(
-      selection.end,
+    int offsetIndex = widget.block.getCursorOffset(
+      widget.selection.end,
       true,
-      selection.end,
+      widget.selection.end,
     );
     TextPosition position = TextPosition(offset: offsetIndex);
     Offset offset = renderParagraph.getOffsetForCaret(
@@ -190,7 +224,7 @@ class EditorTextView extends StatelessWidget {
     PiecePath leafPath = findPathOfPiece(leafSpan)!;
 
     return Cursor(
-      blockPath: blockPath,
+      blockPath: widget.blockPath,
       piecePath: leafPath,
       offset: offset.value,
     );
@@ -206,10 +240,10 @@ class EditorTextView extends StatelessWidget {
     }
 
     List<InlineSpan> childSpans = [];
-    for (int i = 0; i < block.pieces.length; i++) {
+    for (int i = 0; i < widget.block.pieces.length; i++) {
       childSpans.add(
-        block.pieces[i].toSpan(
-          isCursorInThisBlock && selection.end.piecePath[0] == i,
+        widget.block.pieces[i].toSpan(
+          widget.isCursorInThisBlock && widget.selection.end.piecePath[0] == i,
         ),
       );
     }
@@ -218,27 +252,6 @@ class EditorTextView extends StatelessWidget {
       decoration: debugBorders,
       child: Stack(
         children: [
-          MouseRegion(
-            cursor: SystemMouseCursors.text,
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTapUp: (event) {
-                Cursor? newCursor = findCursorForOffset(event.localPosition);
-                if (newCursor == null) return;
-                editor.state = editor.state.copyWith(
-                  selection: Selection.collapsed(newCursor),
-                );
-                editor.rebuild();
-              },
-              child: RichText(
-                key: textKey,
-                text: TextSpan(
-                  children: childSpans,
-                  style: style ?? MemexTypography.body,
-                ),
-              ),
-            ),
-          ),
           StreamBuilder(
             stream: caretChanged.stream,
             builder: (context, snapshot) => CustomPaint(
@@ -247,6 +260,27 @@ class EditorTextView extends StatelessWidget {
                 caretRect: caretRect,
                 selectionColor: Colors.lightBlue.withOpacity(0.5),
                 selectionBoxes: selectionBoxes,
+              ),
+            ),
+          ),
+          MouseRegion(
+            cursor: SystemMouseCursors.text,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTapUp: (event) {
+                Cursor? newCursor = findCursorForOffset(event.localPosition);
+                if (newCursor == null) return;
+                widget.editor.state = widget.editor.state.copyWith(
+                  selection: Selection.collapsed(newCursor),
+                );
+                widget.editor.redrawCaretAndSelection();
+              },
+              child: RichText(
+                key: textKey,
+                text: TextSpan(
+                  children: childSpans,
+                  style: widget.style ?? MemexTypography.body,
+                ),
               ),
             ),
           ),
