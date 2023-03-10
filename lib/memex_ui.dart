@@ -9,7 +9,6 @@ export './state.dart';
 
 export './memex_app.dart';
 export 'typography.dart';
-export 'package:macos_ui/src/layout/toolbar/toolbar.dart';
 export './table/table.dart';
 export './editor/editor.dart';
 export './editor/editor_state.dart';
@@ -19,6 +18,9 @@ export './editor/markdown_deserialization.dart';
 
 export './filepicker/filepicker.dart';
 export 'hover_detector.dart';
+
+export 'package:macos_ui/src/layout/toolbar/toolbar.dart';
+export 'package:macos_ui/src/layout/sidebar/sidebar.dart';
 
 class MemexFocusNode extends FocusNode {
   @override
