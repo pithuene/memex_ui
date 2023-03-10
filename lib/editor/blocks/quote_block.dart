@@ -45,13 +45,15 @@ class QuoteBlock extends EditorBlock {
               width: MemexTypography.baseFontSize * 0.2,
             ),
             Container(width: MemexTypography.baseFontSize * 0.5),
-            EditorTextView(
-              block: this,
-              blockPath: path,
-              editor: editor,
-              style: TextStyle(
-                fontFamily: MemexTypography.fontFamilyMonospace,
-                color: Colors.black,
+            Expanded(
+              child: EditorTextView(
+                block: this,
+                blockPath: path,
+                editor: editor,
+                style: TextStyle(
+                  fontFamily: MemexTypography.fontFamilyMonospace,
+                  color: Colors.black,
+                ),
               ),
             ),
           ],
