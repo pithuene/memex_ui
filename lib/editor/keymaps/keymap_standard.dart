@@ -1,5 +1,8 @@
 import 'package:flutter/services.dart';
+import 'package:memex_ui/editor/content_type_popup_menu.dart';
+import 'package:memex_ui/editor/content_type_popup_state.dart';
 import 'package:memex_ui/editor/keymaps/keymap.dart';
+import 'package:memex_ui/editor/piece_path.dart';
 import 'package:memex_ui/memex_ui.dart';
 
 class KeymapStandard implements Keymap {
@@ -8,6 +11,55 @@ class KeymapStandard implements Keymap {
   @override
   bool handle(Editor editor, RawKeyEvent event) {
     if (event.runtimeType == RawKeyDownEvent) {
+      if (editor.state.contentTypePopupState.isOpen) {
+        // TODO: Only rebuild the popup menu
+        if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+          editor.state = editor.state.copyWith(
+            contentTypePopupState: editor.state.contentTypePopupState.copyWith(
+              index: editor.state.contentTypePopupState.index + 1,
+            ),
+          );
+          return true;
+        }
+        if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+          editor.state = editor.state.copyWith(
+            contentTypePopupState: editor.state.contentTypePopupState.copyWith(
+              index: editor.state.contentTypePopupState.index - 1,
+            ),
+          );
+          return true;
+        }
+        if (event.logicalKey == LogicalKeyboardKey.enter) {
+          editor.commitUndoState();
+          editor.state = editor.state
+              .replaceBlockAtPath(
+                editor.state.cursor.blockPath,
+                (block) => ContentTypePopupMenu
+                    .contentTypes[editor.state.contentTypePopupState.index]
+                    .block,
+              )
+              .copyWithCursor(
+                blockPath: editor.state.cursor.blockPath,
+                piecePath: PiecePath.fromIterable(const [0]),
+                offset: 0,
+              )
+              .copyWith(
+                  contentTypePopupState: const ContentTypePopupState.closed());
+          editor.rebuild();
+          return true;
+        }
+        if (event.logicalKey == LogicalKeyboardKey.escape) {
+          editor.state = editor.state.copyWith(
+            contentTypePopupState: editor.state.contentTypePopupState.copyWith(
+              isOpen: false,
+              index: 0,
+            ),
+          );
+          return true;
+        }
+        return false;
+      }
+
       if (event.logicalKey == LogicalKeyboardKey.keyS &&
           event.isControlPressed) {
         // Ignore file save shortcut

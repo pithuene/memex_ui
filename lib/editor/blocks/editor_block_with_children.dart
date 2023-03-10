@@ -123,7 +123,7 @@ class RenderBlockChildren extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: children.mapIndexedAndLast((index, child, last) {
           BlockPath childBlockPath = parentPath.add(index);
           return PaddedBlock(

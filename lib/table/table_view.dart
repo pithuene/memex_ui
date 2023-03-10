@@ -12,10 +12,15 @@ class TableView<T> extends StatelessWidget {
     this.scrollController,
     required this.rowHeight,
     required this.dataSource,
+    this.showEvenRowHighlight = true,
   });
 
   /// The height of every row.
   final double rowHeight;
+
+  /// Whether to highlight every other row for
+  /// better readability in large tables.
+  final bool showEvenRowHighlight;
 
   /// Optionally override the scrollController.
   final ScrollController? scrollController;
@@ -60,6 +65,7 @@ class TableView<T> extends StatelessWidget {
                     columnWidths: columnWidths,
                     colDefs: dataSource.colDefs,
                     row: dataSource.getRowValue(index),
+                    showEvenRowHighlight: showEvenRowHighlight,
                   );
                 },
               ),

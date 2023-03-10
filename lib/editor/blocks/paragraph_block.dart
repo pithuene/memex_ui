@@ -1,8 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_portal/flutter_portal.dart';
 import 'package:memex_ui/editor/blocks/bulletpoint_block.dart';
 import 'package:memex_ui/editor/blocks/code_block.dart';
 import 'package:memex_ui/editor/blocks/section_block.dart';
 import 'package:flutter/widgets.dart';
 import 'package:memex_ui/editor/block_path.dart';
+import 'package:memex_ui/editor/content_type_popup_menu.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/editor/text_view.dart';
 import 'package:memex_ui/memex_ui.dart';
@@ -44,9 +47,27 @@ class ParagraphBlock extends EditorBlock {
     required BlockPath path,
     required Editor editor,
   }) =>
-      EditorTextView(
-        block: this,
-        blockPath: path,
-        editor: editor,
+      PortalTarget(
+        portalFollower: ContentTypePopupMenu(
+          editor: editor,
+          path: path,
+        ),
+        visible: editor.state.contentTypePopupState.isOpen &&
+            editor.state.selection.end.blockPath == path,
+        anchor: const Aligned(
+          follower: Alignment.bottomLeft,
+          target: Alignment.topLeft,
+          widthFactor: 0.5,
+          backup: Aligned(
+            follower: Alignment.topLeft,
+            target: Alignment.bottomLeft,
+            widthFactor: 0.5,
+          ),
+        ),
+        child: EditorTextView(
+          block: this,
+          blockPath: path,
+          editor: editor,
+        ),
       );
 }

@@ -15,7 +15,6 @@ class MathBlock extends EditorBlock {
   MathBlock copyWith({IList<Piece>? pieces}) =>
       MathBlock(pieces ?? this.pieces);
 
-  Prop<bool> isHovered = Prop<bool>(false);
   @override
   Widget build({
     required BuildContext context,

@@ -4,6 +4,7 @@ import 'package:memex_ui/editor/blocks/code_block.dart';
 import 'package:memex_ui/editor/blocks/editor_block.dart';
 import 'package:memex_ui/editor/blocks/editor_block_with_children.dart';
 import 'package:memex_ui/editor/blocks/paragraph_block.dart';
+import 'package:memex_ui/editor/content_type_popup_state.dart';
 import 'package:memex_ui/editor/piece_path.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/editor/selection.dart';
@@ -19,14 +20,21 @@ class EditorState {
 
   late final Selection selection;
 
+  final ContentTypePopupState contentTypePopupState;
+
   Cursor get cursor => selection.end;
 
   EditorState({
     required this.blocks,
     required this.selection,
+    this.contentTypePopupState = const ContentTypePopupState(
+      isOpen: false,
+      index: 0,
+    ),
   });
 
-  EditorState.empty() {
+  EditorState.empty()
+      : contentTypePopupState = const ContentTypePopupState.closed() {
     blocks = <EditorBlock>[
       ParagraphBlock.withInitialContent(),
     ].lockUnsafe;
@@ -47,10 +55,13 @@ class EditorState {
   EditorState copyWith({
     IList<EditorBlock>? blocks,
     Selection? selection,
+    ContentTypePopupState? contentTypePopupState,
   }) {
     return EditorState(
       blocks: blocks ?? this.blocks,
       selection: selection ?? this.selection,
+      contentTypePopupState:
+          contentTypePopupState ?? this.contentTypePopupState,
     );
   }
 
@@ -833,6 +844,17 @@ class EditorState {
   EditorState append(String newContent) {
     if (!selection.isEmpty) {
       return deleteSelection().append(newContent);
+    }
+
+    final EditorBlock cursorBlock = getCursorBlock(cursor);
+    if (!contentTypePopupState.isOpen &&
+        cursorBlock is ParagraphBlock &&
+        cursorBlock.pieces.length == 1 &&
+        cursorBlock.pieces.single == Piece.sentinel &&
+        newContent == "/") {
+      return copyWith(
+        contentTypePopupState: const ContentTypePopupState.opened(),
+      ).append(newContent);
     }
 
     if (cursor.isAtPieceStart) {

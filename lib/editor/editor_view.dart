@@ -42,33 +42,37 @@ class _EditorViewState extends State<EditorView> {
 
   @override
   Widget build(BuildContext context) {
-    return RawKeyboardListener(
-      autofocus: true,
-      focusNode: focusNode,
-      onKey: (event) {
-        if (!focusNode.hasPrimaryFocus) return;
-        bool needRebuild = widget.keymap.handle(widget.editor, event);
-        if (needRebuild) setState(() {});
-      },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(20),
-        controller: widget.scrollController,
-        itemCount: widget.editor.state.blocks.length,
-        itemBuilder: (context, index) {
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: 750,
-                child: PaddedBlock(
-                  path: BlockPath.fromIterable([index]),
-                  block: widget.editor.state.blocks[index],
-                  editor: widget.editor,
-                ),
-              ),
-            ],
-          );
+    return MouseRegion(
+      onEnter: (event) => focusNode.requestFocus(),
+      opaque: false,
+      child: RawKeyboardListener(
+        autofocus: true,
+        focusNode: focusNode,
+        onKey: (event) {
+          if (!focusNode.hasPrimaryFocus) return;
+          bool needRebuild = widget.keymap.handle(widget.editor, event);
+          if (needRebuild) setState(() {});
         },
+        child: ListView.builder(
+          padding: const EdgeInsets.all(20),
+          controller: widget.scrollController,
+          itemCount: widget.editor.state.blocks.length,
+          itemBuilder: (context, index) {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 750,
+                  child: PaddedBlock(
+                    path: BlockPath.fromIterable([index]),
+                    block: widget.editor.state.blocks[index],
+                    editor: widget.editor,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

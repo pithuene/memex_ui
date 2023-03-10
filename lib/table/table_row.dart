@@ -14,7 +14,8 @@ class TableViewRow<T> extends StatelessWidget {
     required this.row,
     required this.rowHeight,
     required this.data,
-  }) : hasEvenRowHighlight = index % 2 == 1;
+    bool showEvenRowHighlight = true,
+  }) : hasEvenRowHighlight = (showEvenRowHighlight) ? index % 2 == 1 : false;
 
   final Map<int, TableColumnWidth> columnWidths;
   final List<ColumnDefinition<T>> colDefs;
