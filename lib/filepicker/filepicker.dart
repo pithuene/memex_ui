@@ -1,31 +1,11 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-
-void openOverlay(
-    BuildContext context, Widget Function(BuildContext, OverlayEntry) builder) {
-  OverlayState overlayState = Overlay.of(context)!;
-  OverlayEntry? overlayEntry;
-  overlayEntry = OverlayEntry(
-    builder: (context) => ColoredBox(
-      color: const Color(0x55000000),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: 8.0,
-          sigmaY: 8.0,
-        ),
-        child: Center(child: builder(context, overlayEntry!)),
-      ),
-    ),
-  );
-  overlayState.insert(overlayEntry);
-}
+import 'package:memex_ui/overlay.dart';
 
 Future<File> openFilepicker(BuildContext context) async {
   var completer = Completer<File>();
@@ -46,7 +26,8 @@ Future<File> openFilepicker(BuildContext context) async {
 class Filepicker extends StatefulWidget {
   final OverlayEntry overlayEntry;
   final void Function(File) onSelect;
-  Filepicker({
+  const Filepicker({
+    super.key,
     required this.overlayEntry,
     required this.onSelect,
   });
