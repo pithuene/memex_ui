@@ -12,14 +12,14 @@ class KeymapStandard implements Keymap {
   bool handle(Editor editor, RawKeyEvent event) {
     if (event.runtimeType == RawKeyDownEvent) {
       if (editor.state.contentTypePopupState.isOpen) {
-        // TODO: Only rebuild the popup menu
         if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
           editor.state = editor.state.copyWith(
             contentTypePopupState: editor.state.contentTypePopupState.copyWith(
               index: editor.state.contentTypePopupState.index + 1,
             ),
           );
-          return true;
+          editor.redrawContentTypeMenu();
+          return false;
         }
         if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
           editor.state = editor.state.copyWith(
@@ -27,7 +27,8 @@ class KeymapStandard implements Keymap {
               index: editor.state.contentTypePopupState.index - 1,
             ),
           );
-          return true;
+          editor.redrawContentTypeMenu();
+          return false;
         }
         if (event.logicalKey == LogicalKeyboardKey.enter) {
           editor.commitUndoState();
@@ -45,7 +46,6 @@ class KeymapStandard implements Keymap {
               )
               .copyWith(
                   contentTypePopupState: const ContentTypePopupState.closed());
-          editor.rebuild();
           return true;
         }
         if (event.logicalKey == LogicalKeyboardKey.escape) {
@@ -55,7 +55,8 @@ class KeymapStandard implements Keymap {
               index: 0,
             ),
           );
-          return true;
+          editor.redrawContentTypeMenu();
+          return false;
         }
         return false;
       }

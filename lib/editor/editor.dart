@@ -19,6 +19,9 @@ class Editor {
   /// the editor on events.
   StreamController<void> onRebuild = StreamController.broadcast();
 
+  /// Emits when the [ContentTypePopupMenu] needs to be rebuilt.
+  StreamController<void> onContentTypeMenuChange = StreamController.broadcast();
+
   /// Trigger a rebuild of the editor.
   /// Call this after editing the [EditorState] from outside
   /// the [Editor] operations to show changes.
@@ -28,6 +31,10 @@ class Editor {
 
   void redrawCaretAndSelection() {
     onCursorChange.sink.add(null);
+  }
+
+  void redrawContentTypeMenu() {
+    onContentTypeMenuChange.sink.add(null);
   }
 
   // Non reversable actions
