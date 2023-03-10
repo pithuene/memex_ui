@@ -275,6 +275,28 @@ class _EditorTextViewState extends State<EditorTextView> {
                 );
                 widget.editor.redrawCaretAndSelection();
               },
+              onPanStart: (event) {
+                if (event.kind != PointerDeviceKind.mouse) return;
+                Cursor? newCursor = findCursorForOffset(event.localPosition);
+                if (newCursor == null) return;
+                widget.editor.state = widget.editor.state.copyWith(
+                  selection: Selection(
+                    start: newCursor,
+                    end: newCursor,
+                  ),
+                );
+                widget.editor.redrawCaretAndSelection();
+              },
+              onPanUpdate: (event) {
+                if (widget.editor.state.selection.isEmpty) return;
+                Cursor? newCursor = findCursorForOffset(event.localPosition);
+                if (newCursor == null) return;
+                widget.editor.state = widget.editor.state.copyWith(
+                  selection:
+                      widget.editor.state.selection.copyWithEnd(newCursor),
+                );
+                widget.editor.redrawCaretAndSelection();
+              },
               child: RichText(
                 key: textKey,
                 text: TextSpan(
