@@ -696,18 +696,19 @@ class EditorState {
       Cursor selectionFirst = selection.first;
       Cursor selectionLast = selection.last;
 
-      if (selectionFirst.piecePath ==
-              selectionLast.piecePath.previous(selectionBlock) &&
-          selectionFirst.offset == 0 &&
-          selectionLast.offset == 0) {
-        // Selection contains exactly the piece selectionFirst.pieceIndex
-        // and the piece will be empty.
+      final bool startAndEndPiecesAreAdjacent = selectionFirst.piecePath ==
+          selectionLast.piecePath.previous(selectionBlock);
+      final bool selectionContainsExactlyStartPiece =
+          startAndEndPiecesAreAdjacent &&
+              selectionFirst.offset == 0 &&
+              selectionLast.offset == 0;
+      if (selectionContainsExactlyStartPiece) {
         return replaceBlockAtPath(
           selectionFirst.blockPath,
           (block) => block.removePiece(
             selectionFirst.piecePath,
           ),
-        ).collapseSelection();
+        ).copyWith(selection: Selection.collapsed(selectionFirst));
       }
 
       if (selectionFirst.piecePath == selectionLast.piecePath) {
