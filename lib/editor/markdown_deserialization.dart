@@ -119,14 +119,14 @@ IList<Piece> _parseContent({
               isMonospace: isMonospace,
             );
           } else {
-            print("Unknown quote type $quoteType");
+            throw FormatException("Unknown quote type $quoteType");
           }
 
-          if (quotePiece != null) pieces.add(quotePiece);
+          pieces.add(quotePiece);
           pieces.addAll(
             _parseContent(content: jsonPiece["c"][1]),
           );
-          if (quotePiece != null) pieces.add(quotePiece);
+          pieces.add(quotePiece);
         }
         break;
       case "Link":
@@ -160,9 +160,9 @@ IList<Piece> _parseContent({
         break;
       default:
         {
-          // TODO: Return an error
-          print("Failed to parse content piece of type ${jsonPiece["t"]}");
           print(jsonPiece);
+          throw FormatException(
+              "Failed to parse content piece of type ${jsonPiece["t"]}");
         }
         break;
     }
@@ -256,7 +256,7 @@ List<EditorBlock> _parseBlock(Map jsonBlock) {
           );
           if (i < (jsonBlock["c"] as List).length - 1) {
             // Not last
-            pieces.add(Piece(text: "\n\n"));
+            pieces.add(const Piece(text: "\n\n"));
           }
         }
         pieces.add(Piece.sentinel);
@@ -268,17 +268,23 @@ List<EditorBlock> _parseBlock(Map jsonBlock) {
       return _parseBulletList(jsonBlock["c"]);
     default:
       {
-        // TODO: Return an error
-        print("Failed to parse block of type $type");
         print(jsonBlock.toString());
+        throw FormatException("Failed to parse block of type $type");
         return [];
       }
   }
 }
 
-Future<EditorState> parseMarkdown(File markdownFile) async {
-  Map json = await pandocMarkdownToJson(markdownFile);
-  List<EditorBlock> blocks = _parseBlocks((json["blocks"] as List));
+Future<EditorState?> parseMarkdown(File markdownFile) async {
+  List<EditorBlock> blocks = [];
+  try {
+    Map json = await pandocMarkdownToJson(markdownFile);
+    blocks = _parseBlocks((json["blocks"] as List));
+  } catch (e) {
+    print("Markdown deserialization error when parsing ${markdownFile.path}.");
+    print(e);
+    return null;
+  }
 
   if (blocks.isEmpty) {
     // Make sure the document is never empty.
