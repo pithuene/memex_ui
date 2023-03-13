@@ -8,7 +8,7 @@ import 'package:memex_ui/editor/blocks/editor_block.dart';
 import 'package:memex_ui/editor/blocks/math_block.dart';
 import 'package:memex_ui/editor/blocks/paragraph_block.dart';
 import 'package:memex_ui/editor/blocks/quote_block.dart';
-import 'package:memex_ui/editor/blocks/section_block.dart';
+import 'package:memex_ui/editor/blocks/heading_block.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/memex_ui.dart';
 
@@ -244,7 +244,7 @@ dynamic _serializeEditorBlock(EditorBlock block) {
         "t": "Para",
         "c": _serializeTextContent(block.pieces),
       };
-    case SectionBlock:
+    case HeadingBlock:
       return {
         "t": "Header",
         "c": [

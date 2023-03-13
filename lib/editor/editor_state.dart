@@ -540,20 +540,20 @@ class EditorState {
   }
 
   EditorState markdownShortcutH1() {
-    EditorBlock newSectionBlock =
-        (getCursorBlock(cursor) as ParagraphBlock).turnIntoSectionBlock();
+    EditorBlock newHeadingBlock =
+        (getCursorBlock(cursor) as ParagraphBlock).turnIntoHeadingBlock();
 
     // Remove the first piece, which triggered the transformation.
-    newSectionBlock = newSectionBlock.replacePieces(
+    newHeadingBlock = newHeadingBlock.replacePieces(
       (pieces) => pieces.removeAt(0),
     );
 
-    final withSectionBlock = replaceBlockWithBlocks(
+    final withHeadingBlock = replaceBlockWithBlocks(
       cursor.blockPath,
-      <EditorBlock>[newSectionBlock].lockUnsafe,
+      <EditorBlock>[newHeadingBlock].lockUnsafe,
     );
 
-    return withSectionBlock.copyWithCursor(
+    return withHeadingBlock.copyWithCursor(
       piecePath: PiecePath.fromIterable(const [0]),
       offset: 0,
     );
@@ -873,7 +873,7 @@ class EditorState {
             getCursorBlock(cursor).runtimeType == ParagraphBlock &&
             getCursorPreviousPiece(cursor).text.trim() == "#") {
           // Space after a # at the start of a [ParagraphBlock]
-          // => Transform this [ParagraphBlock] into a [SectionBlock].
+          // => Transform this [ParagraphBlock] into a [HeadingBlock].
           return markdownShortcutH1();
         }
         if (newContent == " " &&

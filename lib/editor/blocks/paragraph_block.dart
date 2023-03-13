@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_portal/flutter_portal.dart';
 import 'package:memex_ui/editor/blocks/bulletpoint_block.dart';
 import 'package:memex_ui/editor/blocks/code_block.dart';
-import 'package:memex_ui/editor/blocks/section_block.dart';
+import 'package:memex_ui/editor/blocks/heading_block.dart';
 import 'package:flutter/widgets.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/content_type_popup_menu.dart';
@@ -22,7 +22,7 @@ class ParagraphBlock extends EditorBlock {
   EditorBlock copyWith({IList<Piece>? pieces}) =>
       ParagraphBlock(pieces ?? this.pieces);
 
-  SectionBlock turnIntoSectionBlock() => SectionBlock(pieces);
+  HeadingBlock turnIntoHeadingBlock() => HeadingBlock(pieces);
 
   BulletpointBlock turnIntoBulletpointBlock() =>
       BulletpointBlock(pieces, <EditorBlock>[].lockUnsafe);

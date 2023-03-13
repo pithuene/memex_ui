@@ -6,7 +6,7 @@ import 'package:memex_ui/editor/blocks/math_block.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/blocks/paragraph_block.dart';
 import 'package:memex_ui/editor/blocks/quote_block.dart';
-import 'package:memex_ui/editor/blocks/section_block.dart';
+import 'package:memex_ui/editor/blocks/heading_block.dart';
 import 'package:memex_ui/editor/content_type_popup_state.dart';
 import 'package:memex_ui/editor/piece_path.dart';
 import 'package:memex_ui/editor/pieces.dart';
@@ -24,8 +24,8 @@ class BlockContentType {
 class ContentTypePopupMenu extends StatelessWidget {
   static List<BlockContentType> contentTypes = [
     BlockContentType(
-      "Section Block",
-      SectionBlock(<Piece>[Piece.sentinel].lockUnsafe),
+      "Heading Block",
+      HeadingBlock(<Piece>[Piece.sentinel].lockUnsafe),
     ),
     BlockContentType(
       "Math Block",

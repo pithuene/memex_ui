@@ -8,7 +8,7 @@ import 'package:memex_ui/editor/blocks/editor_block.dart';
 import 'package:memex_ui/editor/blocks/math_block.dart';
 import 'package:memex_ui/editor/blocks/paragraph_block.dart';
 import 'package:memex_ui/editor/blocks/quote_block.dart';
-import 'package:memex_ui/editor/blocks/section_block.dart';
+import 'package:memex_ui/editor/blocks/heading_block.dart';
 import 'package:memex_ui/editor/cursor.dart';
 import 'package:memex_ui/editor/piece_path.dart';
 import 'package:memex_ui/editor/pieces.dart';
@@ -204,7 +204,7 @@ List<EditorBlock> _parseBlock(Map jsonBlock) {
   switch (type) {
     case "Header":
       return [
-        SectionBlock(
+        HeadingBlock(
           _parseContent(
             content: jsonBlock["c"][2],
             appendSentinel: true,
