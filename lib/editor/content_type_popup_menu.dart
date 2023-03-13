@@ -24,8 +24,16 @@ class BlockContentType {
 class ContentTypePopupMenu extends StatelessWidget {
   static List<BlockContentType> contentTypes = [
     BlockContentType(
-      "Heading Block",
-      HeadingBlock(<Piece>[Piece.sentinel].lockUnsafe),
+      "Heading 1",
+      HeadingBlock(1, <Piece>[Piece.sentinel].lockUnsafe),
+    ),
+    BlockContentType(
+      "Heading 2",
+      HeadingBlock(2, <Piece>[Piece.sentinel].lockUnsafe),
+    ),
+    BlockContentType(
+      "Heading 3",
+      HeadingBlock(3, <Piece>[Piece.sentinel].lockUnsafe),
     ),
     BlockContentType(
       "Math Block",

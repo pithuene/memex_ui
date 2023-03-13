@@ -248,7 +248,7 @@ dynamic _serializeEditorBlock(EditorBlock block) {
       return {
         "t": "Header",
         "c": [
-          1,
+          (block as HeadingBlock).level,
           ["", [], []],
           _serializeTextContent(block.pieces)
         ]

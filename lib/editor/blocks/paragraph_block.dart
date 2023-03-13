@@ -22,7 +22,7 @@ class ParagraphBlock extends EditorBlock {
   EditorBlock copyWith({IList<Piece>? pieces}) =>
       ParagraphBlock(pieces ?? this.pieces);
 
-  HeadingBlock turnIntoHeadingBlock() => HeadingBlock(pieces);
+  HeadingBlock turnIntoHeadingBlock(int level) => HeadingBlock(level, pieces);
 
   BulletpointBlock turnIntoBulletpointBlock() =>
       BulletpointBlock(pieces, <EditorBlock>[].lockUnsafe);

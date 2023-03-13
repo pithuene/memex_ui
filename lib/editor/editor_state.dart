@@ -541,7 +541,7 @@ class EditorState {
 
   EditorState markdownShortcutH1() {
     EditorBlock newHeadingBlock =
-        (getCursorBlock(cursor) as ParagraphBlock).turnIntoHeadingBlock();
+        (getCursorBlock(cursor) as ParagraphBlock).turnIntoHeadingBlock(1);
 
     // Remove the first piece, which triggered the transformation.
     newHeadingBlock = newHeadingBlock.replacePieces(

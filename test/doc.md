@@ -27,6 +27,10 @@ Something both **bold and *italic* nested** and **how *about****interleaved*.
 $$\sum_{i = 0}^n n^2$$
 
 Some inline math: $a \cdot b + c$.
+
+Subsection
+----------
+
 Some inline `code` and **bold `code` too**.
 
 ``` java
@@ -34,5 +38,9 @@ public static void main(String args[]) {
   System.out.println("Hello World");
 }
 ```
+
+### And finally, an H3
+
+With some content.
 
 [^1]: My footnote.

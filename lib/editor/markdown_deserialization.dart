@@ -205,13 +205,13 @@ List<EditorBlock> _parseBlock(Map jsonBlock) {
     case "Header":
       return [
         HeadingBlock(
+          jsonBlock["c"][0],
           _parseContent(
             content: jsonBlock["c"][2],
             appendSentinel: true,
           ),
         )
       ];
-    //final level = jsonBlock["c"][0];
     case "Para":
       if (jsonBlock["c"][0]["t"] == "Math" &&
           jsonBlock["c"][0]["c"][0]["t"] == "DisplayMath") {
