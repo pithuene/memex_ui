@@ -5,6 +5,7 @@ class MemexTypography {
   static String fontFamilyMonospace = "JetBrainsMono Nerd Font";
   static double baseFontSize = 16;
   static Color textColor = const Color(0xFF000000);
+  static Color selectionColor = const Color(0x55007aFF);
 
   static TextStyle body = TextStyle(
     fontFamily: fontFamily,
