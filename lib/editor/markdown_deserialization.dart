@@ -280,6 +280,11 @@ Future<EditorState> parseMarkdown(File markdownFile) async {
   Map json = await pandocMarkdownToJson(markdownFile);
   List<EditorBlock> blocks = _parseBlocks((json["blocks"] as List));
 
+  if (blocks.isEmpty) {
+    // Make sure the document is never empty.
+    blocks.add(ParagraphBlock(<Piece>[Piece.sentinel].lockUnsafe));
+  }
+
   return EditorState(
     blocks: blocks.toIList(),
     selection: const Selection.collapsed(Cursor(
