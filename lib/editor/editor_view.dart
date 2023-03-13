@@ -59,21 +59,16 @@ class _EditorViewState extends State<EditorView> {
           controller: widget.scrollController,
           itemCount: widget.editor.state.blocks.length,
           itemBuilder: (context, index) {
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Flexible(
-                  child: Container(
-                    constraints: const BoxConstraints(maxWidth: 750),
-                    alignment: Alignment.topLeft,
-                    child: PaddedBlock(
-                      path: BlockPath.fromIterable([index]),
-                      block: widget.editor.state.blocks[index],
-                      editor: widget.editor,
-                    ),
-                  ),
+            return Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 750),
+                alignment: Alignment.topLeft,
+                child: PaddedBlock(
+                  path: BlockPath.fromIterable([index]),
+                  block: widget.editor.state.blocks[index],
+                  editor: widget.editor,
                 ),
-              ],
+              ),
             );
           },
         ),
