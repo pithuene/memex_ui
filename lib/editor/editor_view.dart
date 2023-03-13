@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/rendering.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/blocks/editor_block_with_children.dart';
 import 'package:memex_ui/editor/keymaps/keymap.dart';
@@ -61,12 +62,15 @@ class _EditorViewState extends State<EditorView> {
             return Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
-                  width: 750,
-                  child: PaddedBlock(
-                    path: BlockPath.fromIterable([index]),
-                    block: widget.editor.state.blocks[index],
-                    editor: widget.editor,
+                Flexible(
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 750),
+                    alignment: Alignment.topLeft,
+                    child: PaddedBlock(
+                      path: BlockPath.fromIterable([index]),
+                      block: widget.editor.state.blocks[index],
+                      editor: widget.editor,
+                    ),
                   ),
                 ),
               ],
