@@ -3,13 +3,18 @@ import 'package:flutter_portal/flutter_portal.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:memex_ui/typography.dart';
 
+String memexAppName = "Memex App";
+
 class App extends StatelessWidget {
-  const App({
+  App({
     super.key,
     required this.builder,
     this.sidebar,
     this.toolBar,
-  });
+    required String appName,
+  }) {
+    memexAppName = appName;
+  }
 
   final ScrollableWidgetBuilder builder;
   final Sidebar? sidebar;
