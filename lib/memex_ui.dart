@@ -17,10 +17,13 @@ export './editor/markdown_serialization.dart';
 export './editor/markdown_deserialization.dart';
 
 export './filepicker/filepicker.dart';
+export './search_popup/search_popup.dart';
 export 'hover_detector.dart';
+export 'notify/notify.dart';
 
 export 'package:macos_ui/src/layout/toolbar/toolbar.dart';
 export 'package:macos_ui/src/layout/sidebar/sidebar.dart';
+export 'package:macos_ui/src/icon/macos_icon.dart';
 
 class MemexFocusNode extends FocusNode {
   @override
