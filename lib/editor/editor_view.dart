@@ -84,10 +84,16 @@ class _EditorViewState extends State<EditorView> {
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 750),
                 alignment: Alignment.topLeft,
-                child: PaddedBlock(
-                  path: BlockPath.fromIterable([index]),
-                  block: widget.editor.state.blocks[index],
-                  editor: widget.editor,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: PaddedBlock(
+                        path: BlockPath.fromIterable([index]),
+                        block: widget.editor.state.blocks[index],
+                        editor: widget.editor,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             );
