@@ -60,17 +60,6 @@ class KeymapStandard implements Keymap {
         }
         return false;
       }
-
-      if (event.logicalKey == LogicalKeyboardKey.keyS &&
-          event.isControlPressed) {
-        // Ignore file save shortcut
-        return false;
-      }
-      if (event.logicalKey == LogicalKeyboardKey.keyO &&
-          event.isControlPressed) {
-        // Ignore file open shortcut
-        return false;
-      }
       if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
         if (event.isControlPressed) {
           editor.moveCursorRightOneWord(event.isShiftPressed);
@@ -135,7 +124,7 @@ class KeymapStandard implements Keymap {
           return true;
         }
       }
-      if (event.character != null) {
+      if (event.character != null && !event.isControlPressed) {
         editor.append(event.character ?? "?");
         return true;
       }
