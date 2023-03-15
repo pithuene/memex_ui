@@ -7,15 +7,21 @@ typedef ReadonlyProp<T> = ValueListenable<T>;
 typedef BuilderWithContext<T> = Widget Function(BuildContext, T);
 typedef BuilderWithoutContext<T> = Widget Function(T);
 
-/// Get the value out of a [ValueListenable]
+/// Listen to a [Prop] and rebuild part of the UI when its value changes.
 class $<T> extends StatelessWidget {
-  const $.$(this._listenable, this._builderWithContext, {super.key})
-      : _builderWithoutContext = null;
-
+  /// The default constructor.
+  /// Listen to a [Prop] with a builder which doesn't require the [BuildContext].
+  /// If the [BuildContext] is required, use the [withContext] constructor.
   const $(this._listenable, this._builderWithoutContext, {super.key})
       : _builderWithContext = null;
 
-  final ValueListenable<T> _listenable;
+  /// Listen to a [Prop] with a builder which requires the [BuildContext].
+  const $.withContext(this._listenable, this._builderWithContext, {super.key})
+      : _builderWithoutContext = null;
+
+  /// The [Prop] which triggers this widget to rebuild.
+  final ReadonlyProp<T> _listenable;
+
   final BuilderWithContext<T>? _builderWithContext;
   final BuilderWithoutContext<T>? _builderWithoutContext;
 
@@ -33,12 +39,13 @@ class $<T> extends StatelessWidget {
 /// A listenable property which depends on a list of [dependencies].
 /// When any of the [dependencies] changes,
 /// the value changes and all listeners are notified.
+///
 /// Make sure to list all used properties as dependencies!
-class ComputedProp<T> extends ChangeNotifier implements ValueListenable<T> {
+class ComputedProp<T> extends ChangeNotifier implements ReadonlyProp<T> {
   ComputedProp(
-    this.transform,
+    this.compute,
     this.dependencies,
-  ) : super() {
+  ) {
     // If any dependency changes, notify listeners.
     _dependencyListener = () {
       notifyListeners();
@@ -49,8 +56,11 @@ class ComputedProp<T> extends ChangeNotifier implements ValueListenable<T> {
   }
 
   late final void Function() _dependencyListener;
+
+  /// The list of dependencies which trigger this property to be recomputed.
   final List<ValueListenable> dependencies;
-  final T Function() transform;
+
+  final T Function() compute;
 
   @override
   void dispose() {
@@ -61,7 +71,7 @@ class ComputedProp<T> extends ChangeNotifier implements ValueListenable<T> {
   }
 
   @override
-  T get value => transform();
+  T get value => compute();
 
   @override
   String toString() => '${describeIdentity(this)}($value)';
