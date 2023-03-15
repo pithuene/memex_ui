@@ -71,7 +71,9 @@ class _EditorViewState extends State<EditorView> {
         onKey: (event) {
           if (!focusNode.hasPrimaryFocus) return;
           bool needRebuild = widget.keymap.handle(widget.editor, event);
-          if (needRebuild) setState(() {});
+          // TODO: This optimization can only be used when there is a way to rebuild single blocks. Currently, cursor movement would not rebuild block content, which breaks the change in view when a block or piece includes the caret.
+          //if (needRebuild) setState(() {});
+          setState(() {});
         },
         child: ListView.builder(
           padding: const EdgeInsets.all(20),
