@@ -8,6 +8,7 @@ import 'package:memex_ui/editor/content_type_popup_state.dart';
 import 'package:memex_ui/editor/piece_path.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/editor/selection.dart';
+import 'package:memex_ui/memex_ui.dart';
 import './cursor.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
@@ -838,6 +839,29 @@ class EditorState {
     state = state.replaceBlockWithBlocks(currPath, replacementBlocks);
     state = state.mergeWithPreviousBlock(currPath);
     state = state.collapseSelection();
+    return state;
+  }
+
+  /// Insert a new [LinkPiece] before the cursor.
+  EditorState appendLink(String target, IList<Piece> linkText) {
+    if (!selection.isEmpty) {
+      return deleteSelection().appendLink(target, linkText);
+    }
+
+    EditorState state = splitBeforeCursor();
+    state = state.insertPieceInCursorBlock(
+      state.cursor.piecePath,
+      LinkPiece(
+        children: linkText,
+        target: target,
+      ),
+    );
+    EditorBlock cursorBlock = state.getCursorBlock(state.cursor);
+    state = state.copyWithCursor(
+      piecePath:
+          state.cursor.piecePath.firstLeaf(cursorBlock).next(cursorBlock),
+      offset: 0,
+    );
     return state;
   }
 

@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/editor/state_stack.dart';
 
 import './editor_state.dart';
@@ -69,6 +71,9 @@ class Editor {
   // Reversable actions
   void append(String content) =>
       _performReversableAction(state.append(content));
+
+  void appendLink(String target, IList<Piece> linkText) =>
+      _performReversableAction(state.appendLink(target, linkText));
 
   void indent() => _performReversableAction(state.indent());
 
