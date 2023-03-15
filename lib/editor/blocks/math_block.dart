@@ -26,7 +26,7 @@ class MathBlock extends EditorBlock {
     String tex = TextSpan(
       children: pieces
           .map(
-            (piece) => piece.toSpan(true),
+            (piece) => piece.toSpan(editor, true),
           )
           .toList(),
     ).toPlainText();

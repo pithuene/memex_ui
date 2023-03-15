@@ -1,7 +1,8 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
+import 'package:memex_ui/memex_ui.dart';
 import 'package:memex_ui/typography.dart';
 
 @immutable
@@ -47,7 +48,7 @@ class Piece {
   /// returned by this pieces [toSpan] method.
   int getLength(bool containsCursor) => text.length;
 
-  InlineSpan toSpan(bool containsCursor) => TextSpan(
+  InlineSpan toSpan(Editor editor, bool containsCursor) => TextSpan(
         text: text,
         style: TextStyle(
           fontWeight: isBold ? FontWeight.bold : null,
@@ -111,13 +112,11 @@ class InlineBlock extends Piece {
       copyWith(children: childrenChange(children));
 
   @override
-  InlineSpan toSpan(bool containsCursor) {
-    List<InlineSpan> childSpans = [];
-    for (int i = 0; i < children.length; i++) {
-      childSpans.add(children[i].toSpan(containsCursor));
-    }
-    return TextSpan(children: childSpans);
-  }
+  InlineSpan toSpan(Editor editor, bool containsCursor) => TextSpan(
+        children: children
+            .map((piece) => piece.toSpan(editor, containsCursor))
+            .toList(),
+      );
 }
 
 @immutable
@@ -131,35 +130,53 @@ class LinkPiece extends InlineBlock {
   @override
   int getLength(bool containsCursor) {
     if (containsCursor) {
-      return children.sumBy((child) => child.getLength(containsCursor)) +
-          4 +
-          target.length;
-    } else {
       return super.getLength(containsCursor);
+    } else {
+      return 1;
     }
   }
 
   @override
-  InlineSpan toSpan(bool containsCursor) {
+  InlineSpan toSpan(Editor editor, bool containsCursor) {
     if (containsCursor) {
-      return TextSpan(children: [
-        const TextSpan(text: "["),
-        super.toSpan(true),
-        const TextSpan(text: "]("),
-        TextSpan(text: target),
-        const TextSpan(text: ")"),
-      ]);
-    } else {
       return TextSpan(
-        style: const TextStyle(
-          color: Color(0xFF0000FF),
+        children: children.map((piece) => piece.toSpan(editor, true)).toList(),
+        style: MemexTypography.body.copyWith(
           decoration: TextDecoration.underline,
         ),
-        children: children
-            .map(
-              (child) => child.toSpan(containsCursor),
-            )
-            .toList(),
+      );
+    } else {
+      return WidgetSpan(
+        baseline: TextBaseline.alphabetic,
+        alignment: PlaceholderAlignment.baseline,
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () => editor.openLink(target),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.all(Radius.circular(3.0)),
+                color: Colors.black.withOpacity(0.1),
+              ),
+              padding: const EdgeInsets.all(3),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  MacosIcon(
+                    CupertinoIcons.doc,
+                    size: MemexTypography.baseFontSize,
+                    color: MemexTypography.textColor,
+                  ),
+                  Container(width: 5.0),
+                  Text.rich(
+                    super.toSpan(editor, false),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       );
     }
   }
@@ -196,10 +213,10 @@ class FootnotePiece extends InlineBlock {
   }
 
   @override
-  InlineSpan toSpan(bool containsCursor) {
+  InlineSpan toSpan(Editor editor, bool containsCursor) {
     if (containsCursor) {
       return TextSpan(
-        children: [super.toSpan(containsCursor)],
+        children: [super.toSpan(editor, containsCursor)],
         style: const TextStyle(
           backgroundColor: Color(0x20000000),
         ),
@@ -239,10 +256,10 @@ class InlineMathPiece extends InlineBlock {
   }
 
   @override
-  InlineSpan toSpan(bool containsCursor) {
+  InlineSpan toSpan(Editor editor, bool containsCursor) {
     if (containsCursor) {
       return TextSpan(
-        children: [super.toSpan(containsCursor)],
+        children: [super.toSpan(editor, containsCursor)],
         style: TextStyle(
           fontFamily: MemexTypography.fontFamilyMonospace,
           backgroundColor: Colors.black.withAlpha(16),
@@ -252,7 +269,7 @@ class InlineMathPiece extends InlineBlock {
       String tex = TextSpan(
         children: children
             .map(
-              (child) => child.toSpan(containsCursor),
+              (child) => child.toSpan(editor, containsCursor),
             )
             .toList(),
       ).toPlainText();

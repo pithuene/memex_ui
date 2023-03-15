@@ -17,7 +17,9 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 /// Serialize a list of pieces to their plaintext content.
 String piecesToPlaintext(IList<Piece> pieces) {
   return TextSpan(
-    children: pieces.map((child) => child.toSpan(true)).toList(),
+    children: pieces
+        .map((child) => child.toSpan(Editor(EditorState.empty()), true))
+        .toList(),
   ).toPlainText();
 }
 

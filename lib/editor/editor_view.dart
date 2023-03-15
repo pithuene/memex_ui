@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/rendering.dart';
 import 'package:memex_ui/editor/block_path.dart';
@@ -7,16 +8,20 @@ import 'package:memex_ui/editor/keymaps/keymap_standard.dart';
 import 'package:memex_ui/memex_ui.dart';
 import 'package:flutter/material.dart';
 
+typedef LinkHandler = void Function(String);
+
 class EditorView extends StatefulWidget {
   const EditorView({
     super.key,
     required this.editor,
     this.scrollController,
     this.keymap = const KeymapStandard(),
+    this.linkHandler,
   });
   final Editor editor;
   final ScrollController? scrollController;
   final Keymap keymap;
+  final LinkHandler? linkHandler;
 
   @override
   State<StatefulWidget> createState() => _EditorViewState();
@@ -28,16 +33,30 @@ class _EditorViewState extends State<EditorView> {
   @override
   void initState() {
     super.initState();
-    widget.editor.onRebuild.stream.listen((event) {
-      setState(() {});
-    });
+    setupEditorStreams();
   }
 
   @override
   void didUpdateWidget(covariant EditorView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    widget.editor.onRebuild.stream.listen((event) {
-      setState(() {});
+    setupEditorStreams();
+  }
+
+  StreamSubscription<void>? rebuildStreamSubscription;
+  StreamSubscription<String>? handleLinkStreamSubscription;
+
+  void setupEditorStreams() {
+    if (rebuildStreamSubscription != null) rebuildStreamSubscription!.cancel();
+    rebuildStreamSubscription =
+        widget.editor.onRebuild.stream.listen((event) => setState(() {}));
+    if (handleLinkStreamSubscription != null) {
+      handleLinkStreamSubscription!.cancel();
+    }
+    handleLinkStreamSubscription =
+        widget.editor.onHandleLink.stream.listen((target) {
+      if (widget.linkHandler != null) {
+        widget.linkHandler!(target);
+      }
     });
   }
 

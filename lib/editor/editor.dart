@@ -91,4 +91,9 @@ class Editor {
     undoStack.push(state);
     state = redoStack.pop()!;
   }
+
+  /// Emits when a link should be opened.
+  StreamController<String> onHandleLink = StreamController.broadcast();
+
+  void openLink(String target) => onHandleLink.sink.add(target);
 }

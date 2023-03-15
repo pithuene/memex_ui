@@ -243,6 +243,7 @@ class _EditorTextViewState extends State<EditorTextView> {
     for (int i = 0; i < widget.block.pieces.length; i++) {
       childSpans.add(
         widget.block.pieces[i].toSpan(
+          widget.editor,
           widget.isCursorInThisBlock && widget.selection.end.piecePath[0] == i,
         ),
       );
