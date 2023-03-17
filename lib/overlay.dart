@@ -10,14 +10,17 @@ void openOverlay(
   OverlayState overlayState = Overlay.of(context)!;
   OverlayEntry? overlayEntry;
   overlayEntry = OverlayEntry(
-    builder: (context) => ColoredBox(
-      color: const Color(0x55000000),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: 8.0,
-          sigmaY: 8.0,
-        ),
-        child: Center(child: builder(context, overlayEntry!)),
+    builder: (context) => Center(
+      child: Container(
+        decoration: const BoxDecoration(boxShadow: [
+          BoxShadow(
+            blurRadius: 90,
+            spreadRadius: 30,
+            offset: Offset(0, 20),
+            color: Color(0x88000000),
+          )
+        ]),
+        child: builder(context, overlayEntry!),
       ),
     ),
   );
