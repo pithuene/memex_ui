@@ -18,6 +18,7 @@ class EditorView extends StatefulWidget {
     this.keymap = const KeymapStandard(),
     this.linkHandler,
     this.header,
+    this.footer,
   });
   final Editor editor;
   final ScrollController? scrollController;
@@ -27,6 +28,8 @@ class EditorView extends StatefulWidget {
   /// A widget which is shown above the editor content but inside the scrollable area.
   /// Can be used to display a document title.
   final Widget? header;
+
+  final Widget? footer;
 
   @override
   State<StatefulWidget> createState() => _EditorViewState();
@@ -85,11 +88,16 @@ class _EditorViewState extends State<EditorView> {
           child: ListView.builder(
             controller: widget.scrollController,
             itemCount: widget.editor.state.blocks.length +
-                (widget.header != null ? 1 : 0),
+                (widget.header != null ? 1 : 0) +
+                (widget.footer != null ? 1 : 0),
             itemBuilder: (context, index) {
               Widget child;
               if (widget.header != null && index == 0) {
                 child = widget.header!;
+              } else if (index >=
+                  widget.editor.state.blocks.length +
+                      (widget.header != null ? 1 : 0)) {
+                child = widget.footer!;
               } else {
                 child = PaddedBlock(
                   path: BlockPath.fromIterable([index - 1]),
