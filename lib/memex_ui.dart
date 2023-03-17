@@ -22,6 +22,10 @@ export 'hover_detector.dart';
 export 'notify/notify.dart';
 
 export 'package:macos_ui/src/layout/toolbar/toolbar.dart';
+export 'package:macos_ui/src/buttons/toolbar/toolbar_icon_button.dart';
+export 'package:macos_ui/src/buttons/toolbar/toolbar_overflow_button.dart';
+export 'package:macos_ui/src/buttons/toolbar/toolbar_pulldown_button.dart';
+export 'package:macos_ui/src/buttons/back_button.dart';
 export 'package:macos_ui/src/layout/sidebar/sidebar.dart';
 export 'package:macos_ui/src/icon/macos_icon.dart';
 
