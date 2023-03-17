@@ -23,6 +23,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Portal(
         child: MacosApp(
+          debugShowCheckedModeBanner: false,
           shortcuts: const {},
           home: MacosTheme(
             data: MacosThemeData(
