@@ -23,11 +23,15 @@ class EditorState {
 
   final ContentTypePopupState contentTypePopupState;
 
+  /// The meta attributes as returned from pandoc.
+  final Map meta;
+
   Cursor get cursor => selection.end;
 
   EditorState({
     required this.blocks,
     required this.selection,
+    required this.meta,
     this.contentTypePopupState = const ContentTypePopupState(
       isOpen: false,
       index: 0,
@@ -35,7 +39,8 @@ class EditorState {
   });
 
   EditorState.empty()
-      : contentTypePopupState = const ContentTypePopupState.closed() {
+      : contentTypePopupState = const ContentTypePopupState.closed(),
+        meta = {} {
     blocks = <EditorBlock>[
       ParagraphBlock.withInitialContent(),
     ].lockUnsafe;
@@ -48,19 +53,18 @@ class EditorState {
     );
   }
 
-  EditorState collapseSelection() => EditorState(
-        blocks: blocks,
-        selection: selection.collapse(),
-      );
+  EditorState collapseSelection() => copyWith(selection: selection.collapse());
 
   EditorState copyWith({
     IList<EditorBlock>? blocks,
     Selection? selection,
+    Map? meta,
     ContentTypePopupState? contentTypePopupState,
   }) {
     return EditorState(
       blocks: blocks ?? this.blocks,
       selection: selection ?? this.selection,
+      meta: meta ?? this.meta,
       contentTypePopupState:
           contentTypePopupState ?? this.contentTypePopupState,
     );

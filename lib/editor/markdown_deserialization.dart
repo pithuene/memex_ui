@@ -275,11 +275,40 @@ List<EditorBlock> _parseBlock(Map jsonBlock) {
   }
 }
 
+Map _parseMeta(Map metaEntries) {
+  dynamic _parseMetaEntry(var entry) {
+    switch (entry["t"]) {
+      case "MetaInlines":
+        return piecesToPlaintext(_parseContent(content: entry["c"]));
+      case "MetaMap":
+        return (entry["c"] as Map).map(
+          (key, value) => MapEntry(key, _parseMetaEntry(value)),
+        );
+      case "MetaList":
+        return (entry["c"] as List)
+            .map(
+              (child) => _parseMetaEntry(child),
+            )
+            .toList();
+      default:
+        {
+          throw FormatException("Unknown meta type ${entry["t"]}");
+        }
+    }
+  }
+
+  return metaEntries.map(
+    (key, value) => MapEntry(key, _parseMetaEntry(value)),
+  );
+}
+
 Future<EditorState?> parseMarkdown(File markdownFile) async {
   List<EditorBlock> blocks = [];
+  Map meta = {};
   try {
     Map json = await pandocMarkdownToJson(markdownFile);
     blocks = _parseBlocks((json["blocks"] as List));
+    meta = _parseMeta(json["meta"]);
   } catch (e) {
     print("Markdown deserialization error when parsing ${markdownFile.path}.");
     print(e);
@@ -293,6 +322,7 @@ Future<EditorState?> parseMarkdown(File markdownFile) async {
 
   return EditorState(
     blocks: blocks.toIList(),
+    meta: meta,
     selection: const Selection.collapsed(Cursor(
       blockPath: BlockPath(IListConst([0])),
       piecePath: PiecePath(IListConst([0])),

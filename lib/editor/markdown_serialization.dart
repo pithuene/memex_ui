@@ -67,10 +67,39 @@ Future<String> serializeEditorState(EditorState state) async {
 Map serializeEditorStateToJSON(EditorState state) {
   var jsonDocument = {
     "pandoc-api-version": [1, 22, 2, 1],
-    "meta": {},
+    "meta": _serializeMeta(state.meta),
     "blocks": _serializeEditorBlocks(state.blocks).toList(),
   };
   return jsonDocument;
+}
+
+Map _serializeMeta(Map meta) {
+  dynamic _serializeMetaEntry(var entry) {
+    if (entry is String) {
+      return {
+        "t": "MetaInlines",
+        "c": [
+          {"t": "Str", "c": entry}
+        ]
+      };
+    } else if (entry is List) {
+      return {
+        "t": "MetaList",
+        "c": entry.map((e) => _serializeMetaEntry(e)).toList()
+      };
+    } else if (entry is Map) {
+      return {
+        "t": "MetaMap",
+        "c":
+            entry.map((key, value) => MapEntry(key, _serializeMetaEntry(value)))
+      };
+    } else {
+      print(entry);
+      throw FormatException("Failed to serialize type ${entry.runtimeType}");
+    }
+  }
+
+  return meta.map((key, value) => MapEntry(key, _serializeMetaEntry(value)));
 }
 
 Map _serializePiece(Piece piece) {
