@@ -34,13 +34,8 @@ class HeadingBlock extends EditorBlock {
     EditorBlock? nextNeighbor,
   ) {
     double fontSize = MemexTypography.baseFontSize;
-    double topPadding = 0.0;
-    if (previousNeighbor is HeadingBlock) {
-      topPadding = fontSize * 1.5;
-    }
     return EdgeInsets.only(
       bottom: fontSize * 0.75,
-      top: topPadding,
     );
   }
 
