@@ -44,6 +44,17 @@ class TableViewRow<T> extends StatelessWidget {
               change.newSelection?.key == row.key),
           builder: (context, selection) {
             final bool isSelected = data.selectedKeys.contains(row.key);
+            if (isSelected) {
+              Scrollable.ensureVisible(
+                context,
+                alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+              );
+              Scrollable.ensureVisible(
+                context,
+                alignmentPolicy:
+                    ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+              );
+            }
             return _RowHighlight(
               hasEvenRowHighlight: hasEvenRowHighlight,
               isSelected: isSelected,
