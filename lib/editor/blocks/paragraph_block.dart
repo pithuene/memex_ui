@@ -5,6 +5,7 @@ import 'package:memex_ui/editor/blocks/code_block.dart';
 import 'package:memex_ui/editor/blocks/heading_block.dart';
 import 'package:flutter/widgets.dart';
 import 'package:memex_ui/editor/block_path.dart';
+import 'package:memex_ui/editor/blocks/math_block.dart';
 import 'package:memex_ui/editor/content_type_popup_menu.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/editor/text_view.dart';
@@ -35,7 +36,9 @@ class ParagraphBlock extends EditorBlock {
   ) {
     if (nextNeighbor == null) return const EdgeInsets.only(bottom: 0.0);
     double fontSize = MemexTypography.baseFontSize;
-    if (nextNeighbor is BulletpointBlock || nextNeighbor is CodeBlock) {
+    if (nextNeighbor is BulletpointBlock ||
+        nextNeighbor is CodeBlock ||
+        nextNeighbor is MathBlock) {
       return EdgeInsets.only(bottom: fontSize * 0.75);
     }
     return EdgeInsets.only(bottom: fontSize * 1.5);

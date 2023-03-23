@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:memex_ui/editor/block_path.dart';
+import 'package:memex_ui/editor/blocks/heading_block.dart';
 import 'package:memex_ui/editor/piece_path.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/editor/text_view.dart';
@@ -14,6 +15,18 @@ class MathBlock extends EditorBlock {
   @override
   MathBlock copyWith({IList<Piece>? pieces}) =>
       MathBlock(pieces ?? this.pieces);
+
+  @override
+  EdgeInsetsGeometry padding(
+    BuildContext context,
+    EditorBlock? previousNeighbor,
+    EditorBlock? nextNeighbor,
+  ) =>
+      EdgeInsets.only(
+        bottom: nextNeighbor is HeadingBlock
+            ? MemexTypography.baseFontSize * 1.5
+            : MemexTypography.baseFontSize * 0.25,
+      );
 
   @override
   Widget build({
@@ -39,7 +52,7 @@ class MathBlock extends EditorBlock {
               child: Container(
                 alignment: Alignment.centerLeft,
                 color: Colors.black.withAlpha(16),
-                padding: const EdgeInsets.all(5),
+                padding: const EdgeInsets.all(10),
                 child: EditorTextView(
                   block: this,
                   blockPath: path,
@@ -82,16 +95,21 @@ class MathBlock extends EditorBlock {
                   editor.rebuild();
                 },
                 child: Container(
-                  color: isHovered
-                      ? Colors.black.withAlpha(16)
-                      : Colors.transparent,
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.all(Radius.circular(3.0)),
+                    color: isHovered
+                        ? Colors.black.withAlpha(16)
+                        : Colors.transparent,
+                  ),
                 ),
               ),
             ),
             child!,
           ],
         ),
-        child: Center(
+        child: Container(
+          alignment: Alignment.center,
+          padding: const EdgeInsets.all(10),
           child: Math.tex(
             tex,
             textStyle: const TextStyle(
