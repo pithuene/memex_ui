@@ -254,7 +254,9 @@ dynamic _serializeBulletpointBlocks(Iterable<EditorBlock> blocks) {
   List _serializeBulletpointBlock(BulletpointBlock block) {
     return [
       {
-        "t": "Plain",
+        "t": block.children.any((child) => child is! BulletpointBlock)
+            ? "Para"
+            : "Plain",
         "c": _serializeTextContent(block.pieces),
       },
       ..._serializeEditorBlocks(block.children),
