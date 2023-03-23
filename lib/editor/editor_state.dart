@@ -24,7 +24,7 @@ class EditorState {
   final ContentTypePopupState contentTypePopupState;
 
   /// The meta attributes as returned from pandoc.
-  final Map meta;
+  final IMap meta;
 
   Cursor get cursor => selection.end;
 
@@ -40,7 +40,7 @@ class EditorState {
 
   EditorState.empty()
       : contentTypePopupState = const ContentTypePopupState.closed(),
-        meta = {} {
+        meta = {}.lockUnsafe {
     blocks = <EditorBlock>[
       ParagraphBlock.withInitialContent(),
     ].lockUnsafe;
@@ -58,7 +58,7 @@ class EditorState {
   EditorState copyWith({
     IList<EditorBlock>? blocks,
     Selection? selection,
-    Map? meta,
+    IMap? meta,
     ContentTypePopupState? contentTypePopupState,
   }) {
     return EditorState(

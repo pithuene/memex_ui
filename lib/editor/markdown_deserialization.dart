@@ -275,7 +275,7 @@ List<EditorBlock> _parseBlock(Map jsonBlock) {
   }
 }
 
-Map _parseMeta(Map metaEntries) {
+IMap _parseMeta(Map metaEntries) {
   dynamic _parseMetaEntry(var entry) {
     switch (entry["t"]) {
       case "MetaInlines":
@@ -297,14 +297,16 @@ Map _parseMeta(Map metaEntries) {
     }
   }
 
-  return metaEntries.map(
-    (key, value) => MapEntry(key, _parseMetaEntry(value)),
-  );
+  return metaEntries
+      .map(
+        (key, value) => MapEntry(key, _parseMetaEntry(value)),
+      )
+      .lockUnsafe;
 }
 
 Future<EditorState?> parseMarkdown(File markdownFile) async {
   List<EditorBlock> blocks = [];
-  Map meta = {};
+  IMap meta = {}.lockUnsafe;
   try {
     Map json = await pandocMarkdownToJson(markdownFile);
     blocks = _parseBlocks((json["blocks"] as List));

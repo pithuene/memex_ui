@@ -70,10 +70,11 @@ Map serializeEditorStateToJSON(EditorState state) {
     "meta": _serializeMeta(state.meta),
     "blocks": _serializeEditorBlocks(state.blocks).toList(),
   };
+
   return jsonDocument;
 }
 
-Map _serializeMeta(Map meta) {
+Map _serializeMeta(IMap meta) {
   dynamic _serializeMetaEntry(var entry) {
     if (entry is String) {
       return {
@@ -99,7 +100,9 @@ Map _serializeMeta(Map meta) {
     }
   }
 
-  return meta.map((key, value) => MapEntry(key, _serializeMetaEntry(value)));
+  return meta
+      .map((key, value) => MapEntry(key, _serializeMetaEntry(value)))
+      .unlockView;
 }
 
 Map _serializePiece(Piece piece) {
