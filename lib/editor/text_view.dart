@@ -6,6 +6,7 @@ import 'package:memex_ui/boxed_value.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/gestures.dart';
 import 'package:memex_ui/editor/blocks/editor_block.dart';
 import 'package:memex_ui/editor/blocks/heading_block.dart';
 import 'package:memex_ui/editor/cursor.dart';
@@ -274,7 +275,8 @@ class _EditorTextViewState extends State<EditorTextView> {
                 widget.editor.state = widget.editor.state.copyWith(
                   selection: Selection.collapsed(newCursor),
                 );
-                widget.editor.redrawCaretAndSelection();
+                //widget.editor.redrawCaretAndSelection();
+                widget.editor.rebuild();
               },
               onPanStart: (event) {
                 if (event.kind != PointerDeviceKind.mouse) return;

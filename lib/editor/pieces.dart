@@ -1,5 +1,7 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:memex_ui/memex_ui.dart';
@@ -132,7 +134,7 @@ class LinkPiece extends InlineBlock {
     if (containsCursor) {
       return super.getLength(containsCursor);
     } else {
-      return 1;
+      return super.getLength(containsCursor) + 1;
     }
   }
 
@@ -141,43 +143,39 @@ class LinkPiece extends InlineBlock {
     if (containsCursor) {
       return TextSpan(
         children: children.map((piece) => piece.toSpan(editor, true)).toList(),
-        style: MemexTypography.body.copyWith(
+        style: const TextStyle(
           decoration: TextDecoration.underline,
         ),
       );
     } else {
-      return WidgetSpan(
-        baseline: TextBaseline.alphabetic,
-        alignment: PlaceholderAlignment.baseline,
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: GestureDetector(
-            onTap: () => editor.openLink(target),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.all(Radius.circular(3.0)),
-                color: Colors.black.withOpacity(0.1),
-              ),
-              padding: const EdgeInsets.all(3),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  MacosIcon(
+      var res = TextSpan(
+        children: [
+          WidgetSpan(
+            baseline: TextBaseline.alphabetic,
+            alignment: PlaceholderAlignment.baseline,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () => editor.openLink(target),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 1),
+                  child: MacosIcon(
                     CupertinoIcons.doc,
                     size: MemexTypography.baseFontSize,
                     color: MemexTypography.textColor,
                   ),
-                  Container(width: 5.0),
-                  Text.rich(
-                    super.toSpan(editor, false),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                ),
               ),
             ),
           ),
+          ...children.map((piece) => piece.toSpan(editor, false))
+        ],
+        style: TextStyle(
+          decoration: TextDecoration.underline,
+          decorationColor: MemexTypography.textColor.withOpacity(0.3),
         ),
       );
+      return res;
     }
   }
 
