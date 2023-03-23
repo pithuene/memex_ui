@@ -25,7 +25,7 @@ class App extends StatelessWidget {
         child: MacosApp(
           debugShowCheckedModeBanner: false,
           shortcuts: const {},
-          home: MacosTheme(
+          builder: (context, child) => MacosTheme(
             data: MacosThemeData(
               typography: MacosTypography(
                 color: Colors.black,

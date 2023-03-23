@@ -75,6 +75,9 @@ class Editor {
   void appendLink(String target, IList<Piece> linkText) =>
       _performReversableAction(state.appendLink(target, linkText));
 
+  void setIcon(String icon) => _performReversableAction(
+      state.copyWith(meta: state.meta.add("icon", icon)));
+
   void indent() => _performReversableAction(state.indent());
 
   void unindent() => _performReversableAction(state.unindent());
