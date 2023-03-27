@@ -12,7 +12,9 @@ class TableView<T> extends StatelessWidget {
     this.scrollController,
     required this.rowHeight,
     required this.dataSource,
+    this.showHeader = true,
     this.showEvenRowHighlight = true,
+    this.fullWidthHighlight = false,
   });
 
   /// The height of every row.
@@ -21,6 +23,13 @@ class TableView<T> extends StatelessWidget {
   /// Whether to highlight every other row for
   /// better readability in large tables.
   final bool showEvenRowHighlight;
+
+  /// Whether the table header is visible.
+  final bool showHeader;
+
+  /// Whether the row highlight covers the full width,
+  /// in which case it is also not rounded.
+  final bool fullWidthHighlight;
 
   /// Optionally override the scrollController.
   final ScrollController? scrollController;
@@ -38,17 +47,21 @@ class TableView<T> extends StatelessWidget {
       stream: dataSource.onOrderChanged,
       builder: (context, order) => Column(
         children: [
-          TableHeader<T>(
-            colDefs: dataSource.colDefs,
-            order: order.data,
-            columnHeaderClicked: (colDef) {
-              if (colDef == order.data?.column) {
-                dataSource.reverseOrderDirection();
-              } else {
-                dataSource.orderBy(TableOrder(column: colDef));
-              }
-            },
-          ),
+          ...showHeader
+              ? [
+                  TableHeader<T>(
+                    colDefs: dataSource.colDefs,
+                    order: order.data,
+                    columnHeaderClicked: (colDef) {
+                      if (colDef == order.data?.column) {
+                        dataSource.reverseOrderDirection();
+                      } else {
+                        dataSource.orderBy(TableOrder(column: colDef));
+                      }
+                    },
+                  )
+                ]
+              : [],
           Expanded(
             child: StreamBuilder<void>(
               initialData: Null,
@@ -66,6 +79,7 @@ class TableView<T> extends StatelessWidget {
                     colDefs: dataSource.colDefs,
                     row: dataSource.getRowValue(index),
                     showEvenRowHighlight: showEvenRowHighlight,
+                    fullWidthHighlight: fullWidthHighlight,
                   );
                 },
               ),

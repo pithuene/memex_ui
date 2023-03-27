@@ -9,9 +9,9 @@ enum ColumnAlignment {
 class ColumnDefinition<T> {
   const ColumnDefinition({
     required this.label,
-    required this.width,
-    this.alignment = ColumnAlignment.start,
     required this.cellBuilder,
+    this.width = const FlexColumnWidth(),
+    this.alignment = ColumnAlignment.start,
   });
 
   final String label;

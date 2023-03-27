@@ -104,13 +104,36 @@ class TableDatasource<T> {
     _selectionChangedController.add(selectionChange);
   }
 
+  /// Select the first row wich satisfies some condition.
+  void selectWhere(bool Function(TableValue<T>) check) {
+    int rowCount = getRowCount();
+    for (int i = 0; i < rowCount; i++) {
+      TableValue<T> row = getRowValue(i);
+      if (check(row)) {
+        select(TableSelection(key: row.key, value: row.value));
+      }
+    }
+  }
+
+  /// Select a row by index.
+  void selectIndex(int index) {
+    TableValue<T> row = getRowValue(index);
+    select(
+      TableSelection(
+        key: row.key,
+        value: row.value,
+      ),
+    );
+  }
+
   List<T> get selectedRows => _selection == null ? [] : [_selection!.value];
 
   List<Key> get selectedKeys => _selection == null ? [] : [_selection!.key];
 
   int? _findRowKeyIndex(Key? rowKey) {
     int currentSelectedRowIndex = 0;
-    while (getRowValue(currentSelectedRowIndex).key != rowKey) {
+    while (currentSelectedRowIndex < getRowCount() &&
+        getRowValue(currentSelectedRowIndex).key != rowKey) {
       currentSelectedRowIndex++;
     }
     if (currentSelectedRowIndex < getRowCount()) {

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:memex_ui/miller_columns.dart';
 import 'package:memex_ui/overlay.dart';
 
 Future<File> openFilepicker(BuildContext context) async {
@@ -12,10 +13,33 @@ Future<File> openFilepicker(BuildContext context) async {
 
   openOverlay(
     context,
-    (context, entry) => Filepicker(
-      overlayEntry: entry,
+    (context, entry) => MillerColumns<String, FileSystemEntity>(
+      initialPath: [],
+      onKey: (event, state) {
+        if (event is RawKeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.escape) {
+          entry.remove();
+        }
+      },
+      getChildren: (pathPieces) async {
+        String path = "/${pathPieces.join("/")}";
+        if (!await FileSystemEntity.isDirectory(path)) {
+          return [];
+        }
+        Directory dir = Directory(path);
+        return dir.listSync();
+      },
+      rowBuilder: (context, file) => Text(
+        file.path.split("/").last,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.ellipsis,
+      ),
+      toKey: (node) => node.path.split("/").last,
       onSelect: (file) {
-        completer.complete(file);
+        assert(file is File);
+        entry.remove();
+        completer.complete(file as File);
       },
     ),
   );
@@ -46,6 +70,8 @@ class _FilepickerState extends State<Filepicker> {
   List<FileSystemEntity> leftColumn = [];
   List<FileSystemEntity> centerColumn = [];
   List<FileSystemEntity> rightColumn = [];
+
+  GlobalKey centerFocusedKey = GlobalKey();
 
   @override
   void initState() {
@@ -135,17 +161,22 @@ class _FilepickerState extends State<Filepicker> {
   }
 
   List<Widget> columnWidgets(
-      List<FileSystemEntity> entities, String highlightedPath) {
-    return entities
-        .map(
-          (entry) => entry.path == highlightedPath
-              ? ColoredBox(
-                  color: Colors.lightBlue.withOpacity(0.5),
-                  child: Text(entry.path.split("/").last),
-                )
-              : Text(entry.path.split("/").last),
-        )
-        .toList();
+    BuildContext context,
+    Key? selectedKey,
+    List<FileSystemEntity> entities,
+    String highlightedPath,
+  ) {
+    return entities.map(
+      (entry) {
+        return entry.path == highlightedPath
+            ? ColoredBox(
+                key: selectedKey,
+                color: Colors.lightBlue.withOpacity(0.5),
+                child: Text(entry.path.split("/").last),
+              )
+            : Text(entry.path.split("/").last);
+      },
+    ).toList();
   }
 
   void close() {
@@ -183,6 +214,8 @@ class _FilepickerState extends State<Filepicker> {
               Expanded(
                 child: ListView(
                   children: columnWidgets(
+                    context,
+                    null,
                     leftColumn,
                     current.parent.path,
                   ),
@@ -191,6 +224,8 @@ class _FilepickerState extends State<Filepicker> {
               Expanded(
                 child: ListView(
                   children: columnWidgets(
+                    context,
+                    centerFocusedKey,
                     centerColumn,
                     current.path,
                   ),
@@ -199,6 +234,8 @@ class _FilepickerState extends State<Filepicker> {
               Expanded(
                 child: ListView(
                   children: columnWidgets(
+                    context,
+                    null,
                     rightColumn,
                     "",
                   ),

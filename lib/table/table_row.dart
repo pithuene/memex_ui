@@ -14,6 +14,7 @@ class TableViewRow<T> extends StatelessWidget {
     required this.row,
     required this.rowHeight,
     required this.data,
+    this.fullWidthHighlight = false,
     bool showEvenRowHighlight = true,
   }) : hasEvenRowHighlight = (showEvenRowHighlight) ? index % 2 == 1 : false;
 
@@ -28,6 +29,7 @@ class TableViewRow<T> extends StatelessWidget {
   final TableDatasource<T> data;
 
   final bool hasEvenRowHighlight;
+  final bool fullWidthHighlight;
 
   @override
   Widget build(BuildContext context) {
@@ -37,14 +39,16 @@ class TableViewRow<T> extends StatelessWidget {
       },
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        padding: fullWidthHighlight
+            ? EdgeInsets.zero
+            : const EdgeInsets.symmetric(horizontal: 10),
         child: StreamBuilder<TableSelectionChange>(
           stream: data.onSelectionChanged.where((change) =>
               change.oldSelection?.key == row.key ||
               change.newSelection?.key == row.key),
           builder: (context, selection) {
             final bool isSelected = data.selectedKeys.contains(row.key);
-            if (isSelected) {
+            if (isSelected && context.findRenderObject() != null) {
               Scrollable.ensureVisible(
                 context,
                 alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
@@ -57,6 +61,7 @@ class TableViewRow<T> extends StatelessWidget {
             }
             return _RowHighlight(
               hasEvenRowHighlight: hasEvenRowHighlight,
+              fullWidthHighlight: fullWidthHighlight,
               isSelected: isSelected,
               columnWidths: columnWidths,
               children: colDefs.map((colDef) {
@@ -89,12 +94,14 @@ class TableViewRow<T> extends StatelessWidget {
 class _RowHighlight extends StatelessWidget {
   const _RowHighlight({
     required this.hasEvenRowHighlight,
+    required this.fullWidthHighlight,
     required this.isSelected,
     required this.columnWidths,
     required this.children,
   });
 
   final bool hasEvenRowHighlight;
+  final bool fullWidthHighlight;
   final bool isSelected;
   final Map<int, TableColumnWidth> columnWidths;
   final List<Widget> children;
@@ -107,14 +114,18 @@ class _RowHighlight extends StatelessWidget {
         .body
         .copyWith(fontFeatures: [const FontFeature.tabularFigures()]);
     if (hasEvenRowHighlight && !isSelected) {
-      decoration = const BoxDecoration(
-        color: Color.fromRGBO(0, 0, 0, 0.05),
-        borderRadius: BorderRadius.all(Radius.circular(5)),
+      decoration = BoxDecoration(
+        color: const Color.fromRGBO(0, 0, 0, 0.05),
+        borderRadius: fullWidthHighlight
+            ? null
+            : const BorderRadius.all(Radius.circular(5)),
       );
     } else if (isSelected) {
       decoration = BoxDecoration(
         color: MacosTheme.of(context).primaryColor,
-        borderRadius: const BorderRadius.all(Radius.circular(5)),
+        borderRadius: fullWidthHighlight
+            ? null
+            : const BorderRadius.all(Radius.circular(5)),
       );
       textStyle = textStyle.copyWith(color: MacosColors.white);
     }
