@@ -853,19 +853,22 @@ class EditorState {
     }
 
     EditorState state = splitBeforeCursor();
-    state = state.insertPieceInCursorBlock(
-      state.cursor.piecePath,
-      LinkPiece(
-        children: linkText,
-        target: target,
-      ),
-    );
-    EditorBlock cursorBlock = state.getCursorBlock(state.cursor);
-    state = state.copyWithCursor(
-      piecePath:
-          state.cursor.piecePath.firstLeaf(cursorBlock).next(cursorBlock),
-      offset: 0,
-    );
+    state = state
+        .insertPieceInCursorBlock(
+          state.cursor.piecePath,
+          const Piece(text: " "),
+        )
+        .insertPieceInCursorBlock(
+          state.cursor.piecePath,
+          LinkPiece(
+            children: linkText,
+            target: target,
+          ),
+        )
+        .copyWithCursor(
+          piecePath: state.cursor.piecePath.nextNeighbor().nextNeighbor(),
+          offset: 0,
+        );
     return state;
   }
 
