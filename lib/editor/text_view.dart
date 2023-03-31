@@ -234,6 +234,16 @@ class _EditorTextViewState extends State<EditorTextView> {
   @override
   Widget build(BuildContext context) {
     scheduleTextLayoutUpdate();
+    if (widget.isCursorInThisBlock) {
+      Scrollable.ensureVisible(
+        context,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+      );
+      Scrollable.ensureVisible(
+        context,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+      );
+    }
 
     BoxDecoration? debugBorders;
     if (showDebugFrames && kDebugMode) {
