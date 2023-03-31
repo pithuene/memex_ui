@@ -945,6 +945,11 @@ class EditorState {
     return wrapSelection((content) => InlineMathPiece(children: content));
   }
 
+  /// Put the selection content into an [FootnotePiece].
+  EditorState selectionToFootnote() {
+    return wrapSelection((content) => FootnotePiece(children: content));
+  }
+
   /// Insert a new [LinkPiece] before the cursor.
   EditorState appendLink(String target, IList<Piece> linkText) {
     if (!selection.isEmpty) {

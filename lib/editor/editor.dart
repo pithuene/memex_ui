@@ -78,6 +78,9 @@ class Editor {
   void selectionToInlineMath() =>
       _performReversableAction(state.selectionToInlineMath());
 
+  void selectionToFootnote() =>
+      _performReversableAction(state.selectionToFootnote());
+
   void setIcon(String icon) => _performReversableAction(
       state.copyWith(meta: state.meta.add("icon", icon)));
 

@@ -119,6 +119,15 @@ class KeymapStandard implements Keymap {
         editor.selectionToInlineMath();
         return true;
       }
+      if (event.logicalKey.keyId == 0x0150000fe52) {
+        if (event.isControlPressed) {
+          editor.selectionToFootnote();
+          return true;
+        } else {
+          editor.append("^");
+          return true;
+        }
+      }
       if (event.logicalKey == LogicalKeyboardKey.keyZ &&
           event.isControlPressed) {
         if (event.isShiftPressed) {
