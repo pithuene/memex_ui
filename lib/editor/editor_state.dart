@@ -191,15 +191,22 @@ class EditorState {
     Boxed<int> start = Boxed(0);
     Boxed<int> end = Boxed(0);
 
-    return splitBeforeCursor(
+    EditorState state = splitBeforeCursor(
       selection.last,
       newCursorPieceIndex: end,
-    )
-        .splitBeforeCursor(
+    ).splitBeforeCursor(
       selection.first,
       newCursorPieceIndex: start,
-    )
-        .replacePiecesInBlock(
+    );
+
+    // If [splitBeforeCursor] at [selection.first] does split
+    // and thereby inserts a new piece,
+    // the stored index in [end] must be shifted by one.
+    if (selection.first.piecePath.last != start.value) {
+      end.value++;
+    }
+
+    return state.replacePiecesInBlock(
       cursor.blockPath,
       (pieces) {
         IList<Piece> content = pieces.sublist(start.value, end.value);
