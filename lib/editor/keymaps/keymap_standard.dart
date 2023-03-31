@@ -114,6 +114,11 @@ class KeymapStandard implements Keymap {
         editor.deleteBackwards();
         return true;
       }
+      if (event.logicalKey == LogicalKeyboardKey.keyM &&
+          event.isControlPressed) {
+        editor.selectionToInlineMath();
+        return true;
+      }
       if (event.logicalKey == LogicalKeyboardKey.keyZ &&
           event.isControlPressed) {
         if (event.isShiftPressed) {

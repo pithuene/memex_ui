@@ -51,6 +51,7 @@ class PiecePath {
       PiecePath(_path.replace(index, value));
   PiecePath sublist(int start, [int? end]) =>
       PiecePath(_path.sublist(start, end));
+  PiecePath removeLast() => PiecePath(_path.removeLast());
 
   PiecePath nextNeighbor() => replace(length - 1, last + 1);
   PiecePath previousNeighbor() => replace(length - 1, last - 1);

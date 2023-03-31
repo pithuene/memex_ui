@@ -75,6 +75,9 @@ class Editor {
   void appendLink(String target, IList<Piece> linkText) =>
       _performReversableAction(state.appendLink(target, linkText));
 
+  void selectionToInlineMath() =>
+      _performReversableAction(state.selectionToInlineMath());
+
   void setIcon(String icon) => _performReversableAction(
       state.copyWith(meta: state.meta.add("icon", icon)));
 

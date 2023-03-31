@@ -234,7 +234,7 @@ class _EditorTextViewState extends State<EditorTextView> {
   @override
   Widget build(BuildContext context) {
     scheduleTextLayoutUpdate();
-    if (widget.isCursorInThisBlock) {
+    if (widget.isCursorInThisBlock && context.findRenderObject() != null) {
       Scrollable.ensureVisible(
         context,
         alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,

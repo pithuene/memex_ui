@@ -1,3 +1,4 @@
+import 'package:memex_ui/boxed_value.dart';
 import 'package:memex_ui/editor/block_path.dart';
 import 'package:memex_ui/editor/blocks/bulletpoint_block.dart';
 import 'package:memex_ui/editor/blocks/code_block.dart';
@@ -173,27 +174,97 @@ class EditorState {
         cursor.moveUp(this),
       );
 
+  EditorState wrapSelection(Piece Function(IList<Piece>) wrapper) {
+    if (selection.isEmpty) return this;
+    if (!selection.isInSingleBlock) return this;
+
+    // Make sure the selection boundaries share a parent.
+    EditorBlock cursorBlock = getCursorBlock(cursor);
+    Piece? selectionStartParent =
+        cursorBlock.getPieceFromPath(selection.start!.piecePath.parent());
+    Piece? selectionEndParent =
+        cursorBlock.getPieceFromPath(selection.end.piecePath.parent());
+    if (!identical(selectionStartParent, selectionEndParent)) {
+      return this;
+    }
+
+    Boxed<int> start = Boxed(0);
+    Boxed<int> end = Boxed(0);
+
+    return splitBeforeCursor(
+      selection.last,
+      newCursorPieceIndex: end,
+    )
+        .splitBeforeCursor(
+      selection.first,
+      newCursorPieceIndex: start,
+    )
+        .replacePiecesInBlock(
+      cursor.blockPath,
+      (pieces) {
+        IList<Piece> content = pieces.sublist(start.value, end.value);
+        if (content.isEmpty) return pieces;
+        return pieces
+            .removeRange(
+              start.value,
+              end.value,
+            )
+            .insert(
+              start.value,
+              wrapper(content),
+            );
+      },
+    ).copyWith(
+      selection: Selection.collapsed(
+        Cursor(
+          blockPath: cursor.blockPath,
+          piecePath:
+              cursor.piecePath.removeLast().add(start.value).nextNeighbor(),
+          offset: 0,
+        ),
+      ),
+    );
+  }
+
+  EditorState splitBeforeCursor(
+    Cursor cursor, {
+
+    /// The index of the piece on which the cursor needs
+    /// to be set at offset 0, to be at the same position
+    /// as the given cursor.
+    Boxed<int>? newCursorPieceIndex,
+  }) {
+    if (cursor.isAtPieceStart) {
+      newCursorPieceIndex?.value = cursor.piecePath.last;
+      return this;
+    }
+    Piece cursorPiece = getCursorPiece(cursor);
+    newCursorPieceIndex?.value = cursor.piecePath.last + 1;
+    return replacePieceInBlock(
+      cursor.blockPath,
+      cursor.piecePath,
+      cursorPiece.substring(cursor.offset),
+    ).insertPieceInBlock(
+      cursor.blockPath,
+      cursor.piecePath,
+      cursorPiece.substring(0, cursor.offset),
+    );
+  }
+
   /// Splits the piece which contains the cursor,
   /// so the cursor is at offset zero afterwards.
-  EditorState splitBeforeCursor() {
+  EditorState splitBeforeCurrentCursor() {
     // Splitting at one cursor when there are multiple cursors would invalidate the pieceIndex;
     assert(selection.isEmpty);
 
-    if (cursor.isAtPieceStart) return this;
-
-    PiecePath nextPiecePath = cursor.piecePath.next(getCursorBlock(cursor))!;
-    return insertPieceInCursorBlock(
-      cursor.piecePath,
-      getCursorPiece(cursor).substring(0, cursor.offset),
-    )
-        .replacePieceInCursorBlock(
-          nextPiecePath,
-          getCursorPiece(cursor).substring(cursor.offset),
-        )
-        .copyWithCursor(
-          piecePath: nextPiecePath,
-          offset: 0,
-        );
+    Boxed<int> nextPieceIndex = Boxed(0);
+    return splitBeforeCursor(
+      cursor,
+      newCursorPieceIndex: nextPieceIndex,
+    ).copyWithCursor(
+      piecePath: cursor.piecePath.removeLast().add(nextPieceIndex.value),
+      offset: 0,
+    );
   }
 
   /// Insert a soft break.
@@ -230,7 +301,7 @@ class EditorState {
       return this;
     }
 
-    final splitState = splitBeforeCursor();
+    final splitState = splitBeforeCurrentCursor();
     assert(splitState.cursor.isAtPieceStart);
     final blockCut = splitState.replacePiecesInCursorBlock(
       (pieces) =>
@@ -363,18 +434,34 @@ class EditorState {
   ) =>
       replacePiecesInBlock(cursor.blockPath, pieceChange);
 
-  EditorState replacePieceInCursorBlock(PiecePath piecePath, Piece newPiece) {
+  EditorState replacePieceInBlock(
+    BlockPath blockPath,
+    PiecePath piecePath,
+    Piece newPiece,
+  ) {
     return replaceBlockAtPath(
-      cursor.blockPath,
+      blockPath,
       (block) => block.replacePieceAtPath(piecePath, (piece) => newPiece),
     );
   }
 
-  EditorState insertPieceInCursorBlock(PiecePath piecePath, Piece newPiece) {
+  EditorState replacePieceInCursorBlock(PiecePath piecePath, Piece newPiece) {
+    return replacePieceInBlock(cursor.blockPath, piecePath, newPiece);
+  }
+
+  EditorState insertPieceInBlock(
+    BlockPath blockPath,
+    PiecePath piecePath,
+    Piece newPiece,
+  ) {
     return replaceBlockAtPath(
-      cursor.blockPath,
+      blockPath,
       (block) => block.insertPieceAtPath(piecePath, newPiece),
     );
+  }
+
+  EditorState insertPieceInCursorBlock(PiecePath piecePath, Piece newPiece) {
+    return insertPieceInBlock(cursor.blockPath, piecePath, newPiece);
   }
 
   EditorState replaceCursor(Cursor cursor) =>
@@ -846,13 +933,18 @@ class EditorState {
     return state;
   }
 
+  /// Put the selection content into an [InlineMathPiece].
+  EditorState selectionToInlineMath() {
+    return wrapSelection((content) => InlineMathPiece(children: content));
+  }
+
   /// Insert a new [LinkPiece] before the cursor.
   EditorState appendLink(String target, IList<Piece> linkText) {
     if (!selection.isEmpty) {
       return deleteSelection().appendLink(target, linkText);
     }
 
-    EditorState state = splitBeforeCursor();
+    EditorState state = splitBeforeCurrentCursor();
     state = state
         .insertPieceInCursorBlock(
           state.cursor.piecePath,
