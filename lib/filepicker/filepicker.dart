@@ -13,34 +13,52 @@ Future<File> openFilepicker(BuildContext context) async {
 
   openOverlay(
     context,
-    (context, entry) => MillerColumns<String, FileSystemEntity>(
-      initialPath: [],
-      onKey: (event, state) {
-        if (event is RawKeyDownEvent &&
-            event.logicalKey == LogicalKeyboardKey.escape) {
-          entry.remove();
-        }
-      },
-      getChildren: (pathPieces) async {
-        String path = "/${pathPieces.join("/")}";
-        if (!await FileSystemEntity.isDirectory(path)) {
-          return [];
-        }
-        Directory dir = Directory(path);
-        return dir.listSync();
-      },
-      rowBuilder: (context, file) => Text(
-        file.path.split("/").last,
-        maxLines: 1,
-        softWrap: false,
-        overflow: TextOverflow.ellipsis,
+    (context, entry) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 80),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFFFF),
+          borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+          border: Border.all(color: Colors.black.withOpacity(0.6)),
+        ),
+        child: MillerColumns<String, FileSystemEntity>(
+          rootNode: Directory("/"),
+          initialPath: <String>["home", "pit"].lockUnsafe,
+          onKey: (event, state) {
+            if (event is RawKeyDownEvent &&
+                event.logicalKey == LogicalKeyboardKey.escape) {
+              entry.remove();
+            }
+          },
+          getChildren: (FileSystemEntity parent) async {
+            if (!await FileSystemEntity.isDirectory(parent.path)) {
+              return null;
+            }
+            Directory dir = Directory(parent.path);
+            try {
+              return dir.listSync().map(
+                    (child) => NodeAndKey(
+                      child,
+                      child.path.split("/").last,
+                    ),
+                  );
+            } catch (e) {
+              return null;
+            }
+          },
+          rowBuilder: (context, file) => Text(
+            file.path.split("/").last,
+            maxLines: 1,
+            softWrap: false,
+            overflow: TextOverflow.ellipsis,
+          ),
+          onSelect: (file) {
+            assert(file is File);
+            entry.remove();
+            completer.complete(file as File);
+          },
+        ),
       ),
-      toKey: (node) => node.path.split("/").last,
-      onSelect: (file) {
-        assert(file is File);
-        entry.remove();
-        completer.complete(file as File);
-      },
     ),
   );
 

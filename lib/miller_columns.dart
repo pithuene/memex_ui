@@ -1,127 +1,246 @@
-import 'dart:ui';
-import 'dart:math';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:memex_ui/memex_ui.dart';
-import 'package:memex_ui/table/table_selection.dart';
 
-class MillerColumns<K, V> extends StatefulWidget {
+typedef Path<Key> = IList<Key>;
+
+class NodeAndKey<Key, Node> {
+  Node node;
+
+  /// The last part of the path to this node.
+  Key key;
+  NodeAndKey(this.node, this.key);
+}
+
+class MillerColumns<Key, Node> extends StatefulWidget {
   /// Hook to extend the keyboard controls.
   final void Function(RawKeyEvent, MillerColumnsState)? onKey;
 
-  /// Get the children of the node at a given path.
-  /// If the node is a leaf, return an empty [Iterable].
-  final Future<Iterable<V>> Function(IList<K>) getChildren;
+  /// Get the children of a given parent node.
+  /// If the node is a leaf, return null.
+  final Future<Iterable<NodeAndKey<Key, Node>>?> Function(Node) getChildren;
 
   /// Builder to display a given node.
-  final Widget Function(BuildContext, V) rowBuilder;
-
-  /// Gets a selected node and returns the key
-  /// which should be appended to the path to point to it.
-  final K Function(V) toKey;
+  final Widget Function(BuildContext, Node) rowBuilder;
 
   /// Called when a leaf is selected.
-  final void Function(V)? onSelect;
+  final void Function(Node)? onSelect;
 
-  final List<K>? initialPath;
+  /// The number of columns that are shown.
+  /// Does not include the right most preview column.
+  final int columnCount;
+
+  /// The path from the [rootNode] which is initially shown.
+  final Path<Key> initialPath;
+
+  /// The node at path [].
+  final Node rootNode;
 
   const MillerColumns({
     super.key,
     this.onKey,
     this.onSelect,
-    this.initialPath,
+    this.columnCount = 5,
+    this.initialPath = const IListConst([]),
+    required this.rootNode,
     required this.getChildren,
     required this.rowBuilder,
-    required this.toKey,
+    //required this.toKey,
   });
 
   @override
-  State<StatefulWidget> createState() => MillerColumnsState<K, V>();
+  State<StatefulWidget> createState() => MillerColumnsState<Key, Node>();
 }
 
-class MillerColumnsState<K, V> extends State<MillerColumns<K, V>> {
-  final FocusNode focusNode = FocusNode();
-  IList<K> path = <K>[].lockUnsafe;
+class GraphNode<Key, Node> {
+  Path<Key> path;
+  Node node;
 
-  List<List<V>> columns = [];
+  IList<Path<Key>>? children;
+  int selectedChildIndex = 0;
 
-  List<V> get parentColumn =>
-      columns.length >= 2 ? columns[columns.length - 2] : [];
-  List<V> get currentColumn => columns.isNotEmpty ? columns.last : [];
+  /// Whether the node is a leaf.
+  /// Returns null if the children have not been loaded,
+  /// and it is therefore not clear whether the node is a leaf.
+  bool? get isLeaf => childrenLoaded ? children == null : null;
 
-  // The child column is only a preview and is therefore handled separately.
-  List<V> childColumn = [];
+  bool childrenLoaded;
 
-  Future<void> updateChildColumn() async {
-    childColumn = [];
-    childColumn = (await widget.getChildren(path)).toList();
-    childrenDatasource.dataChanged();
+  Path<Key>? get selectedChildPath =>
+      childrenLoaded ? children![selectedChildIndex] : null;
+
+  GraphNode(this.path, this.node) : childrenLoaded = false;
+
+  GraphNode.withChildren(this.path, this.node, this.children)
+      : childrenLoaded = true;
+
+  @override
+  String toString() {
+    return "[GraphNode $path $children children]";
   }
+}
 
-  late TableDatasource<V> parentDatasource = TableDatasource<V>(
-    colDefs: [
-      ColumnDefinition(
-        label: "",
-        cellBuilder: widget.rowBuilder,
-      )
-    ],
-    getRowCount: () => parentColumn.length,
-    getRowValue: (index) => TableValue(
-      key: ValueKey(widget.toKey(parentColumn[index])),
-      value: parentColumn[index],
-    ),
-  );
-  late TableDatasource<V> currentDatasource = TableDatasource<V>(
-    colDefs: [
-      ColumnDefinition(
-        label: "",
-        cellBuilder: widget.rowBuilder,
-      )
-    ],
-    getRowCount: () => currentColumn.length,
-    getRowValue: (index) => TableValue(
-      key: ValueKey(widget.toKey(currentColumn[index])),
-      value: currentColumn[index],
-    ),
-  );
-  late TableDatasource<V> childrenDatasource = TableDatasource<V>(
-    colDefs: [
-      ColumnDefinition(
-        label: "",
-        cellBuilder: widget.rowBuilder,
-      )
-    ],
-    getRowCount: () => childColumn.length,
-    getRowValue: (index) => TableValue(
-      key: ValueKey(widget.toKey(childColumn[index])),
-      value: childColumn[index],
-    ),
-  );
+class MillerColumnsState<Key, Node> extends State<MillerColumns<Key, Node>> {
+  final FocusNode focusNode = FocusNode();
+
+  Path<Key> path = <Key>[].lockUnsafe;
+
+  IMap<Path<Key>, GraphNode<Key, Node>> graph =
+      <Path<Key>, GraphNode<Key, Node>>{}.lockUnsafe;
+
+  /// Functions which return which path the datasources are showing.
+  List<Path<Key>? Function()> tableDatasourcesShownPaths = [];
+  List<TableDatasource<Node>> tableDatasources = [];
 
   @override
   void initState() {
     super.initState();
-    path = (widget.initialPath != null)
-        ? widget.initialPath!.lock
-        : <K>[].lockUnsafe;
+    initDatasources();
     initColumns();
     focusNode.requestFocus();
   }
 
-  Future<void> initColumns() async {
-    for (int i = 0; i < path.length; i++) {
-      columns.add(
-        (await widget.getChildren(path.sublist(0, i))).toList(),
+  Future<void> initDatasources() async {
+    final List<ColumnDefinition<Node>> colDefs = [
+      ColumnDefinition<Node>(
+        label: "Nodes",
+        cellBuilder: widget.rowBuilder,
+      )
+    ];
+
+    for (int i = widget.columnCount - 1; i >= 0; i--) {
+      tableDatasourcesShownPaths.add(() {
+        if (path.length - i < 0) {
+          return null;
+        }
+        return path.sublist(0, path.length - i);
+      });
+      tableDatasources.add(
+        TableDatasource(
+          colDefs: colDefs,
+          getRowCount: () {
+            if (path.length - i < 0) {
+              return 0;
+            }
+            Path<Key> shownPath = path.sublist(0, path.length - i);
+            if (!graph.containsKey(shownPath)) {
+              print("$shownPath not in graph");
+              return 0;
+            }
+            return graph[shownPath]!.children?.length ?? 0;
+          },
+          getRowValue: (index) {
+            Path<Key> shownPath = path.sublist(0, path.length - i);
+            Path<Key> childPath = graph[shownPath]!.children![index];
+            return toTableValue(childPath);
+          },
+        ),
       );
     }
-    currentDatasource.selectWhere(
-      (row) => widget.toKey(row.value) == path.last,
-    );
-    await updateChildColumn();
-    parentDatasource.dataChanged();
-    currentDatasource.dataChanged();
+    setState(() {});
+  }
+
+  /// Get a [TableValue] for a given node path.
+  TableValue<Node> toTableValue(Path<Key> path) => TableValue<Node>(
+        key: ValueKey(path),
+        value: graph[path]!.node,
+      );
+
+  void refreshColumns() {
+    int i = 0;
+    for (TableDatasource<Node> datasource in tableDatasources) {
+      Path<Key>? shownPath = tableDatasourcesShownPaths[i]();
+      datasource.dataChanged();
+      if (shownPath != null) {
+        datasource.selectIndex(graph[shownPath]!.selectedChildIndex);
+      }
+      i++;
+    }
+  }
+
+  Future<void> fetchNodeChildren(GraphNode<Key, Node> parentNode) async {
+    var children = await widget.getChildren(parentNode.node);
+    if (children == null) {
+      // Node is leaf
+      parentNode.children = null;
+      parentNode.childrenLoaded = true;
+      return;
+    }
+
+    for (NodeAndKey<Key, Node> child in children) {
+      Path<Key> childPath = parentNode.path.add(child.key);
+      graph = graph.add(
+        childPath,
+        GraphNode(childPath, child.node),
+      );
+    }
+    parentNode.children = children
+        .map(
+          (child) => parentNode.path.add(child.key),
+        )
+        .toIList();
+    parentNode.childrenLoaded = true;
+  }
+
+  Future<void> initColumns() async {
+    path = widget.initialPath;
+
+    GraphNode<Key, Node> root = GraphNode(<Key>[].lockUnsafe, widget.rootNode);
+    graph = graph.add(<Key>[].lockUnsafe, root);
+
+    await fetchNodeChildren(root);
+
+    GraphNode<Key, Node> current = root;
+    for (int i = 1; i < path.length + 1; i++) {
+      assert(current.childrenLoaded);
+      Path<Key> nextPath = path.sublist(0, i);
+      current.selectedChildIndex = current.children!.indexOf(nextPath);
+      current = graph[nextPath]!;
+      await fetchNodeChildren(current);
+    }
+
+    refreshColumns();
+  }
+
+  void moveSelectionDown() {
+    tableDatasources.last.moveSelectionDown();
+    if (graph[path]!.selectedChildIndex <
+        (graph[path]!.children?.length ?? 0) - 1) {
+      graph[path]!.selectedChildIndex++;
+      // TODO: Refresh preview column
+    }
+  }
+
+  void moveSelectionUp() {
+    tableDatasources.last.moveSelectionUp();
+    if (graph[path]!.selectedChildIndex > 0) {
+      graph[path]!.selectedChildIndex--;
+      // TODO: Refresh preview column
+    }
+  }
+
+  Future<void> moveIntoSelectedChild() async {
+    Path<Key> childPath = graph[path]!.selectedChildPath!;
+    GraphNode<Key, Node> child = graph[childPath]!;
+    if (!child.childrenLoaded) {
+      print("Loading children");
+      await fetchNodeChildren(child);
+    }
+    if (child.isLeaf!) {
+      if (widget.onSelect != null) widget.onSelect!(child.node);
+      return;
+    }
+    path = childPath;
+    refreshColumns();
+    tableDatasources.last.selectIndex(child.selectedChildIndex);
+  }
+
+  void moveToParent() {
+    if (path.isEmpty) return;
+    path = path.removeLast();
+    refreshColumns();
   }
 
   @override
@@ -132,106 +251,45 @@ class MillerColumnsState<K, V> extends State<MillerColumns<K, V>> {
       onKey: (event) async {
         if (event is RawKeyDownEvent) {
           if (event.logicalKey == LogicalKeyboardKey.keyH) {
-            if (path.isEmpty) return;
-            path = path.removeLast();
-            childColumn = columns.removeLast();
-            parentDatasource.dataChanged();
-            parentDatasource.selectWhere(
-              (row) => widget.toKey(row.value) == path[path.length - 2],
-            );
-            currentDatasource.dataChanged();
-            currentDatasource.selectWhere(
-              (row) => widget.toKey(row.value) == path.last,
-            );
+            moveToParent();
             return;
           } else if (event.logicalKey == LogicalKeyboardKey.keyL) {
-            if (childColumn.isEmpty) {
-              if (widget.onSelect != null) {
-                widget.onSelect!(currentDatasource.selectedRows.single);
-              }
-              return;
-            }
-            path = path.add(
-              widget.toKey(currentDatasource.selectedRows.single),
-            );
-            columns.add(childColumn);
-            updateChildColumn();
-            parentDatasource.dataChanged();
-            parentDatasource.selectWhere(
-              (row) => widget.toKey(row.value) == path[path.length - 2],
-            );
-            currentDatasource.dataChanged();
-            currentDatasource.selectIndex(0);
+            await moveIntoSelectedChild();
             return;
           } else if (event.logicalKey == LogicalKeyboardKey.keyJ) {
-            currentDatasource.moveSelectionDown();
-            path = path.replace(
-              path.length - 1,
-              widget.toKey(currentDatasource.selectedRows.single),
-            );
-            updateChildColumn();
+            moveSelectionDown();
             return;
           } else if (event.logicalKey == LogicalKeyboardKey.keyK) {
-            currentDatasource.moveSelectionUp();
-            path = path.replace(
-              path.length - 1,
-              widget.toKey(currentDatasource.selectedRows.single),
-            );
-            updateChildColumn();
+            moveSelectionUp();
             return;
           }
         }
         if (widget.onKey != null) widget.onKey!(event, this);
       },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 80),
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFFFFF),
-            borderRadius: const BorderRadius.all(Radius.circular(5.0)),
-            border: Border.all(color: Colors.black.withOpacity(0.6)),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: TableView<V>(
+      child: Row(
+        children: [
+          ...tableDatasources.mapIndexedAndLast(
+            (_, datasource, isLast) => Expanded(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: isLast
+                      ? null
+                      : const Border(
+                          right: BorderSide(color: CupertinoColors.separator),
+                        ),
+                ),
+                child: TableView<Node>(
                   rowHeight: 24,
-                  dataSource: parentDatasource,
+                  dataSource: datasource,
                   showHeader: false,
                   fullWidthHighlight: true,
                   showEvenRowHighlight: false,
                 ),
               ),
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.symmetric(
-                      vertical: BorderSide(
-                        color: Colors.black.withOpacity(0.1),
-                      ),
-                    ),
-                  ),
-                  child: TableView<V>(
-                    rowHeight: 24,
-                    dataSource: currentDatasource,
-                    showHeader: false,
-                    fullWidthHighlight: true,
-                    showEvenRowHighlight: false,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: TableView<V>(
-                  rowHeight: 24,
-                  dataSource: childrenDatasource,
-                  showHeader: false,
-                  fullWidthHighlight: true,
-                  showEvenRowHighlight: false,
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+          // TODO: Preview column
+        ],
       ),
     );
   }
