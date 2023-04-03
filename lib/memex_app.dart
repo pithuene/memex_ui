@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_portal/flutter_portal.dart';
 import 'package:macos_ui/macos_ui.dart';
+import 'package:memex_ui/miller_columns.dart';
 import 'package:memex_ui/typography.dart';
 
 String memexAppName = "Memex App";
@@ -10,6 +14,7 @@ class App extends StatelessWidget {
     super.key,
     required this.builder,
     this.sidebar,
+    this.endSidebar,
     this.toolBar,
     required String appName,
   }) {
@@ -18,6 +23,7 @@ class App extends StatelessWidget {
 
   final ScrollableWidgetBuilder builder;
   final Sidebar? sidebar;
+  final Sidebar? endSidebar;
   final ToolBar? toolBar;
 
   @override
@@ -39,6 +45,7 @@ class App extends StatelessWidget {
             ),
             child: MacosWindow(
               sidebar: sidebar,
+              endSidebar: endSidebar,
               child: MacosScaffold(
                 toolBar: toolBar,
                 children: [ContentArea(builder: builder)],
