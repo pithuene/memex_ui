@@ -64,7 +64,7 @@ class TableViewRow<T> extends StatelessWidget {
               fullWidthHighlight: fullWidthHighlight,
               isSelected: isSelected,
               columnWidths: columnWidths,
-              children: colDefs.map((colDef) {
+              childrenBuilder: (context) => colDefs.map((colDef) {
                 final AlignmentGeometry alignmentGeometry =
                     (colDef.alignment == ColumnAlignment.start)
                         ? Alignment.centerLeft
@@ -97,14 +97,14 @@ class _RowHighlight extends StatelessWidget {
     required this.fullWidthHighlight,
     required this.isSelected,
     required this.columnWidths,
-    required this.children,
+    required this.childrenBuilder,
   });
 
   final bool hasEvenRowHighlight;
   final bool fullWidthHighlight;
   final bool isSelected;
   final Map<int, TableColumnWidth> columnWidths;
-  final List<Widget> children;
+  final List<Widget> Function(BuildContext) childrenBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -131,15 +131,17 @@ class _RowHighlight extends StatelessWidget {
     }
     return DefaultTextStyle(
       style: textStyle,
-      child: Table(
-        columnWidths: columnWidths,
-        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-        children: [
-          TableRow(
-            decoration: decoration,
-            children: children,
-          ),
-        ],
+      child: Builder(
+        builder: (context) => Table(
+          columnWidths: columnWidths,
+          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+          children: [
+            TableRow(
+              decoration: decoration,
+              children: childrenBuilder(context),
+            ),
+          ],
+        ),
       ),
     );
   }
