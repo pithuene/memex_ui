@@ -17,6 +17,7 @@ import 'package:memex_ui/memex_ui.dart';
 void main() {
   test('delete across piece boundary', () {
     var state = EditorState(
+      meta: {}.lockUnsafe,
       blocks: <EditorBlock>[
         ParagraphBlock(<Piece>[
           const Piece(text: "foo"),
@@ -174,8 +175,9 @@ void main() {
 
   test('markdown (de)serialization', () async {
     File markdownFile = File("./test/doc.md");
-    EditorState fromMarkdown = await parseMarkdown(markdownFile);
-    String toMarkdown = await serializeEditorState(fromMarkdown);
+    EditorState? fromMarkdown = await parseMarkdown(markdownFile);
+    expect(fromMarkdown != null, true);
+    String toMarkdown = await serializeEditorState(fromMarkdown!);
     String originalMarkdown = await markdownFile.readAsString();
     expect(toMarkdown, originalMarkdown);
   });
