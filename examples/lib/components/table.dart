@@ -2,42 +2,42 @@ import 'package:flutter/widgets.dart';
 import 'package:memex_ui/memex_ui.dart';
 import 'package:memex_ui_examples/components.dart';
 
-ComponentExample componentTableView = ComponentExample(
-  name: "TableView",
-  stories: [
-    Story(
-      "Default",
-      (BuildContext context) => TableView(
-        rowHeight: 32,
-        dataSource: datasource,
-      ),
-    ),
-    Story(
-      "No Header",
-      (BuildContext context) => TableView(
-        showHeader: false,
-        rowHeight: 32,
-        dataSource: datasource,
-      ),
-    ),
-    Story(
-      "Full Width Highlight",
-      (BuildContext context) => TableView(
-        fullWidthHighlight: true,
-        rowHeight: 32,
-        dataSource: datasource,
-      ),
-    ),
-    Story(
-      "No even Row Highlight",
-      (BuildContext context) => TableView(
-        showEvenRowHighlight: false,
-        rowHeight: 32,
-        dataSource: datasource,
-      ),
-    ),
-  ],
-);
+ComponentExample componentTableView() => ComponentExample(
+      name: "TableView",
+      stories: [
+        Story(
+          "Default",
+          (BuildContext context) => TableView(
+            rowHeight: 32,
+            dataSource: datasource,
+          ),
+        ),
+        Story(
+          "No Header",
+          (BuildContext context) => TableView(
+            showHeader: false,
+            rowHeight: 32,
+            dataSource: datasource,
+          ),
+        ),
+        Story(
+          "Full Width Highlight",
+          (BuildContext context) => TableView(
+            fullWidthHighlight: true,
+            rowHeight: 32,
+            dataSource: datasource,
+          ),
+        ),
+        Story(
+          "No even Row Highlight",
+          (BuildContext context) => TableView(
+            showEvenRowHighlight: false,
+            rowHeight: 32,
+            dataSource: datasource,
+          ),
+        ),
+      ],
+    );
 
 class Person {
   final String firstName;

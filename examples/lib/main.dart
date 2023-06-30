@@ -9,7 +9,9 @@ void main() {
 }
 
 class MemexUIExamplesApp extends StatefulWidget {
-  const MemexUIExamplesApp({super.key});
+  const MemexUIExamplesApp({
+    super.key,
+  });
 
   @override
   State<StatefulWidget> createState() => _MemexUIExamplesAppState();
@@ -49,34 +51,36 @@ class _MemexUIExamplesAppState extends State<MemexUIExamplesApp> {
         minWidth: 250,
         builder: (context, scrollController) => ListView(
           controller: scrollController,
-          children: components
+          children: components()
               .map(
                 (component) => Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(component.name),
-                      ...component.stories
-                          .map(
-                            (story) => Padding(
-                              padding: const EdgeInsets.only(left: 20),
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    currentStory = story;
-                                    currentComponent = component;
-                                  });
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 5,
-                                  ),
-                                  child: Text(story.name),
-                                ),
+                      ...component.stories.map((story) {
+                        if (component.name == currentComponent?.name &&
+                            story.name == currentStory?.name) {
+                          currentStory = story;
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 20),
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                currentStory = story;
+                                currentComponent = component;
+                              });
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
                               ),
+                              child: Text(story.name),
                             ),
-                          )
-                          .toList(),
+                          ),
+                        );
+                      }).toList(),
                     ]),
               )
               .toList(),

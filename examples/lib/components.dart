@@ -1,22 +1,22 @@
 import 'package:flutter/widgets.dart';
 import 'package:memex_ui_examples/components/table.dart';
 
-final List<ComponentExample> components = [
-  componentTableView,
-];
+List<ComponentExample> components() => [
+      componentTableView(),
+    ];
 
 class ComponentExample {
   final String name;
   final List<Story> stories;
 
-  ComponentExample({
+  const ComponentExample({
     required this.name,
     required this.stories,
   });
 }
 
 class Story {
-  Widget Function(BuildContext) build;
-  String name;
-  Story(this.name, this.build);
+  final Widget Function(BuildContext) build;
+  final String name;
+  const Story(this.name, this.build);
 }
