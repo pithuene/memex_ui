@@ -115,7 +115,7 @@ class _RowHighlight extends StatelessWidget {
         .copyWith(fontFeatures: [const FontFeature.tabularFigures()]);
     if (hasEvenRowHighlight && !isSelected) {
       decoration = BoxDecoration(
-        color: const Color.fromRGBO(0, 0, 0, 0.05),
+        color: MemexColor.shade,
         borderRadius: fullWidthHighlight
             ? null
             : const BorderRadius.all(Radius.circular(5)),

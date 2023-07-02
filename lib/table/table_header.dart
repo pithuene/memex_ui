@@ -44,10 +44,7 @@ class TableHeader<T> extends StatelessWidget {
                 orderDirectionArrow = CustomPaint(
                   size: const Size.square(16),
                   painter: _SortDirectionCaretPainter(
-                    color: MacosTheme.of(context).brightness.resolve(
-                          MacosColors.disabledControlTextColor.color,
-                          MacosColors.disabledControlTextColor.darkColor,
-                        ),
+                    color: MemexColor.grid,
                     up: order?.direction == TableOrderDirection.ascending,
                   ),
                 );
@@ -66,9 +63,7 @@ class TableHeader<T> extends StatelessWidget {
                       border: Border(
                         right: (labelIndex == colDefs.length - 1)
                             ? BorderSide.none
-                            : BorderSide(
-                                color: MacosTheme.of(context).dividerColor,
-                              ),
+                            : const BorderSide(color: MemexColor.grid),
                       ),
                     ),
                     child: Padding(
@@ -91,11 +86,11 @@ class TableHeader<T> extends StatelessWidget {
             }).toList(),
             const SizedBox.shrink(),
           ],
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             border: Border(
               bottom: BorderSide(
                 width: 1,
-                color: MacosTheme.of(context).dividerColor,
+                color: MemexColor.grid,
               ),
             ),
           ),

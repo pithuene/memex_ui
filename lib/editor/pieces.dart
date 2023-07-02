@@ -157,22 +157,18 @@ class LinkPiece extends InlineBlock {
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
                 onTap: () => editor.openLink(target),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 1),
-                  child: MacosIcon(
-                    CupertinoIcons.doc,
-                    size: MemexTypography.baseFontSize,
-                    color: MemexTypography.textColor,
-                  ),
+                child: const Padding(
+                  padding: EdgeInsets.only(top: 1),
+                  child: MemexIcon(CupertinoIcons.doc),
                 ),
               ),
             ),
           ),
           ...children.map((piece) => piece.toSpan(editor, false))
         ],
-        style: TextStyle(
+        style: MemexTypography.body.copyWith(
           decoration: TextDecoration.underline,
-          decorationColor: MemexTypography.textColor.withOpacity(0.3),
+          decorationColor: MemexColor.grid,
         ),
       );
       return res;

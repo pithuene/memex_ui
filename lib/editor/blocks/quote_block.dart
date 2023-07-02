@@ -41,7 +41,7 @@ class QuoteBlock extends EditorBlock {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              color: MemexTypography.textColor,
+              color: MemexColor.text,
               width: MemexTypography.baseFontSize * 0.2,
             ),
             Container(width: MemexTypography.baseFontSize * 0.5),
@@ -50,10 +50,8 @@ class QuoteBlock extends EditorBlock {
                 block: this,
                 blockPath: path,
                 editor: editor,
-                style: TextStyle(
-                  fontFamily: MemexTypography.fontFamilyMonospace,
-                  color: Colors.black,
-                ),
+                style: MemexTypography.code
+                    .copyWith(fontSize: MemexTypography.baseFontSize * 1.2),
               ),
             ),
           ],

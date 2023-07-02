@@ -33,13 +33,9 @@ class _MemexUIExamplesAppState extends State<MemexUIExamplesApp> {
           ...currentStory == null
               ? []
               : [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 5),
-                    child: mmx.MacosIcon(
-                      CupertinoIcons.chevron_right,
-                      color: MemexTypography.textColor,
-                      size: 16,
-                    ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 5),
+                    child: mmx.MemexIcon(CupertinoIcons.chevron_right),
                   ),
                 ],
           Text(currentStory?.name ?? ""),

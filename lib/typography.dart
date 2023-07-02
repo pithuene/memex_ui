@@ -1,47 +1,53 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:memex_ui/memex_ui.dart';
 
 class MemexTypography {
-  static String fontFamily = "Inter";
-  static String fontFamilyMonospace = "JetBrainsMono Nerd Font";
-  static double baseFontSize = 16;
-  static Color textColor = const Color(0xFF000000);
-  static Color selectionColor = const Color(0x55007aFF);
+  static const String fontFamily = "Inter";
+  static const String fontFamilyMonospace = "JetBrainsMono Nerd Font";
+  static const double baseFontSize = 16;
 
-  static TextStyle body = TextStyle(
+  static const TextStyle code = TextStyle(
+    fontFamily: fontFamilyMonospace,
+    fontWeight: FontWeight.normal,
+    fontSize: baseFontSize * 0.8,
+    color: MemexColor.text,
+  );
+
+  static const TextStyle body = TextStyle(
     fontFamily: fontFamily,
     fontWeight: FontWeight.normal,
     fontSize: baseFontSize,
-    color: textColor,
+    color: MemexColor.text,
   );
 
-  static TextStyle heading1 = TextStyle(
+  static const TextStyle heading1 = TextStyle(
     fontFamily: fontFamily,
     fontWeight: FontWeight.bold,
     fontSize: baseFontSize * 2.8,
-    color: textColor,
+    color: MemexColor.text,
   );
 
-  static TextStyle heading2 = TextStyle(
+  static const TextStyle heading2 = TextStyle(
     fontFamily: fontFamily,
     fontWeight: FontWeight.bold,
     fontSize: baseFontSize * 2.2,
-    color: textColor,
+    color: MemexColor.text,
     letterSpacing: -0.03 * baseFontSize,
   );
 
-  static TextStyle heading3 = TextStyle(
+  static const TextStyle heading3 = TextStyle(
     fontFamily: fontFamily,
     fontWeight: FontWeight.bold,
     fontSize: baseFontSize * 1.4,
-    color: textColor,
+    color: MemexColor.text,
     letterSpacing: -0.02 * baseFontSize,
   );
 
-  static TextStyle heading4 = TextStyle(
+  static const TextStyle heading4 = TextStyle(
     fontFamily: fontFamily,
     fontWeight: FontWeight.bold,
     fontSize: baseFontSize * 1.1,
-    color: textColor,
+    color: MemexColor.text,
     letterSpacing: -0.012 * baseFontSize,
   );
 }

@@ -69,10 +69,7 @@ class CodeBlock extends EditorBlock {
                 );
                 editor.rebuild();
               },
-              style: TextStyle(
-                fontSize: MemexTypography.baseFontSize * 0.8,
-                color: MemexTypography.textColor.withAlpha(100),
-              ),
+              style: MemexTypography.code,
             ),
           ),
         ]),

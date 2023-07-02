@@ -1,14 +1,16 @@
 library memex_ui;
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:macos_ui/macos_ui.dart';
 
 import './state.dart';
 export './state.dart';
 
 export './memex_app.dart';
+export 'color.dart';
 export 'typography.dart';
+export 'icon.dart';
 export './table/table.dart';
 export './editor/editor.dart';
 export './editor/editor_state.dart';

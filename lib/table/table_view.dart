@@ -64,7 +64,7 @@ class TableView<T> extends StatelessWidget {
               : [],
           Expanded(
             child: StreamBuilder<void>(
-              initialData: Null,
+              initialData: null,
               stream: dataSource.onDataChanged,
               builder: (context, _) => ListView.builder(
                 controller: scrollController,

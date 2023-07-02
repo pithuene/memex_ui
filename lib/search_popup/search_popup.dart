@@ -121,9 +121,8 @@ class _SearchPopupState<T> extends State<SearchPopup<T>> {
               ),
               child: Row(
                 children: [
-                  MacosIcon(
+                  MemexIcon(
                     CupertinoIcons.search,
-                    color: MemexTypography.textColor,
                     size: MemexTypography.heading2.fontSize,
                   ),
                   Container(width: 10),
@@ -133,9 +132,9 @@ class _SearchPopupState<T> extends State<SearchPopup<T>> {
                       focusNode: editableTextFocusNode,
                       style: MemexTypography.heading2
                           .copyWith(fontWeight: FontWeight.normal),
-                      cursorColor: MemexTypography.textColor,
+                      cursorColor: MemexColor.text,
                       backgroundCursorColor: Colors.white,
-                      selectionColor: MemexTypography.selectionColor,
+                      selectionColor: MemexColor.selection,
                       onChanged: search,
                       onSubmitted: (String? result) {
                         close(resultDatasource.selectedRows.single);
