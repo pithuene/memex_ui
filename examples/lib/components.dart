@@ -1,10 +1,12 @@
 import 'package:flutter/widgets.dart';
 import 'package:memex_ui_examples/components/hover_detector.dart';
+import 'package:memex_ui_examples/components/state.dart';
 import 'package:memex_ui_examples/components/table.dart';
 
 List<ComponentExample> components() => [
       componentTableView(),
       componentHoverDetector(),
+      componentState(),
     ];
 
 class ComponentExample {
