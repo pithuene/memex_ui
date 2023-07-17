@@ -1,7 +1,5 @@
 import 'dart:ui';
 
-import 'package:flutter/widgets.dart';
-import 'package:macos_ui/macos_ui.dart';
 import 'package:memex_ui/memex_ui.dart';
 import 'package:memex_ui/table/table_selection.dart';
 
@@ -109,9 +107,7 @@ class _RowHighlight extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Decoration? decoration;
-    TextStyle textStyle = MacosTheme.of(context)
-        .typography
-        .body
+    TextStyle textStyle = MemexTypography.body
         .copyWith(fontFeatures: [const FontFeature.tabularFigures()]);
     if (hasEvenRowHighlight && !isSelected) {
       decoration = BoxDecoration(
@@ -122,12 +118,12 @@ class _RowHighlight extends StatelessWidget {
       );
     } else if (isSelected) {
       decoration = BoxDecoration(
-        color: MacosTheme.of(context).primaryColor,
+        color: MemexColor.selection,
         borderRadius: fullWidthHighlight
             ? null
             : const BorderRadius.all(Radius.circular(5)),
       );
-      textStyle = textStyle.copyWith(color: MacosColors.white);
+      textStyle = textStyle.copyWith(color: MemexColor.white);
     }
     return DefaultTextStyle(
       style: textStyle,

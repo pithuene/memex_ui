@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+export 'package:macos_ui/src/icon/macos_icon.dart';
 import 'package:memex_ui/memex_ui.dart';
 
 class MemexIcon extends StatelessWidget {

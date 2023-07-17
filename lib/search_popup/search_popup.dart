@@ -1,9 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'package:memex_ui/memex_ui.dart';
 import 'package:memex_ui/overlay.dart';
 
@@ -133,8 +131,8 @@ class _SearchPopupState<T> extends State<SearchPopup<T>> {
                       style: MemexTypography.heading2
                           .copyWith(fontWeight: FontWeight.normal),
                       cursorColor: MemexColor.text,
-                      backgroundCursorColor: Colors.white,
-                      selectionColor: MemexColor.selection,
+                      backgroundCursorColor: MemexColor.white,
+                      selectionColor: MemexColor.textSelection,
                       onChanged: search,
                       onSubmitted: (String? result) {
                         close(resultDatasource.selectedRows.single);

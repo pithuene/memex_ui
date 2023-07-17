@@ -1,11 +1,5 @@
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:memex_ui/memex_ui.dart';
-import 'package:memex_ui/typography.dart';
 
 @immutable
 class Piece {
@@ -56,7 +50,7 @@ class Piece {
           fontWeight: isBold ? FontWeight.bold : null,
           fontStyle: isItalic ? FontStyle.italic : FontStyle.normal,
           fontFamily: isMonospace ? MemexTypography.fontFamilyMonospace : null,
-          backgroundColor: isMonospace ? Colors.black.withAlpha(16) : null,
+          backgroundColor: isMonospace ? MemexColor.shade : null,
         ),
       );
 
@@ -254,9 +248,9 @@ class InlineMathPiece extends InlineBlock {
     if (containsCursor) {
       return TextSpan(
         children: [super.toSpan(editor, containsCursor)],
-        style: TextStyle(
+        style: const TextStyle(
           fontFamily: MemexTypography.fontFamilyMonospace,
-          backgroundColor: Colors.black.withAlpha(16),
+          backgroundColor: MemexColor.shade,
         ),
       );
     } else {
