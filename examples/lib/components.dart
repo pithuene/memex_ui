@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:memex_ui_examples/components/hover_detector.dart';
 import 'package:memex_ui_examples/components/state.dart';
+import 'package:memex_ui_examples/components/switch.dart';
 import 'package:memex_ui_examples/components/table.dart';
 import 'package:memex_ui_examples/components/tree_view.dart';
 
@@ -9,6 +10,7 @@ List<ComponentExample> components() => [
       componentHoverDetector(),
       componentState(),
       componentTreeView(),
+      componentSwitch(),
     ];
 
 class ComponentExample {
