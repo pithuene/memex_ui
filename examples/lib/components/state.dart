@@ -16,29 +16,40 @@ class MyWidget extends ReactiveWidget {
       );
 }
 
+class StoryStateDefault extends Story {
+  StoryStateDefault({
+    super.name = "Default",
+  });
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: mmx.HoverDetector(
+          builder: (context, hovered, _) => MyWidget(),
+        ),
+      );
+}
+
+class StoryStateResetOnParentRebuild extends Story {
+  StoryStateResetOnParentRebuild({
+    super.name = "State reset on parent rebuild",
+  });
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: mmx.HoverDetector(
+          builder: (context, hovered, _) => Container(
+            padding: const EdgeInsets.all(10),
+            color: hovered ? const Color(0xFFFF0000) : const Color(0xFF0000FF),
+            child: MyWidget(),
+          ),
+        ),
+      );
+}
+
 ComponentExample componentState() => ComponentExample(
       name: "State",
       stories: [
-        Story(
-          "Default",
-          (BuildContext context) => Center(
-            child: mmx.HoverDetector(
-              builder: (context, hovered, _) => MyWidget(),
-            ),
-          ),
-        ),
-        Story(
-          "State reset on parent rebuild",
-          (BuildContext context) => Center(
-            child: mmx.HoverDetector(
-              builder: (context, hovered, _) => Container(
-                padding: const EdgeInsets.all(10),
-                color:
-                    hovered ? const Color(0xFFFF0000) : const Color(0xFF0000FF),
-                child: MyWidget(),
-              ),
-            ),
-          ),
-        ),
+        StoryStateDefault(),
+        StoryStateResetOnParentRebuild(),
       ],
     );

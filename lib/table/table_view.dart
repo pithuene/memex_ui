@@ -1,12 +1,9 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:memex_ui/table/table_order.dart';
+import 'package:memex_ui/memex_ui.dart';
 import './table_header.dart';
 import './table_row.dart';
-import './table_datasource.dart';
 
 /// A scrollable data table with sorting and selection.
-class TableView<T> extends StatelessWidget {
+class TableView<T> extends ReactiveWidget {
   const TableView({
     super.key,
     this.scrollController,
@@ -45,47 +42,49 @@ class TableView<T> extends StatelessWidget {
     return StreamBuilder<TableOrder<T>?>(
       initialData: dataSource.order,
       stream: dataSource.onOrderChanged,
-      builder: (context, order) => Column(
-        children: [
-          ...showHeader
-              ? [
-                  TableHeader<T>(
-                    colDefs: dataSource.colDefs,
-                    order: order.data,
-                    columnHeaderClicked: (colDef) {
-                      if (colDef == order.data?.column) {
-                        dataSource.reverseOrderDirection();
-                      } else {
-                        dataSource.orderBy(TableOrder(column: colDef));
-                      }
-                    },
-                  )
-                ]
-              : [],
-          Expanded(
-            child: StreamBuilder<void>(
-              initialData: null,
-              stream: dataSource.onDataChanged,
-              builder: (context, _) => ListView.builder(
-                controller: scrollController,
-                itemCount: dataSource.rowCount,
-                itemExtent: rowHeight,
-                itemBuilder: (context, index) {
-                  return TableViewRow(
-                    data: dataSource,
-                    index: index,
-                    rowHeight: rowHeight,
-                    columnWidths: columnWidths,
-                    colDefs: dataSource.colDefs,
-                    row: dataSource.getRowValue(index),
-                    showEvenRowHighlight: showEvenRowHighlight,
-                    fullWidthHighlight: fullWidthHighlight,
-                  );
-                },
+      builder: (context, order) => ReactiveBuilder(
+        () => Column(
+          children: [
+            ...showHeader
+                ? [
+                    TableHeader<T>(
+                      colDefs: dataSource.colDefs,
+                      order: order.data,
+                      columnHeaderClicked: (colDef) {
+                        if (colDef == order.data?.column) {
+                          dataSource.reverseOrderDirection();
+                        } else {
+                          dataSource.orderBy(TableOrder(column: colDef));
+                        }
+                      },
+                    )
+                  ]
+                : [],
+            Expanded(
+              child: StreamBuilder<void>(
+                initialData: null,
+                stream: dataSource.onDataChanged,
+                builder: (context, _) => ListView.builder(
+                  controller: scrollController,
+                  itemCount: dataSource.rowCount,
+                  itemExtent: rowHeight,
+                  itemBuilder: (context, index) {
+                    return TableViewRow(
+                      data: dataSource,
+                      index: index,
+                      rowHeight: rowHeight,
+                      columnWidths: columnWidths,
+                      colDefs: dataSource.colDefs,
+                      row: dataSource.getRowValue(index),
+                      showEvenRowHighlight: showEvenRowHighlight,
+                      fullWidthHighlight: fullWidthHighlight,
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

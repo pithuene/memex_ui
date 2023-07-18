@@ -1,41 +1,68 @@
-import 'package:flutter/widgets.dart';
 import 'package:memex_ui/memex_ui.dart';
 import 'package:memex_ui_examples/components.dart';
+
+class StoryTableDefault extends Story {
+  static Prop<bool> showHeader = Prop(true);
+  static Prop<bool> fullWidthHighlight = Prop(false);
+  static Prop<bool> showEvenRowHighlight = Prop(true);
+
+  StoryTableDefault()
+      : super(
+          name: "Default",
+          knobs: [
+            KnobSwitch("Show Header", showHeader),
+            KnobSwitch("Full Width Highlight", fullWidthHighlight),
+            KnobSwitch("Even Row Highlight", showEvenRowHighlight),
+          ],
+        );
+
+  @override
+  Widget build(BuildContext context) => ReactiveBuilder(() => TableView(
+        rowHeight: 32,
+        dataSource: datasource,
+        showHeader: showHeader.value,
+        fullWidthHighlight: fullWidthHighlight.value,
+        showEvenRowHighlight: showEvenRowHighlight.value,
+      ));
+}
 
 ComponentExample componentTableView() => ComponentExample(
       name: "TableView",
       stories: [
-        Story(
-          "Default",
-          (BuildContext context) => TableView(
-            rowHeight: 32,
-            dataSource: datasource,
+        StoryTableDefault(),
+        /*Story(
+          name: "No Header",
+          knobs: {
+            "noHeader": KnobSwitch(Prop<bool>(false)),
+          },
+          build: (BuildContext context, knobs) => Column(
+            children: [
+              Expanded(
+                child: TableView(
+                  showHeader: knobs["noHeader"] as Prop<bool>,
+                  rowHeight: 32,
+                  dataSource: datasource,
+                ),
+              ),
+            ],
           ),
         ),
         Story(
-          "No Header",
-          (BuildContext context) => TableView(
-            showHeader: false,
-            rowHeight: 32,
-            dataSource: datasource,
-          ),
-        ),
-        Story(
-          "Full Width Highlight",
-          (BuildContext context) => TableView(
+          name: "Full Width Highlight",
+          build: (BuildContext context, _) => TableView(
             fullWidthHighlight: true,
             rowHeight: 32,
             dataSource: datasource,
           ),
         ),
         Story(
-          "No even Row Highlight",
-          (BuildContext context) => TableView(
+          name: "No even Row Highlight",
+          build: (BuildContext context, _) => TableView(
             showEvenRowHighlight: false,
             rowHeight: 32,
             dataSource: datasource,
           ),
-        ),
+        ),*/
       ],
     );
 

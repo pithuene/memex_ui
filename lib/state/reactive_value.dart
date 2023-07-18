@@ -19,3 +19,15 @@ class Prop<T> extends ReactiveValue<T> {
     notifyListeners();
   }
 }
+
+/// A [ReactiveValue] which isn't actually mutable.
+/// Useful when setting properties which expect a [ReactiveValue]
+/// to a constant value.
+class Const<T> extends ReactiveValue<T> {
+  final T _value;
+
+  Const(this._value);
+
+  @override
+  T get value => _value;
+}

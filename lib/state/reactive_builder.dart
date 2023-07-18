@@ -28,12 +28,15 @@ class _ReactiveBuilderState extends State<ReactiveBuilder>
 
   @override
   Widget build(BuildContext context) {
-    if (cache == null) {
+    /*if (cache == null) {
       removeAllListeners();
       executeInContext(() {
         cache = widget.builder();
       });
-    }
+    }*/
+    executeInContext(() {
+      cache = widget.builder();
+    });
     return cache!;
   }
 }

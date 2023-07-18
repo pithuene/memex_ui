@@ -49,8 +49,9 @@ class _MemexUIExamplesAppState extends State<MemexUIExamplesApp> {
   Widget build(BuildContext context) {
     return mmx.App(
       appName: "MemexUI Examples",
-      builder: (context, scrollController) =>
-          currentStory == null ? Container() : currentStory!.build(context),
+      builder: (context, scrollController) => currentStory == null
+          ? Container()
+          : mmx.ReactiveBuilder(() => currentStory!.build(context)),
       toolBar: mmx.ToolBar(
         title: Row(children: [
           Text(currentComponent?.name ?? "MemexUI Examples"),
@@ -95,9 +96,27 @@ class _MemexUIExamplesAppState extends State<MemexUIExamplesApp> {
         topOffset: 0,
         builder: (context, scrollController) => ListView(
           controller: scrollController,
-          children: [
-            Text("Knobs"),
-          ],
+          padding: const EdgeInsets.all(10),
+          children: currentStory?.knobs
+                  .map(
+                    (knob) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          knob.label,
+                          style: MemexTypography.body.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontSize: MemexTypography.baseFontSize * 0.9,
+                            color: MemexColor.text.withAlpha(64),
+                          ),
+                        ),
+                        knob.build(context),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                  )
+                  .toList() ??
+              [],
         ),
       ),
     );
