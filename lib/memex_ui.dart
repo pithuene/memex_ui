@@ -10,6 +10,7 @@ export 'color.dart';
 export 'typography.dart';
 export 'icon.dart';
 export 'switch.dart';
+export 'slider.dart';
 export 'table/table.dart';
 export 'editor/editor.dart';
 export 'editor/editor_state.dart';

@@ -1,5 +1,6 @@
 import 'package:memex_ui/memex_ui.dart';
 import 'package:memex_ui_examples/components/hover_detector.dart';
+import 'package:memex_ui_examples/components/slider.dart';
 import 'package:memex_ui_examples/components/state.dart';
 import 'package:memex_ui_examples/components/switch.dart';
 import 'package:memex_ui_examples/components/table.dart';
@@ -13,6 +14,7 @@ List<ComponentExample> components() => [
       componentState(),
       componentTreeView(),
       componentSwitch(),
+      componentSlider(),
     ];
 
 class ComponentExample {
