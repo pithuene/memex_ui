@@ -1,10 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_portal/flutter_portal.dart';
 import 'package:macos_ui/macos_ui.dart';
-import 'package:memex_ui/miller_columns.dart';
+import 'package:memex_ui/color.dart';
 import 'package:memex_ui/typography.dart';
 
 String memexAppName = "Memex App";
@@ -34,7 +31,7 @@ class App extends StatelessWidget {
           builder: (context, child) => MacosTheme(
             data: MacosThemeData(
               typography: MacosTypography(
-                color: Colors.black,
+                color: MemexColor.text,
                 body: MemexTypography.body,
                 headline: MemexTypography.body,
                 title3: MemexTypography.heading4,
