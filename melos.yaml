@@ -1,0 +1,7 @@
+name: memex
+repository: https://github.com/pithuene/memex
+packages:
+  - packages/*
+ide:
+  intellij:
+    enabled: false
