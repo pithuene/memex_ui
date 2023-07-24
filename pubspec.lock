@@ -101,10 +101,10 @@ packages:
     dependency: transitive
     description:
       name: http
-      sha256: "759d1a329847dd0f39226c688d3e06a6b8679668e350e2891a6474f8b4bb8525"
+      sha256: "5895291c13fa8a3bd82e76d5627f69e0d85ca6a30dcac95c4ea19a5d555879c2"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.0"
+    version: "0.13.6"
   http_parser:
     dependency: transitive
     description:
@@ -213,10 +213,10 @@ packages:
     dependency: transitive
     description:
       name: pub_updater
-      sha256: b06600619c8c219065a548f8f7c192b3e080beff95488ed692780f48f69c0625
+      sha256: "05ae70703e06f7fdeb05f7f02dd680b8aad810e87c756a618f33e1794635115c"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.1"
+    version: "0.3.0"
   pubspec:
     dependency: transitive
     description:
@@ -277,10 +277,10 @@ packages:
     dependency: transitive
     description:
       name: test_api
-      sha256: "5c2f730018264d276c20e4f1503fd1308dfbbae39ec8ee63c5236311ac06954b"
+      sha256: "75760ffd7786fffdfb9597c35c5b27eaeec82be8edfb6d71d32651128ed7aab8"
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.1"
+    version: "0.6.0"
   typed_data:
     dependency: transitive
     description:
@@ -314,4 +314,4 @@ packages:
     source: hosted
     version: "2.1.1"
 sdks:
-  dart: ">=3.0.0 <4.0.0"
+  dart: ">=2.19.0 <3.0.0"
