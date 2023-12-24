@@ -10,6 +10,5 @@ class Switch extends ReactiveWidget {
   Widget build(BuildContext context) => MacosSwitch(
         value: value.value,
         onChanged: (newValue) => value.value = newValue,
-        activeColor: CupertinoColors.activeBlue,
       );
 }

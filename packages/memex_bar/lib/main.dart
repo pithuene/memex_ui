@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:flutter/services.dart';
 import 'modules/wifi.dart';
-import 'package:macos_ui/macos_ui.dart';
 import 'package:memex_ui/memex_ui.dart';
 import 'popover.dart';
 
@@ -29,32 +28,29 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: MacosTheme(
-        data: MacosThemeData.light(),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              height: barHeight,
-              decoration: BoxDecoration(
-                color: MemexColor.white,
-                border: Border(
-                  bottom: BorderSide(color: CupertinoColors.separator),
-                ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            height: barHeight,
+            decoration: BoxDecoration(
+              color: MemexColor.white,
+              border: Border(
+                bottom: BorderSide(color: CupertinoColors.separator),
               ),
-              child: Bar(),
             ),
-            Expanded(
-              child: GestureDetector(
-                  onTap: () {
-                    print("clicked");
-                    showOverlay.value = false;
-                  },
-                  child: OverlayArea()),
-            ),
-          ],
-        ),
+            child: Bar(),
+          ),
+          Expanded(
+            child: GestureDetector(
+                onTap: () {
+                  print("clicked");
+                  showOverlay.value = false;
+                },
+                child: OverlayArea()),
+          ),
+        ],
       ),
     );
   }

@@ -1,4 +1,3 @@
-import 'package:emoji_dialog_picker/emoji_dialog_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:memex_editor/document.dart';
 import 'package:memex_ui/memex_ui.dart';
@@ -70,20 +69,29 @@ class DocumentHeader extends ReactiveWidget {
                       openOverlay(
                         context,
                         (BuildContext context, OverlayEntry entry) => Container(
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(5.0),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(5.0),
+                              ),
                             ),
-                          ),
-                          child: EmojiPickerView(
+                            child: GestureDetector(
+                              child: const Text("Close"),
+                              onTap: () {
+                                entry.remove();
+                                // Always set the icon to null, so that the icon is not saved
+                                document.value!.editor?.setIcon("");
+                                document.notifyListeners();
+                              },
+                            )
+                            /* TODO EmojiPickerView(
                             onEmojiSelected: (String emoji) {
                               entry.remove();
                               document.value!.editor?.setIcon(emoji);
                               document.notifyListeners();
                             },
-                          ),
-                        ),
+                          ),*/
+                            ),
                       );
                     },
                   ),
@@ -96,7 +104,7 @@ class DocumentHeader extends ReactiveWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         PushButton(
-                          buttonSize: ButtonSize.small,
+                          controlSize: ControlSize.small,
                           onPressed: () {
                             var prevDay = document.value!.journalDate
                                 .subtract(const Duration(days: 1));
@@ -116,7 +124,7 @@ class DocumentHeader extends ReactiveWidget {
                           ),
                         ),
                         PushButton(
-                          buttonSize: ButtonSize.small,
+                          controlSize: ControlSize.small,
                           onPressed: () {
                             var prevDay = document.value!.journalDate
                                 .add(const Duration(days: 1));

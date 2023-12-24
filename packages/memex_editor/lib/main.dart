@@ -7,6 +7,8 @@ import 'package:memex_editor/sidebar.dart';
 import 'package:memex_ui/editor/pieces.dart';
 import 'package:memex_ui/memex_ui.dart';
 
+import 'package:memex_ui/new_editor/editor.dart' as editor;
+
 void main(List<String> args) {
   runApp(const MemexEditorApp());
 }
@@ -23,6 +25,7 @@ class _MemexEditorAppState extends State<MemexEditorApp> {
 
   DocumentStore documentStore = DocumentStore();
   Prop<Document?> currentDocument = Prop<Document?>(null);
+  Prop<bool> useExperimentalEditor = Prop(true);
 
   Future<void> openNoteFromId(String id) async {
     ProcessResult result = await Process.run(
@@ -171,7 +174,12 @@ class _MemexEditorAppState extends State<MemexEditorApp> {
         titleWidth: 400,
         title: ReactiveBuilder(
           () => (currentDocument.value == null)
-              ? const Text("Memex Editor")
+              ? Row(
+                  children: [
+                    const Text("Memex Editor"),
+                    Switch(useExperimentalEditor),
+                  ],
+                )
               : Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -243,29 +251,57 @@ class _MemexEditorAppState extends State<MemexEditorApp> {
                           context, currentDocument.value!.editor!);
                     }
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 64),
-                    child: (currentDocument.value == null)
-                        ? Text(
-                            "Open a document to start editing.",
-                            style: MemexTypography.body.copyWith(
-                              color: MemexColor.text.withOpacity(0.5),
-                            ),
-                          )
-                        : EditorView(
-                            scrollController: scrollController,
-                            editor: currentDocument.value!.editor!,
-                            linkHandler: (target) async =>
-                                openNoteFromId(target),
-                            header: DocumentHeader(
-                              document: currentDocument,
-                              openJournalDate: (DateTime date) {
-                                openJournalEntry(date: date);
-                              },
-                            ),
-                            footer: Container(height: 200),
+                  child: (useExperimentalEditor.value)
+                      ? editor.Editor(
+                          document: editor.EditorDocument(
+                            children: [
+                              //editor.EditorSelection(
+                              //children: [
+                              editor.EditorText(TextEditingValue(
+                                  text:
+                                      "Testing something with a lot of content, so I can see whether the lines break properly. Let's see some more content because this was not enough.")),
+                              editor.EditorParagraph(
+                                children: [
+                                  editor.EditorSpanPlain("In Color: "),
+                                  editor.EditorSpanBlue(
+                                    children: [
+                                      editor.EditorSpanPlain("Test"),
+                                      editor.EditorSpanBold("Test"),
+                                    ].lockUnsafe,
+                                  ),
+                                ].lockUnsafe,
+                                //),
+                                //].lockUnsafe,
+                                /*selection: editor.Selection.collapsed(
+                                  editor.Cursor(editor.NodePath([0, 1]), 1),
+                                ),*/
+                              ),
+                            ].lockUnsafe,
                           ),
-                  ),
+                        )
+                      : Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 64),
+                          child: (currentDocument.value == null)
+                              ? Text(
+                                  "Open a document to start editing.",
+                                  style: MemexTypography.body.copyWith(
+                                    color: MemexColor.text.withOpacity(0.5),
+                                  ),
+                                )
+                              : EditorView(
+                                  scrollController: scrollController,
+                                  editor: currentDocument.value!.editor!,
+                                  linkHandler: (target) async =>
+                                      openNoteFromId(target),
+                                  header: DocumentHeader(
+                                    document: currentDocument,
+                                    openJournalDate: (DateTime date) {
+                                      openJournalEntry(date: date);
+                                    },
+                                  ),
+                                  footer: Container(height: 200),
+                                ),
+                        ),
                 )),
           ),
         ],

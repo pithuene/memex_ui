@@ -34,3 +34,4 @@ export 'package:macos_ui/src/buttons/icon_button.dart';
 export 'package:macos_ui/src/buttons/push_button.dart';
 export 'package:macos_ui/src/buttons/pulldown_button.dart';
 export 'package:macos_ui/src/dialogs/macos_alert_dialog.dart';
+export 'package:macos_ui/src/enums/control_size.dart';

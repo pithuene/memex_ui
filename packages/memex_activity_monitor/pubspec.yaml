@@ -35,7 +35,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   memex_ui:
-  linux_system_info: ^0.0.7
+    path: ../memex_ui
   intl: ^0.17.0
   xdg_directories: ^0.2.0+2
   freedesktop_desktop_entry: ^0.2.0

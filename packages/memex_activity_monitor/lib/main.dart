@@ -5,9 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_activity_monitor/activity_monitor_logo.dart';
 import 'package:flutter_activity_monitor/desktop_entries.dart';
 import 'package:flutter_activity_monitor/proc.dart';
-import 'package:flutter/material.dart';
 import 'package:memex_ui/memex_ui.dart';
-import 'package:linux_system_info/linux_system_info.dart';
 
 void main() {
   runApp(const MyApp());
@@ -49,17 +47,12 @@ class MemoryOverviewPage extends StatefulWidget {
 class _MemoryOverviewPageState extends State<MemoryOverviewPage> {
   ProcessListFilter processListFilter =
       ProcessListFilter(orderBy: ProcessListOrder.memory);
-  List<Cpu> processors = [];
   Timer? updateTimer;
   SystemInformation sysInfo = SystemInformation();
 
   late TableDatasource<ProcessInformation> table;
 
   Map<String, Image> iconMap = {};
-
-  void updateProcessorData(Timer _) {
-    processors = CpuInfo.getProcessors();
-  }
 
   void updateProcessData(Timer _) {
     sysInfo
@@ -68,7 +61,6 @@ class _MemoryOverviewPageState extends State<MemoryOverviewPage> {
   }
 
   updateAllData(Timer timer) {
-    updateProcessorData(timer);
     updateProcessData(timer);
   }
 
@@ -238,20 +230,20 @@ class _MemoryOverviewPageState extends State<MemoryOverviewPage> {
                             style: MemexTypography.heading4,
                           ),
                           primaryButton: PushButton(
-                            buttonSize: ButtonSize.large,
-                            child: const Text('Stop process'),
+                            controlSize: ControlSize.large,
                             onPressed: () {
                               interruptProcess(selectedProcess);
                               Navigator.of(context).pop();
                             },
+                            child: const Text('Stop process'),
                           ),
                           secondaryButton: PushButton(
                             color: CupertinoColors.systemGrey,
-                            buttonSize: ButtonSize.large,
-                            child: const Text('Cancel'),
+                            controlSize: ControlSize.large,
                             onPressed: () {
                               Navigator.of(context).pop();
                             },
+                            child: const Text('Cancel'),
                           ),
                         );
                       });

@@ -1,9 +1,7 @@
 Memex Monorepo
 ==============
 
-[![melos](https://img.shields.io/badge/maintained%20with-melos-f700ff.svg?style=flat-square)](https://github.com/invertase/melos)
-
-Various components used in my linux desktop environment, built using Flutter and maintained in this monorepo using Melos.
+Various components used in my linux desktop environment, built using Flutter and maintained in this monorepo.
 
 Packages
 --------

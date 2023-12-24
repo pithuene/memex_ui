@@ -37,8 +37,8 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   memex_ui:
+    path: ../memex_ui
   fast_immutable_collections: ^8.1.1
-  emoji_dialog_picker: ^1.0.1
   intl: ^0.18.1
 
 dev_dependencies:
