@@ -23,6 +23,8 @@ export 'search_popup/search_popup.dart';
 export 'hover_detector.dart';
 export 'notify/notify.dart';
 export 'searchbar_client.dart';
+export 'jump_focus/jump_focus.dart';
+export 'jump_focus/jump_button.dart';
 
 export 'package:macos_ui/src/layout/toolbar/toolbar.dart';
 export 'package:macos_ui/src/buttons/toolbar/toolbar_icon_button.dart';
