@@ -78,7 +78,7 @@ class JumpFocusControllerState extends State<JumpFocusController> {
     freeKeys.add(key);
     _bindings.remove(key);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {});
+      if (mounted) setState(() {});
     });
   }
 
