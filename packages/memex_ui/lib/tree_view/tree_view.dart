@@ -1,3 +1,4 @@
+import 'package:memex_ui/jump_focus/jump_target_row.dart';
 import 'package:memex_ui/memex_ui.dart';
 
 class TreeViewNode {
@@ -35,17 +36,26 @@ class TreeViewNode {
           onTap: () {
             if (onTap != null) onTap!(this);
           },
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 6,
-            ),
-            child: Text.rich(
-              TextSpan(
-                children: [
-                  ...icon == null
-                      ? []
-                      : [
+          child: JumpFocusTarget(
+            disabled: onTap == null,
+            onJump: () {
+              if (onTap != null) onTap!(this);
+            },
+            builder: (context, key, isSelectable) => Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 6,
+              ),
+              child: JumpTargetRow(
+                shortcut: key,
+                showTarget: isSelectable,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                targetMargin: const (5, 0),
+                child: Expanded(
+                  child: Text.rich(
+                    TextSpan(
+                      children: [
+                        if (icon != null)
                           WidgetSpan(
                             alignment: PlaceholderAlignment.middle,
                             child: SizedBox.square(
@@ -53,13 +63,16 @@ class TreeViewNode {
                               child: icon!,
                             ),
                           ),
-                          const TextSpan(text: " "),
-                        ],
-                  label,
-                ],
+                        if (icon != null) const TextSpan(text: " "),
+                        label,
+                      ],
+                    ),
+                    style: MemexTypography.body
+                        .copyWith(fontWeight: FontWeight.w500),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ),
-              style: MemexTypography.body.copyWith(fontWeight: FontWeight.w500),
-              overflow: TextOverflow.ellipsis,
             ),
           ),
         ),

@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/widgets.dart';
 
 class MemexColor {
   static const Color white = Color.fromARGB(255, 255, 255, 255);
+  static const Color black = Color.fromARGB(255, 0, 0, 0);
 
   static const Color text = Color(0xFF000000);
   static const Color textSelection = Color(0x55007aFF);

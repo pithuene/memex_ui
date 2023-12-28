@@ -17,21 +17,18 @@ class StoryTreeViewDefault extends Story {
           label: const TextSpan(text: "Two"),
           icon: const MemexIcon(CupertinoIcons.pen),
           onTap: (_) {},
-          children: [
+          children: const [
             TreeViewNode(
-              label: const TextSpan(text: "One"),
-              icon: const MemexIcon(CupertinoIcons.add),
-              onTap: (_) {},
+              label: TextSpan(text: "One"),
+              icon: MemexIcon(CupertinoIcons.add),
             ),
             TreeViewNode(
-              label: const TextSpan(text: "Two"),
-              icon: const SizedBox.shrink(),
-              onTap: (_) {},
+              label: TextSpan(text: "Two"),
+              icon: SizedBox.shrink(),
             ),
             TreeViewNode(
-              label: const TextSpan(text: "Three"),
-              icon: const SizedBox.shrink(),
-              onTap: (_) {},
+              label: TextSpan(text: "Three"),
+              icon: SizedBox.shrink(),
             ),
           ],
         ),
