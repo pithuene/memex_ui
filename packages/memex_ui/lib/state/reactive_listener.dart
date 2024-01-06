@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:memex_ui/state/state.dart';
 
-abstract class ReactiveListener {
+mixin ReactiveListener {
   /// The stack of [ReactiveListener] contexts in which execution
   /// is currently happening. Makes it possible to access the current
   /// context when accessing a [ReactiveValue].

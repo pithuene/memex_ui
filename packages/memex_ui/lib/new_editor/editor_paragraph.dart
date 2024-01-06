@@ -7,7 +7,7 @@ import 'node_path.dart';
 import 'editor_widget.dart';
 import 'editor.dart';
 
-abstract class EditorSpan {
+mixin EditorSpan {
   InlineSpan toSpan();
 
   /// Override [build] to show an inline widget or

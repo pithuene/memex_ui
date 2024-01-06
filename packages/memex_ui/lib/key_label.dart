@@ -22,7 +22,7 @@ class KeyLabel extends StatelessWidget {
     fontWeight: FontWeight.bold,
   );
 
-  TextSpan _buildTextSpan() {
+  static TextSpan _buildTextSpan(Shortcut? shortcut, int highlightCount) {
     final textSpans = shortcut?.mapIndexedAndLast(
       (index, item, isLast) => TextSpan(
         text: item.keyLabel,
@@ -38,46 +38,65 @@ class KeyLabel extends StatelessWidget {
     return TextSpan(children: textSpans?.toList() ?? <InlineSpan>[]);
   }
 
-  /// Calculate the size of the widget without building it.
-  Size calculateSize() {
+  Size _calculateTextContentSize() {
     final textPainter = TextPainter(
-      text: _buildTextSpan(),
+      text: _buildTextSpan(
+        // The key label size is independent on the content, a placeholder is fine.
+        // Otherwise, it wouldn't be possible to calculate the required
+        // space for a key label before allocating a shortcut for it.
+        Shortcut(const [LogicalKeyboardKey.keyW, LogicalKeyboardKey.keyW]),
+        0,
+      ),
       textWidthBasis: TextWidthBasis.longestLine,
       textDirection: TextDirection.ltr,
       maxLines: 1,
     );
     textPainter.layout();
+    return Size(textPainter.width, textPainter.height);
+  }
+
+  /// Calculate the size of the widget without building it.
+  Size calculateSize() {
+    final textContentSize = _calculateTextContentSize();
     return Size(
-      textPainter.width + padding.width * 2 + borderWidth * 2,
-      textPainter.height + padding.height * 2 + borderWidth * 2,
+      textContentSize.width + padding.width * 2 + borderWidth * 2,
+      textContentSize.height + padding.height * 2 + borderWidth * 2,
     );
   }
 
   @override
-  Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
-          color: MemexColor.white,
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(
-            color: MemexColor.grid,
-            width: borderWidth,
+  Widget build(BuildContext context) {
+    Size textContentSize = _calculateTextContentSize();
+    return Container(
+      decoration: BoxDecoration(
+        color: MemexColor.white,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: MemexColor.grid,
+          width: borderWidth,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: MemexColor.black.withOpacity(0.1),
+            blurRadius: 2,
+            blurStyle: BlurStyle.normal,
+            offset: const Offset(0, 1),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: MemexColor.black.withOpacity(0.1),
-              blurRadius: 2,
-              blurStyle: BlurStyle.normal,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
-        padding: EdgeInsets.symmetric(
-          horizontal: padding.width,
-          vertical: padding.height,
-        ),
+        ],
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: padding.width,
+        vertical: padding.height,
+      ),
+      child: SizedBox(
+        width: textContentSize.width,
+        height: textContentSize.height,
         child: Text.rich(
-          _buildTextSpan(),
+          _buildTextSpan(shortcut, highlightCount),
+          textAlign: TextAlign.center,
           maxLines: 1,
         ),
-      );
+      ),
+    );
+  }
 }

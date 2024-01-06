@@ -6,12 +6,12 @@ typedef Shortcut = IList<LogicalKeyboardKey>;
 class JumpFocusController extends StatefulWidget {
   const JumpFocusController({
     Key? key,
-    required this.child,
     required this.focusNode,
+    required this.child,
   }) : super(key: key);
 
-  final Widget child;
   final FocusNode focusNode;
+  final Widget child;
 
   @override
   JumpFocusControllerState createState() => JumpFocusControllerState();

@@ -10,11 +10,11 @@ String memexAppName = "Memex App";
 class App extends StatelessWidget {
   App({
     super.key,
-    required this.builder,
+    required String appName,
     this.sidebar,
     this.endSidebar,
     this.toolBar,
-    required String appName,
+    required this.builder,
   }) {
     memexAppName = appName;
   }

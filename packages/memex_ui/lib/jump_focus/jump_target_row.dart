@@ -50,6 +50,7 @@ class JumpTargetRow extends StatelessWidget {
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
         AnimatedContainer(
           duration: animationDuration,
