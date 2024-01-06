@@ -27,8 +27,10 @@ static FlMethodResponse* grab_overlay_input(bool grab) {
 
     if (grab) {
       gtk_widget_input_shape_combine_region(GTK_WIDGET(window), regionBarAndOverlay);
+      gtk_layer_set_keyboard_mode(window, GTK_LAYER_SHELL_KEYBOARD_MODE_EXCLUSIVE);
     } else {
       gtk_widget_input_shape_combine_region(GTK_WIDGET(window), regionBar);
+      gtk_layer_set_keyboard_mode(window, GTK_LAYER_SHELL_KEYBOARD_MODE_NONE);
     }
     isGrabbingOverlayInput = grab;
   }
@@ -78,6 +80,11 @@ static void my_application_activate(GApplication* application) {
   // gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_BOTTOM, TRUE);
   gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_LEFT, TRUE);
   gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_RIGHT, TRUE);
+
+
+  // Initially, there is no keyboard input.
+  // Input is grabbed when the mouse input is grabbed too.
+  gtk_layer_set_keyboard_mode(window, GTK_LAYER_SHELL_KEYBOARD_MODE_NONE);
 
   // Use a header bar when running in GNOME as this is the common style used
   // by applications and is the setup most users will be using (e.g. Ubuntu

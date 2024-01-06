@@ -26,9 +26,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: Column(
+    return App(
+      appName: "Memex Bar",
+      builder: (context, _) => Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -90,7 +90,7 @@ class Bar extends ReactiveWidget {
             DateTime.now().toLocal().toString(),
             style: MemexTypography.body.copyWith(fontWeight: FontWeight.w500),
           ),
-          material.MaterialButton(
+          Button(
             onPressed: () {
               print("Test");
               showOverlay.value = !showOverlay.value;
@@ -124,7 +124,7 @@ class OverlayArea extends ReactiveWidget {
                 "This is the content of my notification",
                 style: MemexTypography.body,
               ),
-              material.MaterialButton(
+              Button(
                 onPressed: () {
                   print("Notification");
                 },
@@ -142,7 +142,7 @@ class OverlayArea extends ReactiveWidget {
       color:
           children.isEmpty ? const Color(0x00000000) : const Color(0x00000000),
       child: Stack(
-        //crossAxisAlignment: CrossAxisAlignment.end,
+        alignment: Alignment.topRight,
         children: children,
       ),
     );
