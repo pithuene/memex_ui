@@ -10,13 +10,13 @@ class MemexIcon extends StatelessWidget {
     this.icon, {
     super.key,
     this.size = MemexTypography.baseFontSize,
-    this.color = MemexColor.text,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) => MacosIcon(
         icon,
         size: size,
-        color: color,
+        color: color ?? DefaultTextStyle.of(context).style.color,
       );
 }

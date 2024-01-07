@@ -63,6 +63,7 @@ class StoryJumpFocusDefault extends Story {
                             const Text("Welcome to this overlay."),
                             const SizedBox(height: 20),
                             Button(
+                              usePersistentShortcut: true,
                               onPressed: () {
                                 entry.remove();
                               },

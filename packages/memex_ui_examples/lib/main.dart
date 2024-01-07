@@ -80,6 +80,7 @@ class _MemexUIExamplesAppState extends State<MemexUIExamplesApp> {
                   }
                   return mmx.TreeViewNode(
                     label: TextSpan(text: story.name),
+                    usePersistentShortcuts: true,
                     onTap: (_) {
                       setState(() {
                         currentStory = story;

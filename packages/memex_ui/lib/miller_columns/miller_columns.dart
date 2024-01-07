@@ -16,7 +16,7 @@ class NodeAndKey<Key, Node> {
 
 class MillerColumns<Key, Node> extends StatefulWidget {
   /// Hook to extend the keyboard controls.
-  final void Function(RawKeyEvent, MillerColumnsState)? onKey;
+  final void Function(RawKeyEvent, MillerColumnsState<Key, Node>)? onKey;
 
   /// Get the children of a given parent node.
   /// If the node is a leaf, return null.

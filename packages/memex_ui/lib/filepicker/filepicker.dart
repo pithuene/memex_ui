@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:memex_ui/miller_columns.dart';
+import 'package:memex_ui/miller_columns/directory_explorer.dart';
 import 'package:memex_ui/overlay.dart';
 
-Future<File> openFilepicker(BuildContext context) async {
-  var completer = Completer<File>();
+Future<File?> openFilepicker(BuildContext context) async {
+  var completer = Completer<File?>();
 
   openOverlay(
     context,
@@ -21,41 +21,16 @@ Future<File> openFilepicker(BuildContext context) async {
           borderRadius: const BorderRadius.all(Radius.circular(5.0)),
           border: Border.all(color: Colors.black.withOpacity(0.6)),
         ),
-        child: MillerColumns<String, FileSystemEntity>(
-          rootNode: Directory("/"),
-          initialPath: <String>["home", "pit"].lockUnsafe,
-          onKey: (event, state) {
-            if (event is RawKeyDownEvent &&
-                event.logicalKey == LogicalKeyboardKey.escape) {
+        child: DirectoryExporer(
+          onKey: (key, state) {
+            if (key.logicalKey == LogicalKeyboardKey.escape) {
+              completer.complete(null);
               entry.remove();
             }
           },
-          getChildren: (FileSystemEntity parent) async {
-            if (!await FileSystemEntity.isDirectory(parent.path)) {
-              return null;
-            }
-            Directory dir = Directory(parent.path);
-            try {
-              return dir.listSync().map(
-                    (child) => NodeAndKey(
-                      child,
-                      child.path.split("/").last,
-                    ),
-                  );
-            } catch (e) {
-              return null;
-            }
-          },
-          rowBuilder: (context, file) => Text(
-            file.path.split("/").last,
-            maxLines: 1,
-            softWrap: false,
-            overflow: TextOverflow.ellipsis,
-          ),
           onSelect: (file) {
-            assert(file is File);
+            completer.complete(file);
             entry.remove();
-            completer.complete(file as File);
           },
         ),
       ),

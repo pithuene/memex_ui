@@ -13,9 +13,14 @@ class TreeViewNode {
   /// null means this is an inner node.
   final Iterable<TreeViewNode>? children;
 
+  /// Whether to use persistent shortcuts for the jump targets.
+  /// This is useful when the tree is rather small and static.
+  final bool usePersistentShortcuts;
+
   const TreeViewNode({
     this.icon,
     required this.label,
+    this.usePersistentShortcuts = false,
     this.onTap,
     this.children,
   });
@@ -38,6 +43,7 @@ class TreeViewNode {
           },
           child: JumpFocusTarget(
             disabled: onTap == null,
+            usePersistentShortcut: usePersistentShortcuts,
             onJump: () {
               if (onTap != null) onTap!(this);
             },
