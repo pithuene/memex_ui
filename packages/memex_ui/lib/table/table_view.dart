@@ -4,13 +4,14 @@ import './table_row.dart';
 
 /// A scrollable data table with sorting and selection.
 class TableView<T> extends ReactiveWidget {
-  const TableView({
+  TableView({
     super.key,
     this.scrollController,
     required this.rowHeight,
     required this.dataSource,
     this.showHeader = true,
     this.showEvenRowHighlight = true,
+    this.isActive,
     this.fullWidthHighlight = false,
   });
 
@@ -27,6 +28,9 @@ class TableView<T> extends ReactiveWidget {
   /// Whether the row highlight covers the full width,
   /// in which case it is also not rounded.
   final bool fullWidthHighlight;
+
+  /// When the table is not active, the selection color is grey.
+  final Prop<bool>? isActive;
 
   /// Optionally override the scrollController.
   final ScrollController? scrollController;
@@ -45,21 +49,18 @@ class TableView<T> extends ReactiveWidget {
       builder: (context, order) => ReactiveBuilder(
         () => Column(
           children: [
-            ...showHeader
-                ? [
-                    TableHeader<T>(
-                      colDefs: dataSource.colDefs,
-                      order: order.data,
-                      columnHeaderClicked: (colDef) {
-                        if (colDef == order.data?.column) {
-                          dataSource.reverseOrderDirection();
-                        } else {
-                          dataSource.orderBy(TableOrder(column: colDef));
-                        }
-                      },
-                    )
-                  ]
-                : [],
+            if (showHeader)
+              TableHeader<T>(
+                colDefs: dataSource.colDefs,
+                order: order.data,
+                columnHeaderClicked: (colDef) {
+                  if (colDef == order.data?.column) {
+                    dataSource.reverseOrderDirection();
+                  } else {
+                    dataSource.orderBy(TableOrder(column: colDef));
+                  }
+                },
+              ),
             Expanded(
               child: StreamBuilder<void>(
                 initialData: null,
@@ -78,6 +79,7 @@ class TableView<T> extends ReactiveWidget {
                       row: dataSource.getRowValue(index),
                       showEvenRowHighlight: showEvenRowHighlight,
                       fullWidthHighlight: fullWidthHighlight,
+                      isActive: isActive,
                     );
                   },
                 ),

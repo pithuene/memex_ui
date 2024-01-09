@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:memex_ui/memex_ui.dart';
 
@@ -69,7 +70,7 @@ class KeyLabel extends StatelessWidget {
     Size textContentSize = _calculateTextContentSize();
     return Container(
       decoration: BoxDecoration(
-        color: MemexColor.white,
+        color: CupertinoColors.systemYellow,
         borderRadius: BorderRadius.circular(4),
         border: Border.all(
           color: MemexColor.grid,

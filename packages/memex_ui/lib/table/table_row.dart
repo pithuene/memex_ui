@@ -12,6 +12,7 @@ class TableViewRow<T> extends StatelessWidget {
     required this.row,
     required this.rowHeight,
     required this.data,
+    this.isActive,
     this.fullWidthHighlight = false,
     bool showEvenRowHighlight = true,
   }) : hasEvenRowHighlight = (showEvenRowHighlight) ? index % 2 == 1 : false;
@@ -29,6 +30,9 @@ class TableViewRow<T> extends StatelessWidget {
   final bool hasEvenRowHighlight;
   final bool fullWidthHighlight;
 
+  /// When the table is not active, the selection color is grey.
+  final Prop<bool>? isActive;
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -36,7 +40,8 @@ class TableViewRow<T> extends StatelessWidget {
         data.select(TableSelection(key: row.key, value: row.value));
       },
       behavior: HitTestBehavior.opaque,
-      child: Padding(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 75),
         padding: fullWidthHighlight
             ? EdgeInsets.zero
             : const EdgeInsets.symmetric(horizontal: 10),
@@ -61,6 +66,7 @@ class TableViewRow<T> extends StatelessWidget {
               hasEvenRowHighlight: hasEvenRowHighlight,
               fullWidthHighlight: fullWidthHighlight,
               isSelected: isSelected,
+              isActive: isActive,
               columnWidths: columnWidths,
               childrenBuilder: (context) => colDefs.map((colDef) {
                 final AlignmentGeometry alignmentGeometry =
@@ -89,8 +95,9 @@ class TableViewRow<T> extends StatelessWidget {
 }
 
 /// Add selection and even / odd highlighting to table rows
-class _RowHighlight extends StatelessWidget {
+class _RowHighlight extends ReactiveWidget {
   const _RowHighlight({
+    this.isActive,
     required this.hasEvenRowHighlight,
     required this.fullWidthHighlight,
     required this.isSelected,
@@ -100,6 +107,10 @@ class _RowHighlight extends StatelessWidget {
 
   final bool hasEvenRowHighlight;
   final bool fullWidthHighlight;
+
+  /// When the table is not active, the selection color is grey.
+  final Prop<bool>? isActive;
+
   final bool isSelected;
   final Map<int, TableColumnWidth> columnWidths;
   final List<Widget> Function(BuildContext) childrenBuilder;
@@ -118,7 +129,9 @@ class _RowHighlight extends StatelessWidget {
       );
     } else if (isSelected) {
       decoration = BoxDecoration(
-        color: MemexColor.selection,
+        color: (isActive?.value ?? true)
+            ? MemexColor.selection
+            : MemexColor.selectionInactive,
         borderRadius: fullWidthHighlight
             ? null
             : const BorderRadius.all(Radius.circular(5)),
