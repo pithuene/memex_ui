@@ -284,7 +284,7 @@ class MillerColumnsState<Key, Node> extends State<MillerColumns<Key, Node>> {
                   showHeader: false,
                   fullWidthHighlight: true,
                   showEvenRowHighlight: false,
-                  isActive: Prop(isLast),
+                  isActive: Const(isLast),
                 ),
               ),
             ),

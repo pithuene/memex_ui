@@ -30,7 +30,7 @@ class TableView<T> extends ReactiveWidget {
   final bool fullWidthHighlight;
 
   /// When the table is not active, the selection color is grey.
-  final Prop<bool>? isActive;
+  final ReactiveValue<bool>? isActive;
 
   /// Optionally override the scrollController.
   final ScrollController? scrollController;
@@ -61,30 +61,28 @@ class TableView<T> extends ReactiveWidget {
                   }
                 },
               ),
-            Expanded(
-              child: StreamBuilder<void>(
-                initialData: null,
-                stream: dataSource.onDataChanged,
-                builder: (context, _) => ListView.builder(
-                  controller: scrollController,
-                  itemCount: dataSource.rowCount,
-                  itemExtent: rowHeight,
-                  itemBuilder: (context, index) {
-                    return TableViewRow(
-                      data: dataSource,
-                      index: index,
-                      rowHeight: rowHeight,
-                      columnWidths: columnWidths,
-                      colDefs: dataSource.colDefs,
-                      row: dataSource.getRowValue(index),
-                      showEvenRowHighlight: showEvenRowHighlight,
-                      fullWidthHighlight: fullWidthHighlight,
-                      isActive: isActive,
-                    );
-                  },
-                ),
+            StreamBuilder<void>(
+              initialData: null,
+              stream: dataSource.onDataChanged,
+              builder: (context, _) => ListView.builder(
+                controller: scrollController,
+                itemCount: dataSource.rowCount,
+                itemExtent: rowHeight,
+                itemBuilder: (context, index) {
+                  return TableViewRow(
+                    data: dataSource,
+                    index: index,
+                    rowHeight: rowHeight,
+                    columnWidths: columnWidths,
+                    colDefs: dataSource.colDefs,
+                    row: dataSource.getRowValue(index),
+                    showEvenRowHighlight: showEvenRowHighlight,
+                    fullWidthHighlight: fullWidthHighlight,
+                    isActive: isActive,
+                  );
+                },
               ),
-            ),
+            ).expanded(),
           ],
         ),
       ),

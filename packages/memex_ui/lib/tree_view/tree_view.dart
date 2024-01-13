@@ -27,14 +27,11 @@ class TreeViewNode {
 
   Widget build(BuildContext context) => HoverDetector(
         cursor: SystemMouseCursors.click,
-        builder: (context, isHovered, child) => Container(
-          decoration: BoxDecoration(
-            color: isHovered && onTap != null
-                ? MemexColor.shade
-                : MemexColor.transparent,
-            borderRadius: const BorderRadius.all(Radius.circular(5.0)),
-          ),
-          child: child,
+        builder: (context, isHovered, child) => child!.decorated(
+          color: isHovered && onTap != null
+              ? MemexColor.shade
+              : MemexColor.transparent,
+          borderRadius: BorderRadius.circular(5.0),
         ),
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
@@ -47,40 +44,31 @@ class TreeViewNode {
             onJump: () {
               if (onTap != null) onTap!(this);
             },
-            builder: (context, key, isSelectable) => Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 6,
-              ),
-              child: JumpTargetRow(
-                shortcut: key,
-                showTarget: isSelectable,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                targetMargin: const (5, 0),
-                child: Expanded(
-                  child: Text.rich(
-                    TextSpan(
-                      children: [
-                        if (icon != null)
-                          WidgetSpan(
-                            alignment: PlaceholderAlignment.middle,
-                            child: SizedBox.square(
-                              dimension: MemexTypography.baseFontSize,
-                              child: icon!,
-                            ),
-                          ),
-                        if (icon != null) const TextSpan(text: " "),
-                        label,
-                      ],
-                    ),
-                    style: MemexTypography.body
-                        .copyWith(fontWeight: FontWeight.w500),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
+            builder: (context, key, isSelectable) => JumpTargetRow(
+              shortcut: key,
+              showTarget: isSelectable,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              targetMargin: const (5, 0),
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    if (icon != null)
+                      WidgetSpan(
+                        alignment: PlaceholderAlignment.middle,
+                        child: SizedBox.square(
+                          dimension: MemexTypography.baseFontSize,
+                          child: icon!,
+                        ),
+                      ),
+                    if (icon != null) const TextSpan(text: " "),
+                    label,
+                  ],
+                ).fontWeight(FontWeight.w500),
+                style: MemexTypography.body,
+                overflow: TextOverflow.ellipsis,
+              ).expanded(),
             ),
-          ),
+          ).padding(horizontal: 10, vertical: 6),
         ),
       );
 }
@@ -101,10 +89,9 @@ class TreeView extends StatelessWidget {
 
     List<Widget> result = [];
     for (TreeViewNode node in nodes) {
-      result.add(Padding(
-        padding: EdgeInsets.only(left: depth * nestingOffset),
-        child: node.build(context),
-      ));
+      result.add(
+        node.build(context).padding(left: depth * nestingOffset),
+      );
       if (node.children != null) {
         result.addAll(_recursiveBuild(context, depth + 1, node.children!));
       }

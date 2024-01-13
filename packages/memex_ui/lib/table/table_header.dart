@@ -29,25 +29,26 @@ class TableHeader<T> extends StatelessWidget {
         TableRow(
           children: [
             const SizedBox.shrink(),
-            ...colDefs.asMap().keys.map((labelIndex) {
-              final colDef = colDefs[labelIndex];
+            ...colDefs.mapIndexedAndLast((index, colDef, _) {
               final bool isOrderedByThisColumn =
                   colDef.label == order?.column.label;
-              TextStyle labelStyle = MacosTheme.of(context).typography.headline;
-              if (isOrderedByThisColumn) {
-                labelStyle = labelStyle.copyWith(fontWeight: FontWeight.w600);
-              }
 
-              Widget orderDirectionArrow = const SizedBox.shrink();
-              if (isOrderedByThisColumn) {
-                orderDirectionArrow = CustomPaint(
-                  size: const Size.square(16),
-                  painter: _SortDirectionCaretPainter(
-                    color: MemexColor.grid,
-                    up: order?.direction == TableOrderDirection.ascending,
-                  ),
-                );
-              }
+              final TextStyle labelStyle = isOrderedByThisColumn
+                  ? MacosTheme.of(context)
+                      .typography
+                      .headline
+                      .copyWith(fontWeight: FontWeight.w600)
+                  : MacosTheme.of(context).typography.headline;
+
+              final Widget orderDirectionArrow = isOrderedByThisColumn
+                  ? CustomPaint(
+                      size: const Size.square(16),
+                      painter: _SortDirectionCaretPainter(
+                        color: MemexColor.grid,
+                        up: order?.direction == TableOrderDirection.ascending,
+                      ),
+                    )
+                  : const SizedBox.shrink();
 
               return GestureDetector(
                 onTap: () {
@@ -55,34 +56,23 @@ class TableHeader<T> extends StatelessWidget {
                     columnHeaderClicked!(colDef);
                   }
                 },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 5),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        right: (labelIndex == colDefs.length - 1)
-                            ? BorderSide.none
-                            : const BorderSide(color: MemexColor.grid),
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 3,
-                      ),
-                      child: Row(
-                        children: [
-                          const Spacer(),
-                          Text(colDef.label, style: labelStyle),
-                          const Spacer(),
-                          orderDirectionArrow,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                child: [
+                  const Spacer(),
+                  Text(colDef.label, style: labelStyle),
+                  const Spacer(),
+                  orderDirectionArrow,
+                ]
+                    .toRow()
+                    .padding(horizontal: 10, vertical: 3)
+                    .border(
+                      right: 1.0,
+                      color: (index == colDefs.length - 1)
+                          ? MemexColor.transparent
+                          : MemexColor.grid,
+                    )
+                    .padding(vertical: 5),
               );
-            }).toList(),
+            }),
             const SizedBox.shrink(),
           ],
           decoration: const BoxDecoration(

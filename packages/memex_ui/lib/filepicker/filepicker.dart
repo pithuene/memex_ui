@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:memex_ui/memex_ui.dart';
 import 'package:memex_ui/miller_columns/directory_explorer.dart';
 import 'package:memex_ui/overlay.dart';
 
@@ -13,28 +13,24 @@ Future<File?> openFilepicker(BuildContext context) async {
 
   openOverlay(
     context,
-    (context, entry) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 80),
-      child: Container(
-        decoration: BoxDecoration(
+    (context, entry) => DirectoryExplorer(
+      onKey: (key, state) {
+        if (key.logicalKey == LogicalKeyboardKey.escape) {
+          completer.complete(null);
+          entry.remove();
+        }
+      },
+      onSelect: (file) {
+        completer.complete(file);
+        entry.remove();
+      },
+    )
+        .decorated(
           color: const Color(0xFFFFFFFF),
           borderRadius: const BorderRadius.all(Radius.circular(5.0)),
           border: Border.all(color: Colors.black.withOpacity(0.6)),
-        ),
-        child: DirectoryExporer(
-          onKey: (key, state) {
-            if (key.logicalKey == LogicalKeyboardKey.escape) {
-              completer.complete(null);
-              entry.remove();
-            }
-          },
-          onSelect: (file) {
-            completer.complete(file);
-            entry.remove();
-          },
-        ),
-      ),
-    ),
+        )
+        .padding(all: 80),
   );
 
   return completer.future;
@@ -198,46 +194,34 @@ class _FilepickerState extends State<Filepicker> {
           }
         }
       },
-      child: Padding(
-        padding: EdgeInsets.all(50),
-        child: ColoredBox(
-          color: Color(0xFFFFFFFF),
-          child: Row(
-            children: [
-              Expanded(
-                child: ListView(
-                  children: columnWidgets(
-                    context,
-                    null,
-                    leftColumn,
-                    current.parent.path,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ListView(
-                  children: columnWidgets(
-                    context,
-                    centerFocusedKey,
-                    centerColumn,
-                    current.path,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ListView(
-                  children: columnWidgets(
-                    context,
-                    null,
-                    rightColumn,
-                    "",
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      child: Row(
+        children: [
+          ListView(
+            children: columnWidgets(
+              context,
+              null,
+              leftColumn,
+              current.parent.path,
+            ),
+          ).expanded(),
+          ListView(
+            children: columnWidgets(
+              context,
+              centerFocusedKey,
+              centerColumn,
+              current.path,
+            ),
+          ).expanded(),
+          ListView(
+            children: columnWidgets(
+              context,
+              null,
+              rightColumn,
+              "",
+            ),
+          ).expanded(),
+        ],
+      ).backgroundColor(MemexColor.white).padding(all: 50),
     );
   }
 }

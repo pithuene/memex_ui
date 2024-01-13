@@ -22,11 +22,8 @@ class StoryStateDefault extends Story {
   });
 
   @override
-  Widget build(BuildContext context) => Center(
-        child: mmx.HoverDetector(
-          builder: (context, hovered, _) => MyWidget(),
-        ),
-      );
+  Widget build(BuildContext context) =>
+      mmx.HoverDetector(builder: (context, hovered, _) => MyWidget()).center();
 }
 
 class StoryStateResetOnParentRebuild extends Story {
@@ -35,15 +32,13 @@ class StoryStateResetOnParentRebuild extends Story {
   });
 
   @override
-  Widget build(BuildContext context) => Center(
-        child: mmx.HoverDetector(
-          builder: (context, hovered, _) => Container(
-            padding: const EdgeInsets.all(10),
-            color: hovered ? const Color(0xFFFF0000) : const Color(0xFF0000FF),
-            child: MyWidget(),
-          ),
-        ),
-      );
+  Widget build(BuildContext context) => mmx.HoverDetector(
+        builder: (context, hovered, _) => MyWidget()
+            .padding(all: 20)
+            .backgroundColor(mmx.MemexColor.white)
+            .elevation(hovered ? 10 : 0)
+            .animate(const Duration(milliseconds: 100), Curves.easeOutCubic),
+      ).center();
 }
 
 ComponentExample componentState() => ComponentExample(

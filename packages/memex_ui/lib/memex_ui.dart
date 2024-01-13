@@ -7,6 +7,7 @@ export 'package:flutter/src/cupertino/icons.dart';
 export 'state/state.dart';
 export 'memex_app.dart';
 export 'color.dart';
+export 'border.dart';
 export 'typography.dart';
 export 'icon.dart';
 export 'switch.dart';
@@ -38,3 +39,5 @@ export 'package:macos_ui/src/buttons/push_button.dart';
 export 'package:macos_ui/src/buttons/pulldown_button.dart';
 export 'package:macos_ui/src/dialogs/macos_alert_dialog.dart';
 export 'package:macos_ui/src/enums/control_size.dart';
+
+export 'package:styled_widget/styled_widget.dart';

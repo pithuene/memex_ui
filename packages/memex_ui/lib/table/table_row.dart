@@ -31,7 +31,7 @@ class TableViewRow<T> extends StatelessWidget {
   final bool fullWidthHighlight;
 
   /// When the table is not active, the selection color is grey.
-  final Prop<bool>? isActive;
+  final ReactiveValue<bool>? isActive;
 
   @override
   Widget build(BuildContext context) {
@@ -68,24 +68,19 @@ class TableViewRow<T> extends StatelessWidget {
               isSelected: isSelected,
               isActive: isActive,
               columnWidths: columnWidths,
-              childrenBuilder: (context) => colDefs.map((colDef) {
-                final AlignmentGeometry alignmentGeometry =
-                    (colDef.alignment == ColumnAlignment.start)
-                        ? Alignment.centerLeft
-                        : (colDef.alignment == ColumnAlignment.center)
-                            ? Alignment.center
-                            : Alignment.centerRight;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: SizedBox.fromSize(
-                    size: Size(0, rowHeight),
-                    child: Align(
-                      alignment: alignmentGeometry,
-                      child: colDef.cellBuilder(context, row.value),
-                    ),
-                  ),
-                );
-              }).toList(),
+              childrenBuilder: (context) => colDefs
+                  .map(
+                    (colDef) => colDef
+                        .cellBuilder(context, row.value)
+                        .alignment(switch (colDef.alignment) {
+                          ColumnAlignment.start => Alignment.centerLeft,
+                          ColumnAlignment.center => Alignment.center,
+                          ColumnAlignment.end => Alignment.centerRight,
+                        })
+                        .height(rowHeight)
+                        .padding(horizontal: 10),
+                  )
+                  .toList(),
             );
           },
         ),
@@ -109,7 +104,7 @@ class _RowHighlight extends ReactiveWidget {
   final bool fullWidthHighlight;
 
   /// When the table is not active, the selection color is grey.
-  final Prop<bool>? isActive;
+  final ReactiveValue<bool>? isActive;
 
   final bool isSelected;
   final Map<int, TableColumnWidth> columnWidths;

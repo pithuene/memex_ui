@@ -13,7 +13,7 @@ class StoryMillerColumnsDefault extends Story {
         );
 
   @override
-  Widget build(BuildContext context) => DirectoryExporer(
+  Widget build(BuildContext context) => DirectoryExplorer(
         showHidden: false,
       );
 }

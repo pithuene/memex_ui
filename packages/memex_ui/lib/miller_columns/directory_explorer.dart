@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:memex_ui/memex_ui.dart';
 import 'package:memex_ui/miller_columns/miller_columns.dart';
 
-class DirectoryExporer extends StatelessWidget {
+class DirectoryExplorer extends StatelessWidget {
   final void Function(
       RawKeyEvent, MillerColumnsState<String, FileSystemEntity>)? onKey;
 
@@ -13,7 +13,7 @@ class DirectoryExporer extends StatelessWidget {
 
   final bool showHidden;
 
-  const DirectoryExporer({
+  const DirectoryExplorer({
     Key? key,
     this.onKey,
     this.onSelect,

@@ -48,30 +48,29 @@ class StoryJumpFocusDefault extends Story {
                     print("Jump button 2 pressed");
                     openOverlay(
                       context,
-                      (context, entry) => Container(
-                        padding: const EdgeInsets.all(20),
-                        width: 300,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: MemexColor.grid),
-                          color: MemexColor.white,
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text("Welcome to this overlay."),
-                            const SizedBox(height: 20),
-                            Button(
-                              usePersistentShortcut: true,
-                              onPressed: () {
-                                entry.remove();
-                              },
-                              child: const Text("Close"),
-                            )
-                          ],
-                        ),
-                      ),
+                      (context, entry) => [
+                        const Text("Welcome to this overlay."),
+                        const SizedBox(height: 20),
+                        Button(
+                          usePersistentShortcut: true,
+                          onPressed: () {
+                            entry.remove();
+                          },
+                          child: const Text("Close"),
+                        )
+                      ]
+                          .toColumn(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisSize: MainAxisSize.min,
+                          )
+                          .padding(all: 20)
+                          .height(700)
+                          .width(1000)
+                          .decorated(
+                            borderRadius: BorderRadius.circular(10),
+                            border: MemexBorder.all,
+                            color: MemexColor.white,
+                          ),
                     );
                   },
                 ),

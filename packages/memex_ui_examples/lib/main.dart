@@ -24,20 +24,17 @@ class ComponentTreeViewNode extends mmx.TreeViewNode {
   });
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(
-          bottom: 3,
-          top: 15,
-          left: 5,
+  Widget build(BuildContext context) => Text.rich(
+        label,
+        style: MemexTypography.body.copyWith(
+          fontWeight: FontWeight.bold,
+          fontSize: MemexTypography.baseFontSize * 0.9,
+          color: MemexColor.text.withAlpha(64),
         ),
-        child: Text.rich(
-          label,
-          style: MemexTypography.body.copyWith(
-            fontWeight: FontWeight.bold,
-            fontSize: MemexTypography.baseFontSize * 0.9,
-            color: MemexColor.text.withAlpha(64),
-          ),
-        ),
+      ).padding(
+        bottom: 3,
+        top: 15,
+        left: 5,
       );
 }
 
@@ -53,18 +50,13 @@ class _MemexUIExamplesAppState extends State<MemexUIExamplesApp> {
           ? Container()
           : mmx.ReactiveBuilder(() => currentStory!.build(context)),
       toolBar: mmx.ToolBar(
-        title: Row(children: [
+        title: [
           Text(currentComponent?.name ?? "MemexUI Examples"),
-          ...currentStory == null
-              ? []
-              : [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 5),
-                    child: mmx.MemexIcon(CupertinoIcons.chevron_right),
-                  ),
-                ],
+          if (currentStory != null)
+            const mmx.MemexIcon(CupertinoIcons.chevron_right)
+                .padding(horizontal: 5),
           Text(currentStory?.name ?? ""),
-        ]),
+        ].toRow(),
         titleWidth: 300,
       ),
       sidebar: mmx.Sidebar(
