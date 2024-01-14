@@ -1,0 +1,3 @@
+[submodule "packages/appflowy-editor"]
+	path = packages/appflowy-editor
+	url = git@github.com:pithuene/appflowy-editor.git
