@@ -5,6 +5,7 @@ class StoryTableDefault extends Story {
   static Prop<bool> showHeader = Prop(true);
   static Prop<bool> fullWidthHighlight = Prop(false);
   static Prop<bool> showEvenRowHighlight = Prop(true);
+  static Prop<bool> isActive = Prop(true);
 
   StoryTableDefault()
       : super(
@@ -13,6 +14,7 @@ class StoryTableDefault extends Story {
             KnobSwitch("Show Header", showHeader),
             KnobSwitch("Full Width Highlight", fullWidthHighlight),
             KnobSwitch("Even Row Highlight", showEvenRowHighlight),
+            KnobSwitch("Active", isActive),
           ],
         );
 
@@ -23,6 +25,7 @@ class StoryTableDefault extends Story {
         showHeader: showHeader.value,
         fullWidthHighlight: fullWidthHighlight.value,
         showEvenRowHighlight: showEvenRowHighlight.value,
+        isActive: isActive,
       ));
 }
 
