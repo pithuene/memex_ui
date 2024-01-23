@@ -12,7 +12,7 @@ class TableViewRow<T> extends StatelessWidget {
     required this.row,
     required this.rowHeight,
     required this.data,
-    this.isActive,
+    required this.isActive,
     this.fullWidthHighlight = false,
     bool showEvenRowHighlight = true,
   }) : hasEvenRowHighlight = (showEvenRowHighlight) ? index % 2 == 1 : false;
@@ -31,7 +31,7 @@ class TableViewRow<T> extends StatelessWidget {
   final bool fullWidthHighlight;
 
   /// When the table is not active, the selection color is grey.
-  final ReactiveValue<bool>? isActive;
+  final ReactiveValue<bool> isActive;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +44,7 @@ class TableViewRow<T> extends StatelessWidget {
         duration: const Duration(milliseconds: 75),
         padding: fullWidthHighlight
             ? EdgeInsets.zero
-            : const EdgeInsets.symmetric(horizontal: 10),
+            : const EdgeInsets.symmetric(horizontal: 8),
         child: StreamBuilder<TableSelectionChange>(
           stream: data.onSelectionChanged.where((change) =>
               change.oldSelection?.key == row.key ||
@@ -71,7 +71,7 @@ class TableViewRow<T> extends StatelessWidget {
               childrenBuilder: (context) => colDefs
                   .map(
                     (colDef) => colDef
-                        .cellBuilder(context, row.value)
+                        .cellBuilder(context, row.value, isSelected)
                         .alignment(switch (colDef.alignment) {
                           ColumnAlignment.start => Alignment.centerLeft,
                           ColumnAlignment.center => Alignment.center,
@@ -92,7 +92,7 @@ class TableViewRow<T> extends StatelessWidget {
 /// Add selection and even / odd highlighting to table rows
 class _RowHighlight extends ReactiveWidget {
   const _RowHighlight({
-    this.isActive,
+    required this.isActive,
     required this.hasEvenRowHighlight,
     required this.fullWidthHighlight,
     required this.isSelected,
@@ -104,7 +104,7 @@ class _RowHighlight extends ReactiveWidget {
   final bool fullWidthHighlight;
 
   /// When the table is not active, the selection color is grey.
-  final ReactiveValue<bool>? isActive;
+  final ReactiveValue<bool> isActive;
 
   final bool isSelected;
   final Map<int, TableColumnWidth> columnWidths;
@@ -124,14 +124,14 @@ class _RowHighlight extends ReactiveWidget {
       );
     } else if (isSelected) {
       decoration = BoxDecoration(
-        color: (isActive?.value ?? true)
-            ? MemexColor.selection
-            : MemexColor.selectionInactive,
+        color: (isActive.value) ? MemexColor.selection : MemexColor.shade,
         borderRadius: fullWidthHighlight
             ? null
             : const BorderRadius.all(Radius.circular(5)),
       );
-      textStyle = textStyle.copyWith(color: MemexColor.white);
+      if (isActive.value) {
+        textStyle = textStyle.copyWith(color: MemexColor.white);
+      }
     }
     return DefaultTextStyle(
       style: textStyle,

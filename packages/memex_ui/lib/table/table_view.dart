@@ -4,14 +4,14 @@ import './table_row.dart';
 
 /// A scrollable data table with sorting and selection.
 class TableView<T> extends ReactiveWidget {
-  TableView({
+  const TableView({
     super.key,
     this.scrollController,
     required this.rowHeight,
     required this.dataSource,
     this.showHeader = true,
     this.showEvenRowHighlight = true,
-    this.isActive,
+    this.isActive = const Const(true),
     this.fullWidthHighlight = false,
   });
 
@@ -30,7 +30,7 @@ class TableView<T> extends ReactiveWidget {
   final bool fullWidthHighlight;
 
   /// When the table is not active, the selection color is grey.
-  final ReactiveValue<bool>? isActive;
+  final ReactiveValue<bool> isActive;
 
   /// Optionally override the scrollController.
   final ScrollController? scrollController;

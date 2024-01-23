@@ -17,5 +17,5 @@ class ColumnDefinition<T> {
   final String label;
   final TableColumnWidth width;
   final ColumnAlignment alignment;
-  final Widget Function(BuildContext, T) cellBuilder;
+  final Widget Function(BuildContext, T, bool) cellBuilder;
 }
