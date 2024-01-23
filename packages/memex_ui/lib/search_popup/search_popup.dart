@@ -8,7 +8,7 @@ import 'package:memex_ui/overlay.dart';
 Future<T?> openSearchPopup<T>(
   BuildContext context,
   Future<List<T>> Function(String?) searchCallback,
-  Widget Function(BuildContext, T) builder,
+  Widget Function(BuildContext, T, bool) builder,
 ) async {
   var completer = Completer<T?>();
 
@@ -34,7 +34,7 @@ class SearchPopup<T> extends StatefulWidget {
   /// Given a search query, return a list of results.
   final Future<List<T>> Function(String?) searchCallback;
 
-  final Widget Function(BuildContext, T) builder;
+  final Widget Function(BuildContext, T, bool) builder;
 
   const SearchPopup({
     super.key,

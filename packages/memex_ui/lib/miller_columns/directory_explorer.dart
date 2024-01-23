@@ -48,23 +48,25 @@ class DirectoryExplorer extends StatelessWidget {
             return null;
           }
         },
-        rowBuilder: (context, file) => Text.rich(
-          TextSpan(children: [
-            WidgetSpan(
-                child: MemexIcon(file is Directory
-                    ? CupertinoIcons.folder_fill
-                    : CupertinoIcons.doc_fill),
-                alignment: PlaceholderAlignment.middle),
-            const TextSpan(text: " "),
-            TextSpan(text: file.path.split("/").last),
-          ]),
-          maxLines: 1,
-          softWrap: false,
-          overflow: TextOverflow.ellipsis,
-          style: DefaultTextStyle.of(context).style.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-        ),
+        rowBuilder: (context, file, isSelected) => [
+          MemexIcon(
+            file is Directory
+                ? CupertinoIcons.folder_fill
+                : CupertinoIcons.doc_fill,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            file.path.split("/").last,
+            maxLines: 1,
+            softWrap: false,
+            overflow: TextOverflow.ellipsis,
+            style: DefaultTextStyle.of(context).style.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+          ).expanded(),
+          if (isSelected && file is Directory)
+            const MemexIcon(CupertinoIcons.right_chevron),
+        ].toRow(),
         onSelect: (file) {
           assert(file is File);
           onSelect?.call(file as File);

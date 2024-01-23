@@ -23,7 +23,7 @@ class MillerColumns<Key, Node> extends StatefulWidget {
   final Future<Iterable<NodeAndKey<Key, Node>>?> Function(Node) getChildren;
 
   /// Builder to display a given node.
-  final Widget Function(BuildContext, Node) rowBuilder;
+  final Widget Function(BuildContext, Node, bool) rowBuilder;
 
   /// Called when a leaf is selected.
   final void Function(Node)? onSelect;
@@ -246,52 +246,62 @@ class MillerColumnsState<Key, Node> extends State<MillerColumns<Key, Node>> {
   @override
   Widget build(BuildContext context) {
     return RawKeyboardListener(
-      autofocus: true,
-      focusNode: focusNode,
-      onKey: (event) async {
-        if (event is RawKeyDownEvent) {
-          if (event.logicalKey == LogicalKeyboardKey.keyH) {
-            moveToParent();
-            return;
-          } else if (event.logicalKey == LogicalKeyboardKey.keyL) {
-            await moveIntoSelectedChild();
-            return;
-          } else if (event.logicalKey == LogicalKeyboardKey.keyJ) {
-            moveSelectionDown();
-            return;
-          } else if (event.logicalKey == LogicalKeyboardKey.keyK) {
-            moveSelectionUp();
-            return;
+        autofocus: true,
+        focusNode: focusNode,
+        onKey: (event) async {
+          if (event is RawKeyDownEvent) {
+            if (event.logicalKey == LogicalKeyboardKey.keyH) {
+              moveToParent();
+              return;
+            } else if (event.logicalKey == LogicalKeyboardKey.keyL) {
+              await moveIntoSelectedChild();
+              return;
+            } else if (event.logicalKey == LogicalKeyboardKey.keyJ) {
+              moveSelectionDown();
+              return;
+            } else if (event.logicalKey == LogicalKeyboardKey.keyK) {
+              moveSelectionUp();
+              return;
+            } else if (event.isControlPressed &&
+                event.logicalKey == LogicalKeyboardKey.keyD) {
+              for (int i = 0; i < 10; i++) {
+                moveSelectionDown();
+              }
+              return;
+            } else if (event.isControlPressed &&
+                event.logicalKey == LogicalKeyboardKey.keyU) {
+              for (int i = 0; i < 10; i++) {
+                moveSelectionUp();
+              }
+              return;
+            }
           }
-        }
-        if (widget.onKey != null) widget.onKey!(event, this);
-      },
-      child: Row(
-        children: [
-          ...tableDatasources.mapIndexedAndLast(
-            (_, datasource, isLast) => Expanded(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  border: isLast
-                      ? null
-                      : const Border(
-                          right: BorderSide(color: CupertinoColors.separator),
-                        ),
-                ),
-                child: TableView<Node>(
-                  rowHeight: 24,
+          if (widget.onKey != null) widget.onKey!(event, this);
+        },
+        child: tableDatasources
+            .mapIndexedAndLast(
+              (_, datasource, isLast) {
+                return TableView<Node>(
+                  rowHeight: 28,
                   dataSource: datasource,
                   showHeader: false,
-                  fullWidthHighlight: true,
+                  fullWidthHighlight: false,
                   showEvenRowHighlight: false,
                   isActive: Const(isLast),
-                ),
-              ),
-            ),
-          ),
-          // TODO: Preview column
-        ],
-      ),
-    );
+                )
+                    .decorated(
+                      border: isLast
+                          ? null
+                          : Border(
+                              right: MemexBorder.side.copyWith(width: 0.5)),
+                    )
+                    .padding(vertical: 8)
+                    .expanded();
+              },
+            )
+            .toList()
+            .toRow()
+        // TODO: Preview column?
+        );
   }
 }

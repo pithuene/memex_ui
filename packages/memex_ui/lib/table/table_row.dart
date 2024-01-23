@@ -112,6 +112,11 @@ class _RowHighlight extends ReactiveWidget {
 
   @override
   Widget build(BuildContext context) {
+    assert(
+      !(isActive.value == false && hasEvenRowHighlight),
+      "Inactive table with even row highlight will look terrible.",
+    );
+
     Decoration? decoration;
     TextStyle textStyle = MemexTypography.body
         .copyWith(fontFeatures: [const FontFeature.tabularFigures()]);
