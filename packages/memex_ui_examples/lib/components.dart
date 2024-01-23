@@ -1,4 +1,5 @@
 import 'package:memex_ui/memex_ui.dart';
+import 'package:memex_ui_examples/components/editor.dart';
 import 'package:memex_ui_examples/components/hover_detector.dart';
 import 'package:memex_ui_examples/components/jump_focus.dart';
 import 'package:memex_ui_examples/components/miller_columns.dart';
@@ -19,6 +20,7 @@ List<ComponentExample> components() => [
       componentSlider(),
       componentJumpFocus(),
       componentMillerColumns(),
+      componentEditor(),
     ];
 
 class ComponentExample {

@@ -13,11 +13,6 @@ export 'icon.dart';
 export 'switch.dart';
 export 'slider.dart';
 export 'table/table.dart';
-export 'editor/editor.dart';
-export 'editor/editor_state.dart';
-export 'editor/editor_view.dart';
-export 'editor/markdown_serialization.dart';
-export 'editor/markdown_deserialization.dart';
 export 'tree_view/tree_view.dart';
 export 'filepicker/filepicker.dart';
 export 'search_popup/search_popup.dart';
@@ -28,6 +23,8 @@ export 'jump_focus/jump_focus.dart';
 export 'jump_focus/jump_focus_target.dart';
 export 'button/button.dart';
 
+export 'appflowy_editor/editor.dart';
+
 export 'package:macos_ui/src/layout/toolbar/toolbar.dart';
 export 'package:macos_ui/src/buttons/toolbar/toolbar_icon_button.dart';
 export 'package:macos_ui/src/buttons/toolbar/toolbar_overflow_button.dart';
@@ -37,6 +34,7 @@ export 'package:macos_ui/src/layout/sidebar/sidebar.dart';
 export 'package:macos_ui/src/buttons/icon_button.dart';
 export 'package:macos_ui/src/buttons/push_button.dart';
 export 'package:macos_ui/src/buttons/pulldown_button.dart';
+export 'package:macos_ui/src/buttons/checkbox.dart';
 export 'package:macos_ui/src/dialogs/macos_alert_dialog.dart';
 export 'package:macos_ui/src/enums/control_size.dart';
 
