@@ -36,7 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   memex_ui:
     path: ../memex_ui
-  intl: ^0.17.0
+  intl: ^0.18.0
   xdg_directories: ^0.2.0+2
   freedesktop_desktop_entry: ^0.2.0
   fast_immutable_collections: ^8.0.0

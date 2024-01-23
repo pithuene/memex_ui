@@ -81,17 +81,17 @@ final TableDatasource<Person> datasource = TableDatasource(
   colDefs: [
     ColumnDefinition(
       label: "First name",
-      cellBuilder: (BuildContext context, Person content) =>
+      cellBuilder: (BuildContext context, Person content, _) =>
           Text(content.firstName),
     ),
     ColumnDefinition(
       label: "Last name",
-      cellBuilder: (BuildContext context, Person content) =>
+      cellBuilder: (BuildContext context, Person content, _) =>
           Text(content.lastName),
     ),
     ColumnDefinition(
       label: "Age",
-      cellBuilder: (BuildContext context, Person content) =>
+      cellBuilder: (BuildContext context, Person content, _) =>
           Text(content.age.toString()),
       alignment: ColumnAlignment.end,
     ),
