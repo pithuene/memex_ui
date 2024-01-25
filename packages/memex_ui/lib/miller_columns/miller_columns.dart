@@ -56,7 +56,10 @@ class GraphNode<Key, Node> {
   Node node;
 
   IList<Path<Key>>? children;
-  int selectedChildIndex = 0;
+
+  /// The index of the child that is currently selected.
+  /// Can be null if there are no children.
+  int? selectedChildIndex;
 
   /// Whether the node is a leaf.
   /// Returns null if the children have not been loaded,
@@ -66,7 +69,9 @@ class GraphNode<Key, Node> {
   bool childrenLoaded;
 
   Path<Key>? get selectedChildPath =>
-      childrenLoaded ? children![selectedChildIndex] : null;
+      (childrenLoaded && selectedChildIndex != null)
+          ? children![selectedChildIndex!]
+          : null;
 
   GraphNode(this.path, this.node) : childrenLoaded = false;
 
@@ -83,9 +88,10 @@ class MillerColumnsState<Key, Node> extends State<MillerColumns<Key, Node>> {
   final FocusNode focusNode = FocusNode();
 
   Path<Key> path = <Key>[].lockUnsafe;
-
   IMap<Path<Key>, GraphNode<Key, Node>> graph =
       <Path<Key>, GraphNode<Key, Node>>{}.lockUnsafe;
+
+  GraphNode<Key, Node> get curr => graph[path]!;
 
   /// Functions which return which path the datasources are showing.
   List<Path<Key>? Function()> tableDatasourcesShownPaths = [];
@@ -139,9 +145,9 @@ class MillerColumnsState<Key, Node> extends State<MillerColumns<Key, Node>> {
   }
 
   /// Get a [TableValue] for a given node path.
-  TableValue<Node> toTableValue(Path<Key> path) => TableValue<Node>(
-        key: ValueKey(path),
-        value: graph[path]!.node,
+  TableValue<Node> toTableValue(Path<Key> nodePath) => TableValue<Node>(
+        key: ValueKey(nodePath),
+        value: graph[nodePath]!.node,
       );
 
   void refreshColumns() {
@@ -149,8 +155,8 @@ class MillerColumnsState<Key, Node> extends State<MillerColumns<Key, Node>> {
     for (TableDatasource<Node> datasource in tableDatasources) {
       Path<Key>? shownPath = tableDatasourcesShownPaths[i]();
       datasource.dataChanged();
-      if (shownPath != null) {
-        datasource.selectIndex(graph[shownPath]!.selectedChildIndex);
+      if (shownPath != null && graph[shownPath]?.selectedChildIndex != null) {
+        datasource.selectIndex(graph[shownPath]!.selectedChildIndex!);
       }
       i++;
     }
@@ -162,22 +168,25 @@ class MillerColumnsState<Key, Node> extends State<MillerColumns<Key, Node>> {
       // Node is leaf
       parentNode.children = null;
       parentNode.childrenLoaded = true;
-      return;
+      parentNode.selectedChildIndex = null;
+    } else {
+      // Node is inner node
+      for (NodeAndKey<Key, Node> child in children) {
+        Path<Key> childPath = parentNode.path.add(child.key);
+        graph = graph.add(
+          childPath,
+          GraphNode(childPath, child.node),
+        );
+      }
+      parentNode.children =
+          children.map((child) => parentNode.path.add(child.key)).toIList();
+      parentNode.childrenLoaded = true;
+      parentNode.selectedChildIndex = switch (parentNode.children) {
+        null => null,
+        IList(length: 0) => null,
+        IList() => 0,
+      };
     }
-
-    for (NodeAndKey<Key, Node> child in children) {
-      Path<Key> childPath = parentNode.path.add(child.key);
-      graph = graph.add(
-        childPath,
-        GraphNode(childPath, child.node),
-      );
-    }
-    parentNode.children = children
-        .map(
-          (child) => parentNode.path.add(child.key),
-        )
-        .toIList();
-    parentNode.childrenLoaded = true;
   }
 
   Future<void> initColumns() async {
@@ -202,36 +211,39 @@ class MillerColumnsState<Key, Node> extends State<MillerColumns<Key, Node>> {
 
   void moveSelectionDown() {
     tableDatasources.last.moveSelectionDown();
-    if (graph[path]!.selectedChildIndex <
-        (graph[path]!.children?.length ?? 0) - 1) {
-      graph[path]!.selectedChildIndex++;
+    if (curr.selectedChildIndex != null &&
+        curr.selectedChildIndex! < (curr.children?.length ?? 0) - 1) {
+      curr.selectedChildIndex = curr.selectedChildIndex! + 1;
       // TODO: Refresh preview column
     }
   }
 
   void moveSelectionUp() {
     tableDatasources.last.moveSelectionUp();
-    if (graph[path]!.selectedChildIndex > 0) {
-      graph[path]!.selectedChildIndex--;
+    if (curr.selectedChildIndex != null && curr.selectedChildIndex! > 0) {
+      curr.selectedChildIndex = curr.selectedChildIndex! - 1;
       // TODO: Refresh preview column
     }
   }
 
   Future<void> moveIntoSelectedChild() async {
-    Path<Key> childPath = graph[path]!.selectedChildPath!;
-    GraphNode<Key, Node> child = graph[childPath]!;
-    if (!child.childrenLoaded) {
-      print("Loading children");
-      // TODO: Don't await here! This will make the UI feel very slow.
-      await fetchNodeChildren(child);
+    if (curr.selectedChildPath case Path<Key> childPath) {
+      GraphNode<Key, Node> child = graph[childPath]!;
+      if (!child.childrenLoaded) {
+        print("Loading children");
+        // TODO: Don't await here! This will make the UI feel very slow.
+        await fetchNodeChildren(child);
+      }
+      if (child.isLeaf!) {
+        if (widget.onSelect != null) widget.onSelect!(child.node);
+        return;
+      }
+      path = childPath;
+      refreshColumns();
+      if (child.selectedChildIndex != null) {
+        tableDatasources.last.selectIndex(child.selectedChildIndex!);
+      }
     }
-    if (child.isLeaf!) {
-      if (widget.onSelect != null) widget.onSelect!(child.node);
-      return;
-    }
-    path = childPath;
-    refreshColumns();
-    tableDatasources.last.selectIndex(child.selectedChildIndex);
   }
 
   void moveToParent() {
@@ -254,10 +266,7 @@ class MillerColumnsState<Key, Node> extends State<MillerColumns<Key, Node>> {
         showEvenRowHighlight: false,
         isActive: Const(isLastColumn),
         onRowTap: (rowIndex, row) {
-          if (isLastColumn) {
-            graph[path]!.selectedChildIndex = rowIndex;
-            moveIntoSelectedChild();
-          } else {
+          if (!isLastColumn) {
             final nthRowFromTheRight = widget.columnCount - dataSourceIndex - 1;
 
             // The parent path of the clicked entry
@@ -267,9 +276,9 @@ class MillerColumnsState<Key, Node> extends State<MillerColumns<Key, Node>> {
             );
 
             path = parentPath;
-            graph[path]!.selectedChildIndex = rowIndex;
-            moveIntoSelectedChild();
           }
+          curr.selectedChildIndex = rowIndex;
+          moveIntoSelectedChild();
         },
       )
           .decorated(
