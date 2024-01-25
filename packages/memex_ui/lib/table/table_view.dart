@@ -9,9 +9,11 @@ class TableView<T> extends ReactiveWidget {
     this.scrollController,
     required this.rowHeight,
     required this.dataSource,
+    this.onRowTap,
     this.showHeader = true,
     this.showEvenRowHighlight = true,
     this.isActive = const Const(true),
+    this.canReceiveInput = const Const(true),
     this.fullWidthHighlight = false,
   });
 
@@ -32,17 +34,22 @@ class TableView<T> extends ReactiveWidget {
   /// When the table is not active, the selection color is grey.
   final ReactiveValue<bool> isActive;
 
+  /// Whether the table can receive input through the [GestureDetector].
+  /// If false, tap events are not handled.
+  final ReactiveValue<bool> canReceiveInput;
+
+  /// Called when a table row is tapped, after the selection is changed.
+  final Function(int, TableValue<T>)? onRowTap;
+
   /// Optionally override the scrollController.
   final ScrollController? scrollController;
   final TableDatasource<T> dataSource;
 
+  static TableView<T> of<T>(BuildContext context) =>
+      context.findAncestorWidgetOfExactType<TableView<T>>()!;
+
   @override
   Widget build(BuildContext context) {
-    /// A map from column index to its TableColumnWidth.
-    /// Every Table widget needs this, so it is created once and cached here.
-    final Map<int, TableColumnWidth> columnWidths =
-        dataSource.colDefs.map((colDef) => colDef.width).toList().asMap();
-
     return StreamBuilder<TableOrder<T>?>(
       initialData: dataSource.order,
       stream: dataSource.onOrderChanged,
@@ -51,7 +58,6 @@ class TableView<T> extends ReactiveWidget {
           children: [
             if (showHeader)
               TableHeader<T>(
-                colDefs: dataSource.colDefs,
                 order: order.data,
                 columnHeaderClicked: (colDef) {
                   if (colDef == order.data?.column) {
@@ -68,19 +74,10 @@ class TableView<T> extends ReactiveWidget {
                 controller: scrollController,
                 itemCount: dataSource.rowCount,
                 itemExtent: rowHeight,
-                itemBuilder: (context, index) {
-                  return TableViewRow(
-                    data: dataSource,
-                    index: index,
-                    rowHeight: rowHeight,
-                    columnWidths: columnWidths,
-                    colDefs: dataSource.colDefs,
-                    row: dataSource.getRowValue(index),
-                    showEvenRowHighlight: showEvenRowHighlight,
-                    fullWidthHighlight: fullWidthHighlight,
-                    isActive: isActive,
-                  );
-                },
+                itemBuilder: (context, index) => TableViewRow(
+                  index: index,
+                  row: dataSource.getRowValue(index),
+                ),
               ),
             ).expanded(),
           ],

@@ -7,50 +7,39 @@ class TableViewRow<T> extends StatelessWidget {
   const TableViewRow({
     super.key,
     required this.index,
-    required this.columnWidths,
-    required this.colDefs,
     required this.row,
-    required this.rowHeight,
-    required this.data,
-    required this.isActive,
-    this.fullWidthHighlight = false,
-    bool showEvenRowHighlight = true,
-  }) : hasEvenRowHighlight = (showEvenRowHighlight) ? index % 2 == 1 : false;
+  });
 
-  final Map<int, TableColumnWidth> columnWidths;
-  final List<ColumnDefinition<T>> colDefs;
   final TableValue<T> row;
-
-  final double rowHeight;
-
   final int index;
-
-  final TableDatasource<T> data;
-
-  final bool hasEvenRowHighlight;
-  final bool fullWidthHighlight;
-
-  /// When the table is not active, the selection color is grey.
-  final ReactiveValue<bool> isActive;
 
   @override
   Widget build(BuildContext context) {
+    final tv = TableView.of<T>(context);
+
     return GestureDetector(
       onTap: () {
-        data.select(TableSelection(key: row.key, value: row.value));
+        if (tv.canReceiveInput.value) {
+          tv.dataSource.select(
+            TableSelection(key: row.key, value: row.value),
+            index,
+          );
+          if (tv.onRowTap != null) tv.onRowTap!(index, row);
+        }
       },
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 75),
-        padding: fullWidthHighlight
+        padding: tv.fullWidthHighlight
             ? EdgeInsets.zero
             : const EdgeInsets.symmetric(horizontal: 8),
         child: StreamBuilder<TableSelectionChange>(
-          stream: data.onSelectionChanged.where((change) =>
+          stream: tv.dataSource.onSelectionChanged.where((change) =>
               change.oldSelection?.key == row.key ||
               change.newSelection?.key == row.key),
           builder: (context, selection) {
-            final bool isSelected = data.selectedKeys.contains(row.key);
+            final bool isSelected =
+                tv.dataSource.selectedKeys.contains(row.key);
             if (isSelected && context.findRenderObject() != null) {
               Scrollable.ensureVisible(
                 context,
@@ -62,13 +51,11 @@ class TableViewRow<T> extends StatelessWidget {
                     ScrollPositionAlignmentPolicy.keepVisibleAtStart,
               );
             }
-            return _RowHighlight(
-              hasEvenRowHighlight: hasEvenRowHighlight,
-              fullWidthHighlight: fullWidthHighlight,
+            return _RowHighlight<T>(
               isSelected: isSelected,
-              isActive: isActive,
-              columnWidths: columnWidths,
-              childrenBuilder: (context) => colDefs
+              hasEvenRowHighlight:
+                  (tv.showEvenRowHighlight) ? index % 2 == 1 : false,
+              childrenBuilder: (context) => tv.dataSource.colDefs
                   .map(
                     (colDef) => colDef
                         .cellBuilder(context, row.value, isSelected)
@@ -77,7 +64,7 @@ class TableViewRow<T> extends StatelessWidget {
                           ColumnAlignment.center => Alignment.center,
                           ColumnAlignment.end => Alignment.centerRight,
                         })
-                        .height(rowHeight)
+                        .height(tv.rowHeight)
                         .padding(horizontal: 10),
                   )
                   .toList(),
@@ -90,30 +77,25 @@ class TableViewRow<T> extends StatelessWidget {
 }
 
 /// Add selection and even / odd highlighting to table rows
-class _RowHighlight extends ReactiveWidget {
+class _RowHighlight<T> extends ReactiveWidget {
   const _RowHighlight({
-    required this.isActive,
-    required this.hasEvenRowHighlight,
-    required this.fullWidthHighlight,
     required this.isSelected,
-    required this.columnWidths,
     required this.childrenBuilder,
+    required this.hasEvenRowHighlight,
   });
 
-  final bool hasEvenRowHighlight;
-  final bool fullWidthHighlight;
-
-  /// When the table is not active, the selection color is grey.
-  final ReactiveValue<bool> isActive;
-
   final bool isSelected;
-  final Map<int, TableColumnWidth> columnWidths;
   final List<Widget> Function(BuildContext) childrenBuilder;
+
+  /// Whether this specific row is highlighted.
+  final bool hasEvenRowHighlight;
 
   @override
   Widget build(BuildContext context) {
+    final TableView<T> tv = TableView.of<T>(context);
+
     assert(
-      !(isActive.value == false && hasEvenRowHighlight),
+      !(tv.isActive.value == false && hasEvenRowHighlight),
       "Inactive table with even row highlight will look terrible.",
     );
 
@@ -123,18 +105,18 @@ class _RowHighlight extends ReactiveWidget {
     if (hasEvenRowHighlight && !isSelected) {
       decoration = BoxDecoration(
         color: MemexColor.shade,
-        borderRadius: fullWidthHighlight
+        borderRadius: tv.fullWidthHighlight
             ? null
             : const BorderRadius.all(Radius.circular(5)),
       );
     } else if (isSelected) {
       decoration = BoxDecoration(
-        color: (isActive.value) ? MemexColor.selection : MemexColor.shade,
-        borderRadius: fullWidthHighlight
+        color: (tv.isActive.value) ? MemexColor.selection : MemexColor.shade,
+        borderRadius: tv.fullWidthHighlight
             ? null
             : const BorderRadius.all(Radius.circular(5)),
       );
-      if (isActive.value) {
+      if (tv.isActive.value) {
         textStyle = textStyle.copyWith(color: MemexColor.white);
       }
     }
@@ -142,7 +124,7 @@ class _RowHighlight extends ReactiveWidget {
       style: textStyle,
       child: Builder(
         builder: (context) => Table(
-          columnWidths: columnWidths,
+          columnWidths: tv.dataSource.columnWidths,
           defaultVerticalAlignment: TableCellVerticalAlignment.middle,
           children: [
             TableRow(

@@ -4,24 +4,23 @@ import 'package:memex_ui/memex_ui.dart';
 class TableHeader<T> extends StatelessWidget {
   const TableHeader({
     super.key,
-    required this.colDefs,
     required this.order,
     this.columnHeaderClicked,
   });
 
   static const double horizontalPadding = 10;
 
-  final List<ColumnDefinition<T>> colDefs;
   final Function(ColumnDefinition<T>)? columnHeaderClicked;
 
   final TableOrder<T>? order;
 
   @override
   Widget build(BuildContext context) {
+    final tv = TableView.of<T>(context);
     return Table(
       columnWidths: [
         const FixedColumnWidth(horizontalPadding),
-        ...colDefs.map((colDef) => colDef.width),
+        ...tv.dataSource.colDefs.map((colDef) => colDef.width),
         const FixedColumnWidth(horizontalPadding),
       ].asMap(),
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
@@ -29,7 +28,7 @@ class TableHeader<T> extends StatelessWidget {
         TableRow(
           children: [
             const SizedBox.shrink(),
-            ...colDefs.mapIndexedAndLast((index, colDef, _) {
+            ...tv.dataSource.colDefs.mapIndexedAndLast((index, colDef, _) {
               final bool isOrderedByThisColumn =
                   colDef.label == order?.column.label;
 
@@ -66,7 +65,7 @@ class TableHeader<T> extends StatelessWidget {
                     .padding(horizontal: 10, vertical: 3)
                     .border(
                       right: 1.0,
-                      color: (index == colDefs.length - 1)
+                      color: (index == tv.dataSource.colDefs.length - 1)
                           ? MemexColor.transparent
                           : MemexColor.grid,
                     )

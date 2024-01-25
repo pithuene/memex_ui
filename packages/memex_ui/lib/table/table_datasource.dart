@@ -42,26 +42,32 @@ class TableDatasource<T> {
     required this.getRowCount,
     required this.getRowValue,
   })  : _colDefs = colDefs,
+        columnWidths = colDefs.map((colDef) => colDef.width).toList().asMap(),
         _rowCount = getRowCount();
 
   // Various streams to enable partial rebuilding using StreamBuilder
   final StreamController<void> _dataChangedController =
-      StreamController<void>.broadcast();
+      StreamController<void>.broadcast(sync: true);
   Stream<void> get onDataChanged => _dataChangedController.stream;
 
   final StreamController<TableOrder<T>?> _orderChangedController =
-      StreamController<TableOrder<T>?>.broadcast();
+      StreamController<TableOrder<T>?>.broadcast(sync: true);
   Stream<TableOrder<T>?> get onOrderChanged => _orderChangedController.stream;
 
-  final StreamController<TableSelectionChange> _selectionChangedController =
-      StreamController<TableSelectionChange>.broadcast();
-  Stream<TableSelectionChange> get onSelectionChanged =>
+  final StreamController<TableSelectionChange<T>> _selectionChangedController =
+      StreamController<TableSelectionChange<T>>.broadcast(sync: true);
+  Stream<TableSelectionChange<T>> get onSelectionChanged =>
       _selectionChangedController.stream;
 
   // TODO: Add functions to change columns (if possible with animations)
 
   /// Define which columns are shown.
   final List<ColumnDefinition<T>> _colDefs;
+
+  /// A map from column index to its TableColumnWidth.
+  /// Every Table widget needs this, so it is created once and cached here.
+  final Map<int, TableColumnWidth> columnWidths;
+
   List<ColumnDefinition<T>> get colDefs => _colDefs;
 
   // By what column and in what direction the table is ordered.
@@ -92,14 +98,15 @@ class TableDatasource<T> {
   // TODO: Allow selecting multiple rows.
 
   /// The current selection of the table.
-  TableSelection? _selection;
+  TableSelection<T>? _selection;
 
   /// Change which rows are selected.
   ///
   /// Updates the internal selection and rebuilds
   /// the selected and previously selected rows.
-  void select(TableSelection<T>? selection) {
-    final selectionChange = TableSelectionChange(_selection, selection);
+  void select(TableSelection<T>? selection, int index) {
+    final selectionChange =
+        TableSelectionChange<T>(_selection, selection, index);
     _selection = selection;
     _selectionChangedController.add(selectionChange);
   }
@@ -110,7 +117,7 @@ class TableDatasource<T> {
     for (int i = 0; i < rowCount; i++) {
       TableValue<T> row = getRowValue(i);
       if (check(row)) {
-        select(TableSelection(key: row.key, value: row.value));
+        select(TableSelection(key: row.key, value: row.value), i);
       }
     }
   }
@@ -123,6 +130,7 @@ class TableDatasource<T> {
         key: row.key,
         value: row.value,
       ),
+      index,
     );
   }
 
@@ -147,13 +155,14 @@ class TableDatasource<T> {
     if (getRowCount() == 0) return;
     if (_selection == null) {
       TableValue<T> firstRow = getRowValue(0);
-      select(TableSelection(key: firstRow.key, value: firstRow.value));
+      select(TableSelection(key: firstRow.key, value: firstRow.value), 0);
     } else {
       int? currentSelectedRowIndex = _findRowKeyIndex(_selection?.key);
       if (currentSelectedRowIndex != null &&
           currentSelectedRowIndex < getRowCount() - 1) {
         TableValue<T> nextRow = getRowValue(currentSelectedRowIndex + 1);
-        select(TableSelection(key: nextRow.key, value: nextRow.value));
+        select(TableSelection(key: nextRow.key, value: nextRow.value),
+            currentSelectedRowIndex + 1);
       }
     }
   }
@@ -161,13 +170,21 @@ class TableDatasource<T> {
   void moveSelectionUp() {
     if (getRowCount() == 0) return;
     if (_selection == null) {
-      TableValue<T> lastRow = getRowValue(getRowCount() - 1);
-      select(TableSelection(key: lastRow.key, value: lastRow.value));
+      final newSelectionIndex = getRowCount() - 1;
+      TableValue<T> lastRow = getRowValue(newSelectionIndex);
+      select(
+        TableSelection(key: lastRow.key, value: lastRow.value),
+        newSelectionIndex,
+      );
     } else {
       int? currentSelectedRowIndex = _findRowKeyIndex(_selection?.key);
       if (currentSelectedRowIndex != null && currentSelectedRowIndex > 0) {
-        TableValue<T> nextRow = getRowValue(currentSelectedRowIndex - 1);
-        select(TableSelection(key: nextRow.key, value: nextRow.value));
+        final newSelectionIndex = currentSelectedRowIndex - 1;
+        TableValue<T> nextRow = getRowValue(newSelectionIndex);
+        select(
+          TableSelection(key: nextRow.key, value: nextRow.value),
+          newSelectionIndex,
+        );
       }
     }
   }

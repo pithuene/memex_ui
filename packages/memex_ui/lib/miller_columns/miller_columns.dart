@@ -114,27 +114,26 @@ class MillerColumnsState<Key, Node> extends State<MillerColumns<Key, Node>> {
         }
         return path.sublist(0, path.length - i);
       });
-      tableDatasources.add(
-        TableDatasource(
-          colDefs: colDefs,
-          getRowCount: () {
-            if (path.length - i < 0) {
-              return 0;
-            }
-            Path<Key> shownPath = path.sublist(0, path.length - i);
-            if (!graph.containsKey(shownPath)) {
-              print("$shownPath not in graph");
-              return 0;
-            }
-            return graph[shownPath]!.children?.length ?? 0;
-          },
-          getRowValue: (index) {
-            Path<Key> shownPath = path.sublist(0, path.length - i);
-            Path<Key> childPath = graph[shownPath]!.children![index];
-            return toTableValue(childPath);
-          },
-        ),
+      final newDatasource = TableDatasource<Node>(
+        colDefs: colDefs,
+        getRowCount: () {
+          if (path.length - i < 0) {
+            return 0;
+          }
+          Path<Key> shownPath = path.sublist(0, path.length - i);
+          if (!graph.containsKey(shownPath)) {
+            print("$shownPath not in graph");
+            return 0;
+          }
+          return graph[shownPath]!.children?.length ?? 0;
+        },
+        getRowValue: (index) {
+          Path<Key> shownPath = path.sublist(0, path.length - i);
+          Path<Key> childPath = graph[shownPath]!.children![index];
+          return toTableValue(childPath);
+        },
       );
+      tableDatasources.add(newDatasource);
     }
     setState(() {});
   }
@@ -223,6 +222,7 @@ class MillerColumnsState<Key, Node> extends State<MillerColumns<Key, Node>> {
     GraphNode<Key, Node> child = graph[childPath]!;
     if (!child.childrenLoaded) {
       print("Loading children");
+      // TODO: Don't await here! This will make the UI feel very slow.
       await fetchNodeChildren(child);
     }
     if (child.isLeaf!) {
@@ -240,65 +240,84 @@ class MillerColumnsState<Key, Node> extends State<MillerColumns<Key, Node>> {
     refreshColumns();
   }
 
+  /// Build a [TableView] for a given [TableDatasource].
+  Widget buildTableView(
+    int dataSourceIndex,
+    TableDatasource<Node> dataSource,
+    bool isLastColumn,
+  ) =>
+      TableView<Node>(
+        rowHeight: 28,
+        dataSource: dataSource,
+        showHeader: false,
+        fullWidthHighlight: false,
+        showEvenRowHighlight: false,
+        isActive: Const(isLastColumn),
+        onRowTap: (rowIndex, row) {
+          if (isLastColumn) {
+            graph[path]!.selectedChildIndex = rowIndex;
+            moveIntoSelectedChild();
+          } else {
+            final nthRowFromTheRight = widget.columnCount - dataSourceIndex - 1;
+
+            // The parent path of the clicked entry
+            final parentPath = path.sublist(
+              0,
+              path.length - nthRowFromTheRight,
+            );
+
+            path = parentPath;
+            graph[path]!.selectedChildIndex = rowIndex;
+            moveIntoSelectedChild();
+          }
+        },
+      )
+          .decorated(
+            border: isLastColumn
+                ? null
+                : Border(right: MemexBorder.side.copyWith(width: 0.5)),
+          )
+          .padding(vertical: 8)
+          .expanded();
+
   @override
   Widget build(BuildContext context) {
     return RawKeyboardListener(
-        autofocus: true,
-        focusNode: focusNode,
-        onKey: (event) async {
-          if (event is RawKeyDownEvent) {
-            if (event.logicalKey == LogicalKeyboardKey.keyH) {
-              moveToParent();
-              return;
-            } else if (event.logicalKey == LogicalKeyboardKey.keyL) {
-              await moveIntoSelectedChild();
-              return;
-            } else if (event.logicalKey == LogicalKeyboardKey.keyJ) {
+      autofocus: true,
+      focusNode: focusNode,
+      onKey: (event) async {
+        if (event is RawKeyDownEvent) {
+          if (event.logicalKey == LogicalKeyboardKey.keyH) {
+            moveToParent();
+            return;
+          } else if (event.logicalKey == LogicalKeyboardKey.keyL) {
+            await moveIntoSelectedChild();
+            return;
+          } else if (event.logicalKey == LogicalKeyboardKey.keyJ) {
+            moveSelectionDown();
+            return;
+          } else if (event.logicalKey == LogicalKeyboardKey.keyK) {
+            moveSelectionUp();
+            return;
+          } else if (event.isControlPressed &&
+              event.logicalKey == LogicalKeyboardKey.keyD) {
+            for (int i = 0; i < 10; i++) {
               moveSelectionDown();
-              return;
-            } else if (event.logicalKey == LogicalKeyboardKey.keyK) {
-              moveSelectionUp();
-              return;
-            } else if (event.isControlPressed &&
-                event.logicalKey == LogicalKeyboardKey.keyD) {
-              for (int i = 0; i < 10; i++) {
-                moveSelectionDown();
-              }
-              return;
-            } else if (event.isControlPressed &&
-                event.logicalKey == LogicalKeyboardKey.keyU) {
-              for (int i = 0; i < 10; i++) {
-                moveSelectionUp();
-              }
-              return;
             }
+            return;
+          } else if (event.isControlPressed &&
+              event.logicalKey == LogicalKeyboardKey.keyU) {
+            for (int i = 0; i < 10; i++) {
+              moveSelectionUp();
+            }
+            return;
           }
-          if (widget.onKey != null) widget.onKey!(event, this);
-        },
-        child: tableDatasources
-            .mapIndexedAndLast(
-              (_, datasource, isLast) {
-                return TableView<Node>(
-                  rowHeight: 28,
-                  dataSource: datasource,
-                  showHeader: false,
-                  fullWidthHighlight: false,
-                  showEvenRowHighlight: false,
-                  isActive: Const(isLast),
-                )
-                    .decorated(
-                      border: isLast
-                          ? null
-                          : Border(
-                              right: MemexBorder.side.copyWith(width: 0.5)),
-                    )
-                    .padding(vertical: 8)
-                    .expanded();
-              },
-            )
-            .toList()
-            .toRow()
-        // TODO: Preview column?
-        );
+        }
+        if (widget.onKey != null) widget.onKey!(event, this);
+      },
+      child:
+          tableDatasources.mapIndexedAndLast(buildTableView).toList().toRow(),
+      // TODO: Preview column?
+    );
   }
 }
