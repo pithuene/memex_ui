@@ -20,6 +20,7 @@ class MemexTypography {
     color: MemexColor.text,
   );
 
+  static const TextStyle extraLargeTitle = heading1;
   static const TextStyle heading1 = TextStyle(
     fontFamily: fontFamily,
     fontWeight: FontWeight.bold,
@@ -27,6 +28,7 @@ class MemexTypography {
     color: MemexColor.text,
   );
 
+  static const TextStyle largeTitle = heading2;
   static const TextStyle heading2 = TextStyle(
     fontFamily: fontFamily,
     fontWeight: FontWeight.bold,
@@ -35,6 +37,7 @@ class MemexTypography {
     letterSpacing: -0.03 * baseFontSize,
   );
 
+  static const TextStyle title = heading3;
   static const TextStyle heading3 = TextStyle(
     fontFamily: fontFamily,
     fontWeight: FontWeight.bold,
@@ -43,6 +46,7 @@ class MemexTypography {
     letterSpacing: -0.02 * baseFontSize,
   );
 
+  static const TextStyle subtitle = heading4;
   static const TextStyle heading4 = TextStyle(
     fontFamily: fontFamily,
     fontWeight: FontWeight.bold,

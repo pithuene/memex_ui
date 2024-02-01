@@ -4,7 +4,6 @@ export 'package:flutter/widgets.dart';
 export 'package:fast_immutable_collections/fast_immutable_collections.dart';
 export 'package:flutter/src/cupertino/icons.dart';
 
-export 'state/state.dart';
 export 'memex_app.dart';
 export 'color.dart';
 export 'border.dart';
@@ -22,6 +21,9 @@ export 'searchbar_client.dart';
 export 'jump_focus/jump_focus.dart';
 export 'jump_focus/jump_focus_target.dart';
 export 'button/button.dart';
+export 'extensions.dart';
+
+export 'package:memex_data/memex_data.dart';
 
 export 'appflowy_editor/editor.dart';
 

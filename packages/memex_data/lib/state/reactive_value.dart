@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:memex_ui/state/state.dart';
+import './state.dart';
 
 abstract class ReactiveValue<T> implements Listenable, ValueListenable<T> {}
 

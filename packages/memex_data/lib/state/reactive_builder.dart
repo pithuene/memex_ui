@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:memex_ui/state/state.dart';
+import './state.dart';
 
 class ReactiveBuilder extends StatefulWidget {
   final Widget Function() builder;

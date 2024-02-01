@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:memex_ui/state/state.dart';
+import './state.dart';
 
 abstract class ReactiveWidget extends StatefulWidget {
   const ReactiveWidget({super.key});

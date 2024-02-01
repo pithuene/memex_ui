@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:memex_ui/state/state.dart';
+import './state.dart';
 
 mixin ReactiveListener {
   /// The stack of [ReactiveListener] contexts in which execution

@@ -1,3 +1,4 @@
+/*
 import 'package:memex_ui/state/state.dart';
 
 class PropList<T> extends Prop<List<ReactiveValue<T>>> {
@@ -77,3 +78,4 @@ class Props<T> extends Prop<List<Prop<T>>> {
 
   T operator [](int index) => _value[index].value;
 }
+*/
