@@ -66,13 +66,16 @@ class _MemexUIExamplesAppState extends State<MemexUIExamplesApp> {
           items: components().map((component) => ComponentTreeViewNode(
                 label: TextSpan(text: component.name),
                 children: component.stories.map((story) {
-                  if (component.name == currentComponent?.name &&
-                      story.name == currentStory?.name) {
+                  final bool isCurrentStory =
+                      component.name == currentComponent?.name &&
+                          story.name == currentStory?.name;
+                  if (isCurrentStory) {
                     currentStory = story;
                   }
                   return mmx.TreeViewNode(
                     label: TextSpan(text: story.name),
                     usePersistentShortcuts: true,
+                    isSelected: isCurrentStory,
                     onTap: (_) {
                       setState(() {
                         currentStory = story;

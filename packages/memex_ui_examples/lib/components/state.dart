@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:memex_ui/memex_ui.dart' as mmx;
-import 'package:memex_ui/state/state.dart';
+import 'package:memex_ui/memex_ui.dart';
 import 'package:memex_ui_examples/components.dart';
 
 class MyWidget extends ReactiveWidget {
@@ -23,7 +22,7 @@ class StoryStateDefault extends Story {
 
   @override
   Widget build(BuildContext context) =>
-      mmx.HoverDetector(builder: (context, hovered, _) => MyWidget()).center();
+      HoverDetector(builder: (context, hovered, _) => MyWidget()).center();
 }
 
 class StoryStateResetOnParentRebuild extends Story {
@@ -32,10 +31,10 @@ class StoryStateResetOnParentRebuild extends Story {
   });
 
   @override
-  Widget build(BuildContext context) => mmx.HoverDetector(
+  Widget build(BuildContext context) => HoverDetector(
         builder: (context, hovered, _) => MyWidget()
             .padding(all: 20)
-            .backgroundColor(mmx.MemexColor.white)
+            .backgroundColor(MemexColor.white)
             .elevation(hovered ? 10 : 0)
             .animate(const Duration(milliseconds: 100), Curves.easeOutCubic),
       ).center();

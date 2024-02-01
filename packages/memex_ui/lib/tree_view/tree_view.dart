@@ -17,58 +17,61 @@ class TreeViewNode {
   /// This is useful when the tree is rather small and static.
   final bool usePersistentShortcuts;
 
+  final bool isSelected;
+
   const TreeViewNode({
     this.icon,
     required this.label,
     this.usePersistentShortcuts = false,
     this.onTap,
     this.children,
+    this.isSelected = false,
   });
 
-  Widget build(BuildContext context) => HoverDetector(
-        cursor: SystemMouseCursors.click,
-        builder: (context, isHovered, child) => child!.decorated(
-          color: isHovered && onTap != null
-              ? MemexColor.shade
-              : MemexColor.transparent,
-          borderRadius: BorderRadius.circular(5.0),
-        ),
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            if (onTap != null) onTap!(this);
-          },
-          child: JumpFocusTarget(
-            disabled: onTap == null,
-            usePersistentShortcut: usePersistentShortcuts,
-            onJump: () {
+  Widget build(BuildContext context) => DefaultTextStyle(
+        style: MemexTypography.body,
+        child: HoverDetector(
+          cursor: SystemMouseCursors.click,
+          builder: (context, isHovered, child) => child!.highlight(
+            visible: isHovered || isSelected,
+            active: isSelected,
+          ),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
               if (onTap != null) onTap!(this);
             },
-            builder: (context, key, isSelectable) => JumpTargetRow(
-              shortcut: key,
-              showTarget: isSelectable,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              targetMargin: const (5, 0),
-              child: Text.rich(
-                TextSpan(
-                  children: [
-                    if (icon != null)
-                      WidgetSpan(
-                        alignment: PlaceholderAlignment.middle,
-                        child: SizedBox.square(
-                          dimension: MemexTypography.baseFontSize,
-                          child: icon!,
+            child: JumpFocusTarget(
+              disabled: onTap == null,
+              usePersistentShortcut: usePersistentShortcuts,
+              onJump: () {
+                if (onTap != null) onTap!(this);
+              },
+              builder: (context, key, isSelectable) => JumpTargetRow(
+                shortcut: key,
+                showTarget: isSelectable,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                targetMargin: const (5, 0),
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      if (icon != null)
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: SizedBox.square(
+                            dimension: MemexTypography.baseFontSize,
+                            child: icon!,
+                          ),
                         ),
-                      ),
-                    if (icon != null) const TextSpan(text: " "),
-                    label,
-                  ],
-                ).fontWeight(FontWeight.w500),
-                style: MemexTypography.body,
-                overflow: TextOverflow.ellipsis,
-              ).expanded(),
-            ),
-          ).padding(horizontal: 10, vertical: 6),
+                      if (icon != null) const TextSpan(text: " "),
+                      label,
+                    ],
+                  ).fontWeight(FontWeight.w500),
+                  overflow: TextOverflow.ellipsis,
+                ).expanded(),
+              ),
+            ).padding(horizontal: 10, vertical: 6),
+          ),
         ),
       );
 }
