@@ -13,9 +13,10 @@
       url = "github:numtide/devshell";
     };
     flake-utils.url = "github:numtide/flake-utils";
+    nix-filter.url = "github:numtide/nix-filter";
   };
 
-  outputs = { self, nixpkgs, flutter-nix, devshell, flake-utils }:
+  outputs = { self, nixpkgs, flutter-nix, devshell, flake-utils, nix-filter }:
     flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
       let
         pkgs = import nixpkgs {
@@ -32,24 +33,20 @@
           pkgs.flutter.buildFlutterApplication {
             pname = name;
             version = "git";
-
-            src = nixpkgs.lib.cleanSource ./packages;
+        
+            src = nix-filter.lib {
+              root = ./packages;
+              # This filter limits the source to the package and its dependencies.
+              # This way, Nix will know not to rebuild packages that did not change.
+              include = [
+                "${name}"
+                "memex_ui"
+                "memex_data"
+                "appflowy-editor"
+              ];
+            };
 
             pubspecLock = pkgs.lib.importJSON ./packages/${name}/pubspec.lock.json;
-
-            # Copy the sources into the build directory.
-            # As I understand it, this is necessary because a source fetched using something like
-            # fetchFromGitHub is expected, but the default unpacking script doesn't work with a local directory.
-            unpackCmd = ''
-              runHook preUnpack;
-              
-              mkdir -p ./source;
-              # Copy all packages into the source directory.
-              # This is necessary in case of dependencies between them.
-              cp -r $src/* ./source/;
-            
-              runHook postUnpack;
-            '';
 
             sourceRoot = "source/${name}";
 
@@ -66,9 +63,9 @@
         };
         memex_bar = buildMemexApplication {
           name = "memex_bar";
-          nativeBuildInputs = [
-            pkgs.pkg-config
-            pkgs.gtk-layer-shell.dev
+          nativeBuildInputs = with pkgs; [
+            pkg-config
+            gtk-layer-shell.dev
           ];
         };
       in
