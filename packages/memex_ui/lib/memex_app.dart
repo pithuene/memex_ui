@@ -13,6 +13,7 @@ class App extends StatelessWidget {
     this.sidebar,
     this.endSidebar,
     this.toolBar,
+    this.backgroundColor = MemexColor.white,
     required this.builder,
   }) {
     memexAppName = appName;
@@ -22,6 +23,7 @@ class App extends StatelessWidget {
   final Sidebar? sidebar;
   final Sidebar? endSidebar;
   final ToolBar? toolBar;
+  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) => Portal(
@@ -32,7 +34,7 @@ class App extends StatelessWidget {
             shortcuts: const {},
             builder: (context, child) => MacosTheme(
               data: MacosThemeData(
-                canvasColor: MemexColor.white,
+                canvasColor: backgroundColor,
                 typography: MacosTypography(
                   color: MemexColor.text,
                   body: MemexTypography.body,
