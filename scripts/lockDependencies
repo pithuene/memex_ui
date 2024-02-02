@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Run 'pub get' in all packages and convert pubspec.lock to JSON for use in Nix
+
+FLAKE_ROOT="$(nix flake metadata --json | jq -r '.original.url' | cut -c 8-)"
+
+function generate_pubspec_lock_json() {
+  yq . $1/pubspec.lock > $1/pubspec.lock.json;
+}
+
+packages=$(nix flake show --json --quiet --quiet | jq '.packages' | jq -r 'map(keys) | add | join("\n")')
+echo "$packages" | while read -r package; do
+  echo "Running 'pub get' in $package";
+  flutter pub get --directory="$FLAKE_ROOT/packages/memex_$package";
+  echo "Converting pubspec.lock to JSON in $package";
+  generate_pubspec_lock_json "$FLAKE_ROOT/packages/memex_$package";
+done

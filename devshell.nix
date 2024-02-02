@@ -16,11 +16,6 @@ devshell.mkShell {
   '';
   commands = [
     {
-      help = "print hello";
-      name = "hello";
-      command = "echo $@";
-    }
-    {
       help = "Build one of the packages";
       name = "build";
       command = "nix build '.?submodules=1'#$1";
@@ -33,7 +28,7 @@ devshell.mkShell {
     {
       help = "Generate the package.lock.json file";
       name = "lockJson";
-      command = "yq . $PRJ_ROOT/packages/$1/pubspec.lock > $PRJ_ROOT/packages/$1/pubspec.lock.json";
+      command = "yq . $PRJ_ROOT/packages/memex_$1/pubspec.lock > $PRJ_ROOT/packages/memex_$1/pubspec.lock.json";
     }
   ];
   env = [
@@ -47,11 +42,13 @@ devshell.mkShell {
       # However, the .pc file in the .dev package points to the .so file in the
       # non-.dev package. So we need to add the .lib package to the LD_LIBRARY_PATH.
       name = "PKG_CONFIG_PATH";
-      value = "${gtk-layer-shell.dev}/lib/pkgconfig:${sqlite.dev}/lib/pkgconfig";
+      value = "${gtk-layer-shell.dev}/lib/pkgconfig";
+      # value = "${gtk-layer-shell.dev}/lib/pkgconfig:${sqlite.dev}/lib/pkgconfig";
     }
     {
       name = "LD_LIBRARY_PATH";
-      value = "${gtk-layer-shell}/lib:${sqlite.out}/lib";
+      value = "${gtk-layer-shell}/lib";
+      # value = "${gtk-layer-shell}/lib:${sqlite.out}/lib";
     }
   ];
   packages = [

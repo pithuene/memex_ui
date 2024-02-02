@@ -106,7 +106,7 @@ class _MemoryOverviewPageState extends State<MemoryOverviewPage> {
         ColumnDefinition(
           label: "Process Name",
           width: const FlexColumnWidth(),
-          cellBuilder: (context, process) {
+          cellBuilder: (context, process, isSelected) {
             Widget icon = const SizedBox.shrink();
             if (iconMap.containsKey(process.name)) {
               icon = iconMap[process.name]!;
@@ -125,21 +125,23 @@ class _MemoryOverviewPageState extends State<MemoryOverviewPage> {
           label: "PID",
           width: const FixedColumnWidth(100),
           alignment: ColumnAlignment.end,
-          cellBuilder: (context, process) => Text(process.pid.toString()),
+          cellBuilder: (context, process, isSelected) =>
+              Text(process.pid.toString()),
         ),
         ColumnDefinition(
           label: "CPU Load",
           width: const FixedColumnWidth(150),
           alignment: ColumnAlignment.end,
-          cellBuilder: (context, process) => Text(process.cpuLoad != null
-              ? '${(process.cpuLoad! * 100.0).toStringAsFixed(2)}%'
-              : '-'),
+          cellBuilder: (context, process, isSelected) => Text(
+              process.cpuLoad != null
+                  ? '${(process.cpuLoad! * 100.0).toStringAsFixed(2)}%'
+                  : '-'),
         ),
         ColumnDefinition(
           label: "Memory",
           width: const FixedColumnWidth(120),
           alignment: ColumnAlignment.end,
-          cellBuilder: (context, process) =>
+          cellBuilder: (context, process, isSelected) =>
               Text(formatByteAmount(process.memSize.toDouble())),
         ),
       ],

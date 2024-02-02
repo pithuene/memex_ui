@@ -23,22 +23,18 @@
           config.allowUnfree = false;
           overlays = [
             devshell.overlays.default
-            # If the flutter.nix flake ever creates problems, just remove
+            # If the flutter.nix flake ever creates problems, remove
             # this overlay and the nixpkgs version will be used again.
             flutter-nix.overlays.default
           ];
         };
-        buildMemexApplication = { name, vendorHash, nativeBuildInputs ? [ ] }:
+        buildMemexApplication = { name, nativeBuildInputs ? [ ] }:
           pkgs.flutter.buildFlutterApplication {
             pname = name;
             version = "git";
 
             src = nixpkgs.lib.cleanSource ./packages;
 
-            # Generated with the following command, which is documented nowhere:
-            # flutter pub deps --json | jq '.packages' > deps.json
-            depsListFile = ./packages/${name}/deps.json;
-            autoDepsList = false;
             pubspecLock = pkgs.lib.importJSON ./packages/${name}/pubspec.lock.json;
 
             # Copy the sources into the build directory.
@@ -58,25 +54,18 @@
             sourceRoot = "source/${name}";
 
             nativeBuildInputs = nativeBuildInputs;
-
-            # A hash based on the dependency used by the Flutter build.
-            vendorHash = vendorHash;
           };
         memex_activity_monitor = buildMemexApplication {
           name = "memex_activity_monitor";
-          vendorHash = "sha256-bcPROCdzUhtMIgnbPYRLlVZQCLX1WZjuJjroxB6sit4=";
         };
         #memex_editor = buildMemexApplication {
         #  name = "memex_editor";
-        #  vendorHash = "sha256-Ze0ewiTqiT/1grg7KaIXcMGhi3SSYuH785R4JAb8Os0=";
         #};
         memex_ui_examples = buildMemexApplication {
           name = "memex_ui_examples";
-          vendorHash = "sha256-Qn3VQXdXNKO9oEf6ixutpJON6dhJdIbqVKLTw351DQs=";
         };
         memex_bar = buildMemexApplication {
           name = "memex_bar";
-          vendorHash = "sha256-NXZHC2/lN1f51TFeOy7Fm73QnGj8cy+FBhuyTrrMel4=";
           nativeBuildInputs = [
             pkgs.pkg-config
             pkgs.gtk-layer-shell.dev

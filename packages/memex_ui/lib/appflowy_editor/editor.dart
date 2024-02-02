@@ -62,6 +62,23 @@ class EditorView extends ReactiveWidget {
     );
   }
 
+  List<CharacterShortcutEvent> customCharacterShortcutEvents() {
+    return [
+      //...standardCharacterShortcutEvents,
+      customSlashCommand(
+        standardSelectionMenuItems,
+        style: const SelectionMenuStyle(
+          selectionMenuBackgroundColor: MemexColor.white,
+          selectionMenuItemTextColor: MemexColor.text,
+          selectionMenuItemIconColor: MemexColor.text,
+          selectionMenuItemSelectedColor: MemexColor.selection,
+          selectionMenuItemSelectedTextColor: MemexColor.white,
+          selectionMenuItemSelectedIconColor: MemexColor.white,
+        ),
+      ),
+    ];
+  }
+
   Map<String, BlockComponentBuilder> customBuilder() {
     final configuration = BlockComponentConfiguration(
       textStyle: (node) => MemexTypography.body,
@@ -127,5 +144,6 @@ class EditorView extends ReactiveWidget {
         editorState: editorState,
         editorStyle: customizeEditorStyle(),
         blockComponentBuilders: customBuilder(),
+        characterShortcutEvents: customCharacterShortcutEvents(),
       );
 }
