@@ -1,5 +1,6 @@
 import 'package:memex_bar/main.dart';
 import 'package:memex_bar/modules/datetime.dart';
+import 'package:memex_bar/modules/sway.dart';
 import 'modules/wifi.dart';
 import 'package:memex_ui/memex_ui.dart';
 
@@ -10,10 +11,7 @@ class Bar extends ReactiveWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(width: 16),
-          Text(
-            "Window Title",
-            style: MemexTypography.body.copyWith(fontWeight: FontWeight.bold),
-          ),
+          const SwayModule(),
           const Spacer(),
           WifiModule(),
           const SizedBox(width: 24),
