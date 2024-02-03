@@ -15,21 +15,10 @@ class WifiModule extends BarModule {
     BuildContext context,
     bool isHovered,
   ) =>
-      Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: isHovered || isShown.value
-              ? MemexColor.shade
-              : MemexColor.transparent,
-          borderRadius: const BorderRadius.all(
-            Radius.circular(5),
-          ),
-        ),
-        child: const MemexIcon(
-          CupertinoIcons.wifi,
-          size: MemexTypography.baseFontSize * 1.1,
-        ),
-      );
+      const MemexIcon(
+        CupertinoIcons.wifi,
+        size: MemexTypography.baseFontSize * 1.1,
+      ).padding(all: 4).highlight(visible: isHovered || isShown.value);
 
   @override
   Widget buildOverlay(BuildContext context) => Column(
