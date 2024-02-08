@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import './state.dart';
+import './reactive_listener.dart';
 
 abstract class ReactiveWidget extends StatefulWidget {
   const ReactiveWidget({super.key});

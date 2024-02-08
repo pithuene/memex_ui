@@ -1,5 +1,4 @@
-import 'package:flutter/foundation.dart';
-import './state.dart';
+import 'reactive_value.dart';
 
 mixin ReactiveListener {
   /// The stack of [ReactiveListener] contexts in which execution
@@ -7,7 +6,6 @@ mixin ReactiveListener {
   /// context when accessing a [ReactiveValue].
   static final _contextStack = <ReactiveListener>[];
 
-  @protected
   static ReactiveListener? get currentContextListener =>
       _contextStack.isEmpty ? null : _contextStack.last;
 

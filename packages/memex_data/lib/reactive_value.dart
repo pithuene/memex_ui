@@ -1,11 +1,14 @@
 import 'package:flutter/foundation.dart';
-import './state.dart';
+import './reactive_listener.dart';
 
 abstract class ReactiveValue<T> implements Listenable, ValueListenable<T> {}
 
 class Prop<T> extends ChangeNotifier implements ReactiveValue<T> {
   T _value;
   Prop(this._value);
+
+  // TODO: Call shorthand for getting the value?
+  // T call() => value;
 
   @override
   T get value {
