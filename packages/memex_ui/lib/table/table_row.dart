@@ -105,17 +105,12 @@ class _RowHighlight<T> extends ReactiveWidget {
     if (hasEvenRowHighlight && !isSelected) {
       decoration = BoxDecoration(
         color: MemexColor.shade,
-        borderRadius: tv.fullWidthHighlight
-            ? null
-            : const BorderRadius.all(Radius.circular(5)),
+        borderRadius: tv.fullWidthHighlight ? null : MemexBorder.radius,
       );
     } else if (isSelected) {
       decoration = BoxDecoration(
-        color: (tv.isActive.value) ? MemexColor.selection : MemexColor.shade,
-        borderRadius: tv.fullWidthHighlight
-            ? null
-            : const BorderRadius.all(Radius.circular(5)),
-      );
+          color: (tv.isActive.value) ? MemexColor.selection : MemexColor.shade,
+          borderRadius: tv.fullWidthHighlight ? null : MemexBorder.radius);
       if (tv.isActive.value) {
         textStyle = textStyle.copyWith(color: MemexColor.white);
       }

@@ -26,7 +26,7 @@ extension Highlight on Widget {
             color: !visible
                 ? const Color(0x00000000)
                 : (active ? CupertinoColors.activeBlue : MemexColor.shade),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: MemexBorder.radius,
           ),
           child: DefaultTextStyle(
             style: active
