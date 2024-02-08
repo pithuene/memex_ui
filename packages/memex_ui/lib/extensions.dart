@@ -2,12 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:memex_ui/memex_ui.dart';
 
 extension StringToText on String {
-  Widget toText() => Text(this);
-  Widget toExtraLargeTitle() =>
+  Text toText() => Text(this);
+  Text toExtraLargeTitle() =>
       Text(this, style: MemexTypography.extraLargeTitle);
-  Widget toLargeTitle() => Text(this, style: MemexTypography.largeTitle);
-  Widget toTitle() => Text(this, style: MemexTypography.title);
-  Widget toSubtitle() => Text(this, style: MemexTypography.subtitle);
+  Text toLargeTitle() => Text(this, style: MemexTypography.largeTitle);
+  Text toTitle() => Text(this, style: MemexTypography.title);
+  Text toSubtitle() => Text(this, style: MemexTypography.subtitle);
 }
 
 /// A rounded highlight box around a widget.
