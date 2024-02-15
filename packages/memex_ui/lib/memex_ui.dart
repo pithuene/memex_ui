@@ -11,6 +11,7 @@ export 'typography.dart';
 export 'icon.dart';
 export 'switch.dart';
 export 'slider.dart';
+export 'package:macos_ui/src/indicators/slider.dart';
 export 'table/table.dart';
 export 'tree_view/tree_view.dart';
 export 'filepicker/filepicker.dart';

@@ -61,6 +61,9 @@
         memex_ui_examples = buildMemexApplication {
           name = "memex_ui_examples";
         };
+        memex_music = buildMemexApplication {
+          name = "memex_music";
+        };
         memex_bar = buildMemexApplication {
           name = "memex_bar";
           nativeBuildInputs = with pkgs; [
@@ -73,6 +76,7 @@
         packages.activity_monitor = memex_activity_monitor;
         # packages.editor = memex_editor;
         packages.ui_examples = memex_ui_examples;
+        packages.music = memex_music;
         packages.bar = memex_bar;
         # The default package contains all applications.
         packages.default = pkgs.stdenv.mkDerivation {
@@ -81,6 +85,7 @@
             memex_activity_monitor
             #memex_editor
             memex_ui_examples
+            memex_music
             memex_bar
           ];
           phases = [ "installPhase" ];

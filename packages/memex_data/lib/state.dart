@@ -27,7 +27,7 @@ extension StateFromContext on BuildContext {
 // TODO: Lifecycle methods?
 class StateProvider extends StatefulWidget {
   final WidgetBuilder builder;
-  final Iterable models;
+  final Iterable<Function()> models;
 
   const StateProvider({
     super.key,

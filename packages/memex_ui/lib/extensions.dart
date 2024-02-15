@@ -8,6 +8,7 @@ extension StringToText on String {
   Text toLargeTitle() => Text(this, style: MemexTypography.largeTitle);
   Text toTitle() => Text(this, style: MemexTypography.title);
   Text toSubtitle() => Text(this, style: MemexTypography.subtitle);
+  TextSpan toSpan() => TextSpan(text: this);
 }
 
 /// A rounded highlight box around a widget.
