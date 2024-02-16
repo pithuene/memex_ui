@@ -13,17 +13,24 @@ class DirectoryExplorer extends StatelessWidget {
 
   final bool showHidden;
 
+  final IList<String>? initialPath;
+
+  final int? columnCount;
+
   const DirectoryExplorer({
     Key? key,
     this.onKey,
     this.onSelect,
+    this.initialPath,
+    this.columnCount,
     this.showHidden = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) => MillerColumns<String, FileSystemEntity>(
         rootNode: Directory("/"),
-        initialPath: <String>["home", "pit"].lockUnsafe,
+        initialPath: initialPath ?? <String>["home"].lockUnsafe,
+        columnCount: columnCount ?? 5,
         onKey: onKey,
         getChildren: (FileSystemEntity parent) async {
           if (!await FileSystemEntity.isDirectory(parent.path)) {

@@ -128,7 +128,6 @@ class MillerColumnsState<Key, Node> extends State<MillerColumns<Key, Node>> {
           }
           Path<Key> shownPath = path.sublist(0, path.length - i);
           if (!graph.containsKey(shownPath)) {
-            print("$shownPath not in graph");
             return 0;
           }
           return graph[shownPath]!.children?.length ?? 0;
@@ -230,7 +229,6 @@ class MillerColumnsState<Key, Node> extends State<MillerColumns<Key, Node>> {
     if (curr.selectedChildPath case Path<Key> childPath) {
       GraphNode<Key, Node> child = graph[childPath]!;
       if (!child.childrenLoaded) {
-        print("Loading children");
         // TODO: Don't await here! This will make the UI feel very slow.
         await fetchNodeChildren(child);
       }

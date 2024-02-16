@@ -64,6 +64,9 @@
         memex_music = buildMemexApplication {
           name = "memex_music";
         };
+        memex_filepicker = buildMemexApplication {
+          name = "memex_filepicker";
+        };
         memex_bar = buildMemexApplication {
           name = "memex_bar";
           nativeBuildInputs = with pkgs; [
@@ -77,6 +80,7 @@
         # packages.editor = memex_editor;
         packages.ui_examples = memex_ui_examples;
         packages.music = memex_music;
+        packages.filepicker = memex_filepicker;
         packages.bar = memex_bar;
         # The default package contains all applications.
         packages.default = pkgs.stdenv.mkDerivation {
@@ -86,6 +90,7 @@
             #memex_editor
             memex_ui_examples
             memex_music
+            memex_filepicker
             memex_bar
           ];
           phases = [ "installPhase" ];
