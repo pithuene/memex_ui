@@ -46,7 +46,10 @@ class DirectoryExplorer extends StatelessWidget {
                     child.path.split("/").last,
                   ),
                 )
-                .where((child) => showHidden || !child.key.startsWith("."))
+                .where((child) =>
+                    showHidden ||
+                    !child.key.startsWith(".") ||
+                    (initialPath ?? [].lockUnsafe).contains(child.key))
                 .toList();
             // Sort by name.
             entries.sort((a, b) => a.key.compareTo(b.key));
